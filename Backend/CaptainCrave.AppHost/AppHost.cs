@@ -1,11 +1,12 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var database = builder.AddConnectionString("DefaultConnection");
+var sql = builder.AddSqlServer("sql");
+
+var database = sql.AddDatabase("DefaultConnection");
 
 var api = builder
     .AddProject<Projects.CaptainCrave_Api>("api")
     .WithReference(database);
-
 
 builder
     .AddViteApp("Client", "../../Client")
