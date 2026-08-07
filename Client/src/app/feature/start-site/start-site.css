@@ -8,8 +8,8 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  color: #231f20;
-  background: #f8f7f4;
+  background: #04111f;
+  color: white;
 }
 
 * {
@@ -21,190 +21,147 @@
 }
 
 .hero {
-  min-height: 440px;
+  min-height: 100vh;
   display: flex;
   align-items: center;
+  position: relative;
+  overflow: hidden;
   padding: 80px 8%;
+
   background:
-    radial-gradient(circle at 85% 20%, rgba(255, 255, 255, 0.22), transparent 28%),
-    linear-gradient(135deg, #ff5533, #ff8a3d);
-  color: white;
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(218, 167, 67, 0.16),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #020914,
+      #071d33 55%,
+      #0b3554
+    );
+}
+
+.hero::after {
+  content: "☠";
+  position: absolute;
+  right: 6%;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(14rem, 30vw, 30rem);
+  color: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
 }
 
 .hero-content {
-  max-width: 720px;
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
 }
 
 .badge {
   display: inline-block;
-  padding: 8px 14px;
   margin-bottom: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 9px 15px;
+
+  border: 1px solid rgba(218, 167, 67, 0.7);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
-.hero h1 {
-  max-width: 700px;
-  margin: 0;
-  font-size: clamp(3rem, 8vw, 6.5rem);
-  line-height: 0.95;
-  letter-spacing: -0.06em;
-}
+  background: rgba(218, 167, 67, 0.1);
+  color: #e6b84f;
 
-.hero p {
-  max-width: 550px;
-  margin: 28px 0 0;
-  font-size: 1.15rem;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 32px;
-}
-
-.actions button,
-.food-card button {
-  border: 0;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-}
-
-.primary {
-  padding: 14px 22px;
-  border-radius: 10px;
-  background: #231f20;
-  color: white;
-}
-
-.secondary {
-  padding: 14px 22px;
-  border: 1px solid rgba(255, 255, 255, 0.5) !important;
-  border-radius: 10px;
-  background: transparent;
-  color: white;
-}
-
-.content {
-  width: min(1200px, calc(100% - 40px));
-  margin: 0 auto;
-  padding: 72px 0;
-}
-
-.section-heading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  margin-bottom: 28px;
-}
-
-.eyebrow {
-  color: #ff5533;
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.section-heading h2 {
-  margin: 8px 0 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-  letter-spacing: -0.04em;
+.hero h1 {
+  margin: 0;
+  max-width: 760px;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: clamp(4rem, 9vw, 7.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+
+  color: #fff6df;
 }
 
-.cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+.hero h1 span {
+  color: #e6b84f;
 }
 
-.food-card {
-  padding: 28px;
-  border: 1px solid #e9e5df;
-  border-radius: 20px;
-  background: white;
+.hero p {
+  max-width: 570px;
+  margin: 30px 0 0;
+
+  font-size: 1.15rem;
+  line-height: 1.8;
+
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 36px;
+}
+
+.actions button {
+  padding: 14px 22px;
+  border-radius: 9px;
+
+  cursor: pointer;
+
+  font: inherit;
+  font-weight: 750;
+
   transition:
     transform 160ms ease,
-    box-shadow 160ms ease;
+    background 160ms ease;
 }
 
-.food-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+.actions button:hover {
+  transform: translateY(-3px);
 }
 
-.card-icon {
-  font-size: 2.5rem;
+.primary {
+  border: 1px solid #e6b84f;
+  background: #e6b84f;
+  color: #081522;
 }
 
-.food-card h3 {
-  margin: 24px 0 8px;
-  font-size: 1.4rem;
+.primary:hover {
+  background: #f2ca6d;
 }
 
-.food-card p {
-  min-height: 52px;
-  margin: 0;
-  line-height: 1.6;
-  color: #6d6865;
+.secondary {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
 }
 
-.food-card button {
-  margin-top: 22px;
-  padding: 10px 16px;
-  border-radius: 8px;
-  background: #f1efeb;
-  color: #231f20;
-}
-
-.router-section {
-  margin-top: 70px;
-  overflow: hidden;
-  border: 1px solid #dedbd5;
-  border-radius: 18px;
-  background: white;
-}
-
-.router-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 15px 20px;
-  border-bottom: 1px solid #e9e5df;
-  background: #f3f1ed;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.status {
-  color: #238636;
-}
-
-.router-content {
-  min-height: 100px;
-  padding: 20px;
+.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 @media (max-width: 800px) {
   .hero {
-    min-height: 380px;
     padding: 60px 24px;
   }
 
-  .content {
-    width: min(100% - 32px, 1200px);
-    padding-top: 48px;
+  .hero::after {
+    right: -20%;
   }
 
-  .cards {
-    grid-template-columns: 1fr;
+  .actions {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
