@@ -1,0 +1,46 @@
+.profile-page {
+  padding: 40px 16px;
+}
+.profile-card {
+  max-width: 520px;
+  margin: 40px auto;
+  padding: 24px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
+.profile-card h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.profile-info {
+  margin-bottom: 20px;
+}
+
+.profile-info p {
+  margin: 8px 0;
+}
+
+.profile-state {
+  margin: 12px 0 0;
+}
+
+.profile-state-error {
+  color: #b00020;
+}
+
+.profile-state-success {
+  color: #0b6e4f;
+}
+
+#profile-map {
+  height: 260px;
+  width: 100%;
+  margin-top: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}

@@ -1,0 +1,37 @@
+.home-page {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 1.5rem;
+}
+
+.home-card {
+  width: min(100%, 40rem);
+  padding: 2rem;
+  text-align: center;
+}
+
+.home-card h1 {
+  margin: 0 0 1rem;
+  color: var(--color-dark);
+}
+
+.home-card p {
+  margin: 0;
+  color: var(--color-muted);
+}
+
+.signed-in {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.home-actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.home-actions a {
+  text-decoration: none;
+}

@@ -1,0 +1,42 @@
+<div class="profile-page" *transloco="let t">
+  <div class="profile-card">
+    <h2>{{ t('profile.title') }}</h2>
+
+    <div class="profile-info">
+      <p>
+        <strong>{{ t('profile.name') }}:</strong>
+        {{ name() }}
+      </p>
+
+      <p>
+        <strong>{{ t('profile.address') }}:</strong>
+        {{ address() }}
+      </p>
+    </div>
+
+    <label for="address">{{ t('profile.changeAddress') }}</label>
+
+    <input
+      id="address"
+      class="form-input"
+      type="text"
+      [placeholder]="t('profile.placeholder.address')"
+      [ngModel]="addressInput()"
+      (ngModelChange)="addressInput.set($event)"
+    />
+
+    <button class="form-button" type="button" (click)="saveAddress()">
+      {{ t('profile.saveAddress') }}
+    </button>
+
+    @if (saveError()) {
+      <p class="profile-state profile-state-error">{{ saveError() }}</p>
+    }
+
+    @if (saveSuccess()) {
+      <p class="profile-state profile-state-success">{{ saveSuccess() }}</p>
+    }
+
+    <div id="profile-map"></div>
+  </div>
+</div>
