@@ -1,0 +1,50 @@
+<div class="auth-card" *transloco="let t">
+  <h2>{{ t("login.title") }}</h2>
+
+  <form [formRoot]="loginForm">
+    <label>{{ t("login.label.email") }}</label>
+    <input
+      class="form-input"
+      type="email"
+      [formField]="loginForm.email"
+      [placeholder]="t('login.placeholder.email')"
+    />
+
+    @if (loginForm.email().touched() && loginForm.email().invalid()) {
+      @for (error of loginForm.email().errors(); track error.kind) {
+        <p class="error">{{ error.message }}</p>
+      }
+    }
+
+    <label>{{ t("login.label.password") }}</label>
+    <input
+      class="form-input"
+      type="password"
+      [formField]="loginForm.password"
+      [placeholder]="t('login.placeholder.password')"
+    />
+
+    @if (loginForm.password().touched() && loginForm.password().invalid()) {
+      @for (error of loginForm.password().errors(); track error.kind) {
+        <p class="error">{{ error.message }}</p>
+      }
+    }
+
+    @if (loginError()) {
+      <p class="error">{{ loginError() }}</p>
+    }
+
+    <button
+      class="form-button"
+      type="submit"
+      [disabled]="loginForm().invalid() || isSubmitting()"
+    >
+      {{ isSubmitting() ? t("login.signingIn") : t("login.button") }}
+    </button>
+  </form>
+
+  <div class="form-link">
+    {{ t("login.createAccount") }}
+    <a routerLink="/register">{{ t("login.signUp") }}</a>
+  </div>
+</div>
