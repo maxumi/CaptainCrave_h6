@@ -1,0 +1,60 @@
+<nav class="navbar" *transloco="let t">
+  <a class="brand" href="/" aria-label="Captain Crave home">
+    <img src="captain_crave.png" alt="Captain Crave logo" />
+    <span>Captain Crave</span>
+  </a>
+
+  <!-- Search box disabled for now
+  <form class="search-box" role="search">
+    <mat-icon class="search-icon">search</mat-icon>
+    <input type="text" [placeholder]="t('navbar.search')" />
+  </form>
+  -->
+
+  <!-- Notifications disabled for now
+  <div class="navbar-actions">
+    <button class="notification-btn" type="button" aria-label="Notifications">
+      <mat-icon class="notification-icon">notifications</mat-icon>
+    </button>
+  </div>
+  -->
+
+  <div class="auth-buttons">
+    @if (user()) {
+      @if (user()?.role !== 'Restaurant') {
+        <button class="cart-btn" type="button" routerLink="/cart" aria-label="Cart">
+          <mat-icon>shopping_cart</mat-icon>
+          <span>Cart</span>
+        </button>
+      }
+
+      <button class="profile-btn" type="button" [routerLink]="profileRoute()">
+        <mat-icon>account_circle</mat-icon>
+        <span>{{ user()?.name }}</span>
+      </button>
+
+      <button class="signin-btn" type="button" (click)="logout()">
+        Logout
+      </button>
+    } @else {
+      <button class="signin-btn" type="button" routerLink="/login">
+        {{ t("navbar.signIn") }}
+      </button>
+
+      <button class="register-btn" type="button" routerLink="/register">
+        {{ t("navbar.register") }}
+      </button>
+    }
+  </div>
+
+  <div class="language-select">
+    <select
+      [value]="currentLang()"
+      (change)="setLang($any($event.target).value)"
+      aria-label="Select language"
+    >
+      <option value="en">{{ t("navbar.lang.en") }}</option>
+      <option value="da">{{ t("navbar.lang.da") }}</option>
+    </select>
+  </div>
+</nav>

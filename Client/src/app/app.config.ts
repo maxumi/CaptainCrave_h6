@@ -5,11 +5,14 @@ import { routes } from './app.routes';
 import { provideTransloco } from '@jsverse/transloco';
 import { TranslocoHttpLoader } from '../transloco-loader';
 import { providePreloadUserLang } from '../preload-user-lang';
+import { authInterceptor } from './core/auth/auth-interceptor';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    provideHttpClient(withInterceptors([authInterceptor])),
     provideTransloco({
         config: { 
           availableLangs: ['en', 'da'],

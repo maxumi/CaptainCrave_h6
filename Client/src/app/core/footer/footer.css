@@ -1,0 +1,16 @@
+.footer {
+  background-color: var(--color-dark);
+  color: var(--color-white);
+  padding: 16px 24px;
+  text-align: center;
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer small {
+  display: block;
+  margin-top: 6px;
+  color: #ccc;
+}

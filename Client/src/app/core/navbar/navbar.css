@@ -1,0 +1,170 @@
+/* when angular is renderd it is throwin inside an additonal div,
+   use host when manipulating that */
+
+:host {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: block;
+  padding: 0;
+}
+.navbar {
+  width: 100%;
+  margin: 0;
+  padding: 14px 40px;
+  background-color: #f8f8f8;
+  color: #222;
+  border-radius: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+}
+
+.search-box {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  background-color: #eee8f0;
+  border-radius: 20px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.notification-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-icon {
+  color: #333;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.notification-btn:hover .notification-icon {
+  color: #116df7;
+  transform: scale(1.15);
+}
+
+.auth-buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth-buttons button {
+  min-width: 92px;
+  border-radius: 10px;
+  background-color: #222;
+  color: #fff;
+  cursor: pointer;
+  padding: 5px 12px;
+  transition-duration: 0.4s;
+  white-space: nowrap;
+}
+
+.auth-buttons button:hover {
+  background-color: #ffffff;
+  color: black;
+  box-shadow: 0 2px 5px rgba(178, 25, 25, 0.5);
+}
+
+.language-select select {
+  min-width: 90px;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #222;
+  cursor: pointer;
+  outline: none;
+  font-size: 14px;
+}
+
+.language-select select:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 5px rgba(178, 25, 25, 0.25);
+}
+
+.language-select select:focus {
+  border-color: #116df7;
+  box-shadow: 0 0 0 2px rgba(17, 109, 247, 0.2);
+}
+
+.user-name {
+  color: #222;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.profile-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.cart-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.profile-btn mat-icon {
+  font-size: 24px;
+  width: 24px;
+  height: 24px;
+}
+
+.cart-btn mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
