@@ -1,1 +1,128 @@
 /* You can add global styles to this file, and also import other style files */
+:root {
+  --color-dark: #222;
+  --color-white: #fff;
+
+  --color-primary: #a6c8fa;
+  --color-danger: #b21919;
+  --color-muted: #302f2f;
+
+  --color-border: #d0c6c6;
+}
+
+body {
+  margin: 0;
+  background-color: #f5f5f5;
+  min-height: 100%;
+}
+.app-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+}
+
+/* Auth */
+
+.auth-card {
+  max-width: 360px;
+  margin: 80px auto;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+}
+
+.auth-card h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0 16px;
+  box-sizing: border-box;
+}
+
+.form-button {
+  width: 100%;
+  padding: 10px;
+  background-color: var(--color-dark);
+  color: var(--color-white);
+  cursor: pointer;
+  border: none;
+}
+
+.form-link {
+  text-align: center;
+  margin-top: 16px;
+}
+
+.form-link a {
+  font-weight: bold;
+  text-decoration: none;
+  color: var(--color-muted);
+}
+
+.form-link a:hover {
+  text-decoration: underline;
+}
+
+
+/** test */
+.card {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: rgba(100, 100, 111, 0.15) 0px 7px 29px 0px;
+}
+
+.btn {
+  border: 1px solid var(--color-dark);
+  background-color: var(--color-dark);
+  color: var(--color-white);
+  border-radius: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: var(--color-white);
+  color: var(--color-dark);
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.status {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background-color: var(--color-primary);
+  color: var(--color-dark);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.status.out {
+  background-color: #f4d2d2;
+  color: var(--color-danger);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
