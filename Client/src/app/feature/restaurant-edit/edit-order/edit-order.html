@@ -1,0 +1,135 @@
+<div *transloco="let t">
+  <header class="menu-header">
+    <div>
+      <h1>{{ t('orderManage.title') }}</h1>
+      <p>{{ t('orderManage.subtitle') }}</p>
+    </div>
+  </header>
+
+  <section class="card" style="padding: 12px; margin-bottom: 16px; display: flex; gap: 8px;">
+    <button type="button" class="btn" [class.save-btn]="mode() === 'active'" (click)="setMode('active')">
+      {{ t('orderManage.mode.active') }}
+    </button>
+
+    <button type="button" class="btn" [class.save-btn]="mode() === 'history'" (click)="setMode('history')">
+      {{ t('orderManage.mode.history') }}
+    </button>
+  </section>
+
+  <section class="menu-table card" [attr.aria-label]="t('orderManage.aria.orders')">
+    <div class="table-head order-head">
+      <span>{{ t('orderManage.table.order') }}</span>
+      <span>{{ t('orderManage.table.customer') }}</span>
+      <span>{{ t('orderManage.table.total') }}</span>
+      <span>{{ t('orderManage.table.type') }}</span>
+      <span>{{ t('orderManage.table.status') }}</span>
+      <span>{{ t('orderManage.table.action') }}</span>
+    </div>
+
+    @if (isLoading()) {
+      <div class="table-row order-row">
+        <span>{{ t('orderManage.loading') }}</span>
+      </div>
+    } @else if (loadError()) {
+      <div class="table-row order-row">
+        <span>{{ loadError() }}</span>
+      </div>
+    } @else if (!orders().length) {
+      <div class="table-row order-row">
+        <span>{{ t('orderManage.empty') }}</span>
+      </div>
+    } @else {
+      @for (order of orders(); track order.id) {
+        <div class="table-row order-row" [class.selected]="selectedOrder()?.id === order.id">
+          <div>
+            <strong>#{{ order.id }}</strong>
+            <p>{{ order.createdAt | date: 'medium' }}</p>
+          </div>
+
+          <span>{{ order.userName }}</span>
+          <span>{{ order.totalPrice }}kr.</span>
+          <span>{{ order.deliveryType }}</span>
+
+          <span>
+            <span class="status" [class.out]="order.status === OrderStatus.Cancelled">
+              {{ order.status }}
+            </span>
+          </span>
+
+          <div class="actions">
+            <button type="button" class="btn" (click)="selectOrder(order)">
+              {{ t('orderManage.button.view') }}
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </section>
+
+  @if (selectedOrder()) {
+    <form class="order-details card" [formRoot]="orderForm">
+      <header>
+        <div>
+          <h2>{{ t('orderManage.details.orderNumber', { id: selectedOrder()?.id }) }}</h2>
+          <p>{{ selectedOrder()?.createdAt | date: 'medium' }}</p>
+
+          @if (isSelectedOrderHistoric()) {
+            <p>{{ t('orderManage.details.historicReadonly') }}</p>
+          }
+        </div>
+
+        @if (!isSelectedOrderHistoric()) {
+          <button type="submit" class="btn save-btn">
+            {{ t('orderManage.button.saveChanges') }}
+          </button>
+        }
+      </header>
+
+      <div class="edit-form">
+        <label>
+          {{ t('orderManage.label.customer') }}
+          <input class="form-control" type="text" [value]="selectedOrder()?.userName" disabled />
+        </label>
+
+        <label>
+          {{ t('orderManage.label.status') }}
+
+          @if (isSelectedOrderHistoric()) {
+            <input class="form-control" type="text" [value]="selectedOrder()?.status" disabled />
+          } @else {
+            <select class="form-control" [formField]="orderForm.status">
+              @for (status of selectableStatuses(); track status) {
+                <option [value]="status">{{ status }}</option>
+              }
+            </select>
+          }
+        </label>
+
+        <label>
+          {{ t('orderManage.label.total') }}
+          <input class="form-control" type="number" [value]="selectedOrder()?.totalPrice" disabled />
+        </label>
+      </div>
+
+      <div class="order-items">
+        <h3>{{ t('orderManage.items.title') }}</h3>
+
+        @for (item of selectedOrder()?.items ?? []; track item.id) {
+          <div class="order-item">
+            <input class="form-control" type="text" [value]="item.menuItemName" disabled />
+            <input class="form-control" type="number" [value]="item.quantity" disabled />
+            <input class="form-control" type="number" [value]="item.price" disabled />
+          </div>
+        }
+      </div>
+
+      @if (saveError()) {
+        <p class="error-message">{{ saveError() }}</p>
+      }
+
+      @if (saveSuccess()) {
+        <p class="success-message">{{ saveSuccess() }}</p>
+      }
+    </form>
+  }
+</div>

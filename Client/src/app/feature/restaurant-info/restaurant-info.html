@@ -1,0 +1,55 @@
+<div class="restaurant-info-page" *transloco="let t">
+  <div class="restaurant-banner">
+    <img src="captain_crave_banner.png" alt="Captain Crave" />
+  </div>
+
+  <h2>{{ t('restaurantInfo.menu') }}</h2>
+
+  @if (isLoading()) {
+    <p class="menu-state">{{ t('restaurantInfo.loading') }}</p>
+  }
+
+  @if (loadError()) {
+    <p class="menu-state menu-state-error">{{ loadError() }}</p>
+  }
+
+  @if (!isLoading() && !loadError()) {
+    @if (!canAddToCart()) {
+      <p class="menu-state menu-state-error">
+        {{ t('restaurantInfo.error.customerOnly') }}
+      </p>
+    }
+
+    @if (addMessage()) {
+      <p class="menu-state menu-state-success">{{ addMessage() }}</p>
+    }
+
+    <div class="menu-grid">
+      @for (item of menuItems(); track item.id) {
+        <div class="menu-card card">
+          <div>
+            <h3>{{ item.name }}</h3>
+            <p class="price">kr. {{ item.price }}</p>
+            <p class="description">{{ item.description }}</p>
+
+            <button
+              class="btn add-btn"
+              type="button"
+              [disabled]="!canAddToCart()"
+              [attr.aria-label]="t('restaurantInfo.addItem')"
+              (click)="addToCart(item)"
+            >
+              {{ t('restaurantInfo.addItem') }}
+            </button>
+          </div>
+
+          <img [src]="item.imageUrl || 'burger-king.png'" [alt]="item.name" />
+        </div>
+      }
+    </div>
+  }
+
+  @if (!isLoading() && !loadError() && !menuItems().length) {
+    <p class="menu-state">{{ t('restaurantInfo.empty') }}</p>
+  }
+</div>
