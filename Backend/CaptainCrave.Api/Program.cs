@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Api.Data;
 using Microsoft.EntityFrameworkCore;
+using Api.Repositories;
+using Api.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,6 +31,20 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
+
+// DI — Auth
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+// DI — Restaurant / Category / MenuItem
+builder.Services.AddScoped<IRestaurantRepository, RestaurantRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IMenuItemRepository, MenuItemRepository>();
+
+
+// DI — Orders
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 // JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"]
