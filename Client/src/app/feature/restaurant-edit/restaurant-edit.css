@@ -1,0 +1,32 @@
+.restaurant-page {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 32px;
+}
+
+.menu-content {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.restaurant-tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.restaurant-tabs button {
+  color: var(--color-muted);
+  background: none;
+  border: none;
+  font-weight: bold;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.restaurant-tabs button.active,
+.restaurant-tabs button:hover {
+  background-color: var(--color-dark);
+  color: var(--color-white);
+}

@@ -1,0 +1,89 @@
+<div class="restaurant-create-card card" *transloco="let t">
+  <h2>{{ t('restaurantCreate.title') }}</h2>
+
+  <form [formRoot]="restaurantForm">
+    <label for="restaurantName">{{ t('restaurantCreate.label.restaurantName') }}</label>
+    <input
+      id="restaurantName"
+      class="form-control"
+      type="text"
+      [formField]="restaurantForm.restaurantName"
+      [placeholder]="t('restaurantCreate.placeholder.restaurantName')"
+    />
+
+    @if (restaurantForm.restaurantName().touched() && restaurantForm.restaurantName().invalid()) {
+      @for (error of restaurantForm.restaurantName().errors(); track error.kind) {
+        <p class="error">{{ error.message }}</p>
+      }
+    }
+
+    <label for="description">{{ t('restaurantCreate.label.description') }}</label>
+    <textarea
+      id="description"
+      class="form-control"
+      [formField]="restaurantForm.description"
+      [placeholder]="t('restaurantCreate.placeholder.description')"
+    ></textarea>
+
+    @if (restaurantForm.description().touched() && restaurantForm.description().invalid()) {
+      @for (error of restaurantForm.description().errors(); track error.kind) {
+        <p class="error">{{ error.message }}</p>
+      }
+    }
+
+    <label for="address">{{ t('restaurantCreate.label.address') }}</label>
+
+    <div class="location-row">
+      <input
+        id="address"
+        class="form-control"
+        type="text"
+        [formField]="restaurantForm.address"
+        [placeholder]="t('restaurantCreate.placeholder.address')"
+      />
+
+      <button
+        class="btn location-button"
+        type="button"
+        (click)="setLocationFromAddress()"
+      >
+        {{ t('restaurantCreate.button.setLocation') }}
+      </button>
+    </div>
+
+    @if (restaurantForm.address().touched() && restaurantForm.address().invalid()) {
+      @for (error of restaurantForm.address().errors(); track error.kind) {
+        <p class="error">{{ error.message }}</p>
+      }
+    }
+
+    <div id="restaurant-create-map"></div>
+
+    <div class="location-info">
+      <p>
+        <strong>{{ t('restaurantCreate.label.latitude') }}:</strong>
+        {{ restaurantModel().latitude }}
+      </p>
+      <p>
+        <strong>{{ t('restaurantCreate.label.longitude') }}:</strong>
+        {{ restaurantModel().longitude }}
+      </p>
+    </div>
+
+    @if (submitError()) {
+      <p class="error">{{ submitError() }}</p>
+    }
+
+    <button
+      class="form-button"
+      type="submit"
+      [disabled]="restaurantForm().invalid() || isSubmitting()"
+    >
+      {{
+        isSubmitting()
+          ? t('restaurantCreate.button.creating')
+          : t('restaurantCreate.button.create')
+      }}
+    </button>
+  </form>
+</div>

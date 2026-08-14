@@ -1,0 +1,46 @@
+.restaurant-create-card {
+  max-width: 720px;
+  margin: 48px auto;
+  padding: 24px;
+}
+
+.restaurant-create-card h2 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.location-row {
+  display: flex;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+.location-button {
+  white-space: nowrap;
+}
+
+#restaurant-create-map {
+  height: 320px;
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  margin-top: 16px;
+}
+
+.location-info {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  color: var(--color-muted);
+}
+
+.location-info p {
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .location-row,
+  .location-info {
+    flex-direction: column;
+  }
+}

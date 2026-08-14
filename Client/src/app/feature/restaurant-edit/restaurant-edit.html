@@ -1,0 +1,29 @@
+<div class="restaurant-page">
+  <main class="menu-content">
+    <nav class="restaurant-tabs" aria-label="Restaurant tabs">
+      <button
+        type="button"
+        [class.active]="activeTab === 'orders'"
+        (click)="activeTab = 'orders'"
+      >
+        Orders
+      </button>
+
+      <button
+        type="button"
+        [class.active]="activeTab === 'menu'"
+        (click)="activeTab = 'menu'"
+      >
+        Menu
+      </button>
+    </nav>
+
+    @if (activeTab === 'orders') {
+      <app-edit-order />
+    }
+
+    @if (activeTab === 'menu') {
+      <app-edit-menu />
+    }
+  </main>
+</div>

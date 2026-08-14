@@ -1,0 +1,120 @@
+<div *transloco="let t">
+  <header class="menu-header">
+    <div>
+      <h1>{{ t('menuEdit.title') }}</h1>
+      <p>{{ t('menuEdit.subtitle') }}</p>
+    </div>
+
+    <button type="button" class="btn add-btn" (click)="startCreateItem()">
+      {{ t('menuEdit.addNewItem') }}
+    </button>
+  </header>
+
+  <section class="menu-filters" [attr.aria-label]="t('menuEdit.aria.filters')">
+    <label class="menu-search">
+      <span class="sr-only">{{ t('menuEdit.searchLabel') }}</span>
+      <input class="form-control" type="search" [placeholder]="t('menuEdit.searchPlaceholder')" />
+    </label>
+  </section>
+
+  <section class="menu-table card" [attr.aria-label]="t('menuEdit.aria.menuItems')">
+    @if (store.isLoading()) {
+      <p>{{ t('menuEdit.loading') }}</p>
+    }
+
+    @if (store.errorMessage()) {
+      <p>{{ store.errorMessage() }}</p>
+    }
+
+    @if (store.hasNoRestaurant()) {
+      <p>{{ t('menuEdit.noRestaurant') }}</p>
+      <a href="/restaurant-create" class="btn add-btn">Create restaurant profile</a>
+    }
+
+    <div class="table-head">
+      <span>{{ t('menuEdit.table.item') }}</span>
+      <span>{{ t('menuEdit.table.price') }}</span>
+      <span>{{ t('menuEdit.table.status') }}</span>
+      <span>{{ t('menuEdit.table.action') }}</span>
+    </div>
+
+    @for (item of store.menuItems(); track item.id) {
+      <div class="table-row" [class.selected]="store.selectedItem()?.id === item.id">
+        <div class="item-cell">
+          <strong>{{ item.name }}</strong>
+        </div>
+
+        <span>{{ item.price }}{{ currency }}</span>
+
+        <span>
+          <span class="status" [class.out]="!item.isAvailable">
+            {{ item.isAvailable ? t('menuEdit.status.inStock') : t('menuEdit.status.outOfStock') }}
+          </span>
+        </span>
+
+        <div class="actions">
+          <button type="button" class="btn" (click)="selectItem(item)">
+            {{ t('menuEdit.view') }}
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (store.selectedItem() || store.mode() === 'create') {
+    <form class="item-details card" [formRoot]="menuForm">
+      <header>
+        <div>
+          <h2>
+            {{ store.mode() === 'create' ? t('menuEdit.form.addTitle') : t('menuEdit.form.editTitle', { name: menuModel().name }) }}
+          </h2>
+          <p>
+            {{ store.mode() === 'create' ? t('menuEdit.form.addSubtitle') : t('menuEdit.form.editSubtitle') }}
+          </p>
+        </div>
+
+        <div class="detail-actions">
+          <button
+            type="submit"
+            class="btn save-btn"
+            [disabled]="menuForm().invalid() || store.isSubmitting()"
+          >
+            {{ store.isSubmitting() ? t('menuEdit.saving') : (store.mode() === 'create' ? t('menuEdit.createItem') : t('menuEdit.saveChanges')) }}
+          </button>
+
+          @if (store.mode() !== 'create') {
+            <button
+              type="button"
+              class="btn delete-btn"
+              (click)="confirmDelete()"
+            >
+              {{ t('menuEdit.deleteItem') }}
+            </button>
+          }
+        </div>
+      </header>
+
+      <div class="edit-form">
+        <label>
+          {{ t('menuEdit.fields.name') }}
+          <input class="form-control" type="text" [formField]="menuForm.name" />
+        </label>
+
+        <label>
+          {{ t('menuEdit.fields.price') }}
+          <input class="form-control" type="number" [formField]="menuForm.price" />
+        </label>
+
+        <label>
+          {{ t('menuEdit.fields.description') }}
+          <textarea class="form-control" [formField]="menuForm.description"></textarea>
+        </label>
+
+        <label class="checkbox-field">
+          <input type="checkbox" [formField]="menuForm.isAvailable" />
+          {{ t('menuEdit.fields.inStock') }}
+        </label>
+      </div>
+    </form>
+  }
+</div>

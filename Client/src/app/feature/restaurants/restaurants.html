@@ -1,0 +1,56 @@
+<div class="restaurants-page" *transloco="let t">
+  <div class="restaurants-header">
+    <h1>{{ t('restaurants.title') }}</h1>
+    <p>{{ t('restaurants.subtitle') }}</p>
+  </div>
+
+  @if (isLoading()) {
+    <p class="restaurants-state">{{ t('restaurants.loading') }}</p>
+  }
+
+  @if (loadError()) {
+    <p class="restaurants-state restaurants-state-error">
+      {{ loadError() }}
+    </p>
+  }
+
+  @if (!isLoading() && !loadError()) {
+    <div class="restaurant-list">
+      @for (restaurant of restaurants(); track restaurant.id) {
+        <a
+          class="restaurant-card-link"
+          [routerLink]="['/restaurantInfo']"
+          [queryParams]="{ restaurantId: restaurant.id }"
+        >
+          <div class="restaurant-card card">
+            <img
+              src="captain_crave.png"
+              [alt]="restaurant.name"
+            />
+
+            <div class="restaurant-card-content">
+              <h2>{{ restaurant.name }}</h2>
+              <p>{{ restaurant.description || restaurant.address }}</p>
+              <span
+                class="restaurant-status status"
+                [class.out]="!restaurant.isActive"
+              >
+                {{
+                  restaurant.isActive
+                    ? t('restaurants.status.open')
+                    : t('restaurants.status.closed')
+                }}
+              </span>
+            </div>
+          </div>
+        </a>
+      }
+    </div>
+  }
+
+  @if (!isLoading() && !loadError() && !restaurants().length) {
+    <p class="restaurants-state">
+      {{ t('restaurants.empty') }}
+    </p>
+  }
+</div>
