@@ -1,0 +1,17 @@
+<div *transloco="let t">
+  <h2 mat-dialog-title>{{ t('menuEdit.deleteDialog.title') }}</h2>
+
+  <mat-dialog-content>
+    {{ t('menuEdit.deleteDialog.message') }}
+  </mat-dialog-content>
+
+  <mat-dialog-actions>
+    <button matButton [mat-dialog-close]="false">
+      {{ t('menuEdit.deleteDialog.button.no') }}
+    </button>
+
+    <button matButton [mat-dialog-close]="true" cdkFocusInitial>
+      {{ t('menuEdit.deleteDialog.button.ok') }}
+    </button>
+  </mat-dialog-actions>
+</div>
