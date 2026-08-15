@@ -5,15 +5,23 @@ using Api.Repositories;
 namespace Api.Services;
 
 // Handles business logic for menu item operations.
-public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurantRepository restaurantRepository) : IMenuItemService
+public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurantRepository restaurantRepository, IMenuService menuService) : IMenuItemService
 {
     private readonly IMenuItemRepository _menuItemRepository = menuItemRepository;
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
+    private readonly IMenuService _menuService = menuService;
 
     // Retrieves all menu items for a restaurant and maps them to DTOs.
     public async Task<IEnumerable<MenuItemDto>> GetByRestaurantIdAsync(int restaurantId)
     {
         var items = await _menuItemRepository.GetByRestaurantIdAsync(restaurantId);
+        return items.Select(m => m.ToDto());
+    }
+
+    // Retrieves all menu items for a menu and maps them to DTOs.
+    public async Task<IEnumerable<MenuItemDto>> GetByMenuIdAsync(int menuId)
+    {
+        var items = await _menuItemRepository.GetByMenuIdAsync(menuId);
         return items.Select(m => m.ToDto());
     }
 
@@ -35,7 +43,7 @@ public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurant
 
         if (!isAdmin)
         {
-            var ownsRestaurant = await UserOwnsRestaurantAsync(userId, existing.RestaurantId);
+            var ownsRestaurant = await UserOwnsMenuItemRestaurantAsync(userId, existing.MenuId);
             if (!ownsRestaurant)
                 return null;
         }
@@ -47,9 +55,9 @@ public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurant
         existing.IsAvailable = dto.IsAvailable;
         existing.CategoryId = dto.CategoryId;
 
-        // Admins can reassign an item to any restaurant; Restaurant users are locked to their own.
+        // Admins can reassign an item to any menu; Restaurant users are locked to their own.
         if (isAdmin)
-            existing.RestaurantId = dto.RestaurantId;
+            existing.MenuId = dto.MenuId;
 
         var updated = await _menuItemRepository.UpdateAsync(existing);
         return updated.ToDto();
@@ -65,13 +73,20 @@ public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurant
 
         if (!isAdmin)
         {
-            var ownsRestaurant = await UserOwnsRestaurantAsync(userId, existing.RestaurantId);
+            var ownsRestaurant = await UserOwnsMenuItemRestaurantAsync(userId, existing.MenuId);
             if (!ownsRestaurant)
                 return false;
         }
 
         await _menuItemRepository.DeleteAsync(existing);
         return true;
+    }
+
+    // Resolves the restaurant that owns the menu item's menu, then checks the user owns that restaurant.
+    private async Task<bool> UserOwnsMenuItemRestaurantAsync(int userId, int menuId)
+    {
+        var menu = await _menuService.GetByIdAsync(menuId);
+        return menu is not null && await UserOwnsRestaurantAsync(userId, menu.RestaurantId);
     }
 
     private async Task<bool> UserOwnsRestaurantAsync(int userId, int restaurantId)

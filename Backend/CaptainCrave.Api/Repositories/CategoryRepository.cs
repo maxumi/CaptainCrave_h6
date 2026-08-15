@@ -9,9 +9,13 @@ public class CategoryRepository(AppDbContext db) : ICategoryRepository
 {
     private readonly AppDbContext _db = db;
 
-    // Fetches all categories for the given restaurant.
+    // Fetches all categories for the given restaurant, across all of its menus.
     public async Task<IEnumerable<Category>> GetByRestaurantIdAsync(int restaurantId) =>
-        await _db.Categories.AsNoTracking().Where(c => c.RestaurantId == restaurantId).ToListAsync();
+        await _db.Categories.AsNoTracking().Where(c => c.Menu.RestaurantId == restaurantId).ToListAsync();
+
+    // Fetches all categories for the given menu.
+    public async Task<IEnumerable<Category>> GetByMenuIdAsync(int menuId) =>
+        await _db.Categories.AsNoTracking().Where(c => c.MenuId == menuId).ToListAsync();
 
     // Fetches a single category by primary key.
     public async Task<Category?> GetByIdAsync(int id) =>

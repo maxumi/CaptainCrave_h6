@@ -8,6 +8,9 @@ public interface IMenuItemService
     // Returns all menu items for the given restaurant as DTOs.
     Task<IEnumerable<MenuItemDto>> GetByRestaurantIdAsync(int restaurantId);
 
+    // Returns all menu items for the given menu as DTOs.
+    Task<IEnumerable<MenuItemDto>> GetByMenuIdAsync(int menuId);
+
     // Validates, creates, and returns the new menu item as a DTO.
     Task<MenuItemDto> CreateAsync(CreateMenuItemDto dto);
 

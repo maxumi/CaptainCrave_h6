@@ -9,9 +9,13 @@ public class MenuItemRepository(AppDbContext db) : IMenuItemRepository
 {
     private readonly AppDbContext _db = db;
 
-    // Fetches all menu items belonging to the given restaurant.
+    // Fetches all menu items belonging to the given restaurant, across all of its menus.
     public async Task<IEnumerable<MenuItem>> GetByRestaurantIdAsync(int restaurantId) =>
-        await _db.MenuItems.AsNoTracking().Where(m => m.RestaurantId == restaurantId).ToListAsync();
+        await _db.MenuItems.AsNoTracking().Where(m => m.Menu.RestaurantId == restaurantId).ToListAsync();
+
+    // Fetches all menu items belonging to the given menu.
+    public async Task<IEnumerable<MenuItem>> GetByMenuIdAsync(int menuId) =>
+        await _db.MenuItems.AsNoTracking().Where(m => m.MenuId == menuId).ToListAsync();
 
     // Fetches all menu items under the given category.
     public async Task<IEnumerable<MenuItem>> GetByCategoryIdAsync(int categoryId) =>

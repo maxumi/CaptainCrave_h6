@@ -10,10 +10,11 @@ namespace Api.Controllers;
 // Handles requests related to restaurants. 
 [ApiController]
 [Route("api/[controller]")]
-public class RestaurantsController(IRestaurantService restaurantService, IMenuItemService menuItemService) : ControllerBase
+public class RestaurantsController(IRestaurantService restaurantService, IMenuItemService menuItemService, IMenuService menuService) : ControllerBase
 {
     private readonly IRestaurantService _restaurantService = restaurantService;
     private readonly IMenuItemService _menuItemService = menuItemService;
+    private readonly IMenuService _menuService = menuService;
 
     // Retrieves the logged-in user's ID from the JWT token.
     private int? GetCurrentUserId()
@@ -82,6 +83,14 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
     {
         var items = await _menuItemService.GetByRestaurantIdAsync(id);
         return Ok(items);
+    }
+
+    // Returns all menus for the specified restaurant.
+    [HttpGet("{id}/menus")]
+    public async Task<IActionResult> GetMenus(int id)
+    {
+        var menus = await _menuService.GetByRestaurantIdAsync(id);
+        return Ok(menus);
     }
 
     // Creates a new restaurant and returns it with a 201 status.

@@ -2,10 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs;
 
-public class CreateCategoryDto
+public class CreateMenuDto
 {
     [Required]
-    public int MenuId { get; set; }
+    public int RestaurantId { get; set; }
 
     [Required]
     [MaxLength(100)]

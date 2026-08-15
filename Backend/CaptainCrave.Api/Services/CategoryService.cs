@@ -16,6 +16,13 @@ public class CategoryService(ICategoryRepository categoryRepository) : ICategory
         return categories.Select(c => c.ToDto());
     }
 
+    // Retrieves all categories for a menu and maps them to DTOs.
+    public async Task<IEnumerable<CategoryDto>> GetByMenuIdAsync(int menuId)
+    {
+        var categories = await _categoryRepository.GetByMenuIdAsync(menuId);
+        return categories.Select(c => c.ToDto());
+    }
+
     // Maps the DTO to a model, saves it, and returns the created category as a DTO.
     public async Task<CategoryDto> CreateAsync(CreateCategoryDto dto)
     {
