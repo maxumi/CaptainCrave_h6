@@ -1,0 +1,341 @@
+{
+  "foo": "Foo",
+  "bar": "Bar",
+  "dashboard": {
+    "title": "Dashboard Title",
+    "desc": "Dashboard Description"
+  },
+  "navbar": {
+    "search": "Search",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "register": "Register",
+    "lang": {
+      "en": "English",
+      "da": "Dansk"
+    }
+  },
+  "login": {
+    "title": "Login to your account",
+    "button": "Sign in",
+    "signingIn": "Signing in...",
+    "error": {
+      "signInFailed": "Unable to log in right now. Please try again."
+    },
+    "validation": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email address",
+      "passwordRequired": "Password is required"
+    },
+    "createAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "label": {
+      "email": "Email",
+      "password": "Password"
+    },
+    "placeholder": {
+      "email": "Enter email",
+      "password": "Enter password"
+    }
+  },
+    "register": {
+    "title": "Create account",
+    "alreadyHaveAccount": "Already have an account?",
+    "login": "Login",
+    "button": "Register",
+    "creatingAccount": "Creating account...",
+    "error": {
+      "createFailed": "Could not create account"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordMismatch": "Passwords do not match"
+    },
+    "label": {
+      "role": "Role",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm password"
+    },
+    "role": {
+      "customer": "Customer",
+      "restaurant": "Restaurant"
+    },
+    "placeholder": {
+      "name": "Enter your name",
+      "email": "Enter email",
+      "password": "Enter password",
+      "confirmPassword": "Repeat password"
+    }
+  },
+  "restaurants": {
+    "title": "Restaurants near you",
+    "subtitle": " ",
+    "loading": "Loading restaurants...",
+    "empty": "No restaurants found.",
+    "status": {
+      "open": "Open",
+      "closed": "Closed"
+    },
+    "error": {
+      "notAuthenticated": "User not authenticated.",
+      "restaurantLocationMissing": "Restaurant location not available.",
+      "restaurantLocationFailed": "Unable to load restaurant location.",
+      "userLocationMissing": "User location not available. Please update your profile with a valid address.",
+      "loadFailed": "Unable to load restaurants right now."
+    }
+  },
+  "restaurantInfo": {
+    "menu": "Menu",
+    "addItem": "Add item",
+    "loading": "Loading menu...",
+    "empty": "No menu items found.",
+    "saveDialog": {
+      "title": "Save menu item",
+      "message": "Do you want to save this menu item?",
+      "button": {
+        "no": "No",
+        "ok": "OK"
+      }
+    },
+    "error": {
+      "missingRestaurantId": "Missing restaurant id.",
+      "loadFailed": "Unable to load menu right now.",
+      "customerOnly": "Only customer accounts can add items to cart.",
+      "singleRestaurantOnly": "You can only add items from one restaurant. Clear your cart first."
+    },
+    "message": {
+      "addedToCart": "{{name}} added to cart."
+    }
+  },
+  "menuEdit": {
+    "title": "Manage Menu",
+    "subtitle": "Add, edit or remove menu items from your restaurant",
+    "addNewItem": "+ Add New Item",
+    "searchLabel": "Search menu items",
+    "searchPlaceholder": "Search Menu Items",
+    "loading": "Loading menu items...",
+    "noRestaurant": "No restaurant profile found for your account yet.",
+    "view": "View",
+    "createItem": "Create Item",
+    "saveChanges": "Save Changes",
+    "deleteItem": "Delete menu item",
+    "saving": "Saving...",
+    "saveDialog": {
+      "title": "Save menu item",
+      "message": "Do you want to save this menu item?",
+      "button": {
+        "no": "No",
+        "ok": "OK"
+      }
+    },
+    "deleteDialog": {
+      "title": "Delete menu item",
+      "message": "Do you want to delete this menu item?",
+      "button": {
+        "no": "No",
+        "ok": "OK"
+      }
+    },
+    "status": {
+      "inStock": "In Stock",
+      "outOfStock": "Out of Stock"
+    },
+    "table": {
+      "item": "Item",
+      "price": "Price",
+      "status": "Status",
+      "action": "Action"
+    },
+    "fields": {
+      "name": "Name",
+      "price": "Price",
+      "description": "Description",
+      "inStock": "In Stock"
+    },
+    "form": {
+      "addTitle": "Add New Menu Item",
+      "editTitle": "Edit {{name}}",
+      "addSubtitle": "Create a new menu item",
+      "editSubtitle": "Update menu item details"
+    },
+    "aria": {
+      "filters": "Menu filters",
+      "menuItems": "Menu items"
+    },
+    "error": {
+      "missingRestaurant": "Restaurant context is missing. Please refresh and try again.",
+      "loadFailed": "Failed to load menu items. Please try again.",
+      "saveFailed": "Could not save this menu item.",
+      "deleteFailed": "Could not delete this menu item."
+    }
+  },
+"cart": {
+  "title": "Cart",
+  "amount": "Amount",
+  "remove": "Remove",
+  "orderType": "Order type",
+  "delivery": "Delivery",
+  "pickup": "Pickup",
+  "total": "Total",
+  "clearCart": "Clear cart",
+  "checkout": "Checkout",
+  "placingOrder": "Placing order...",
+  "empty": "Your cart is empty.",
+  "error": {
+    "notLoggedIn": "You must be logged in to place an order.",
+    "customerOnly": "Only customer accounts can place orders.",
+    "empty": "Your cart is empty.",
+    "addressRequired": "Please update your profile address before checkout.",
+    "checkoutFailed": "Unable to place order right now."
+  }
+},
+"restaurantCreate": {
+  "title": "Create restaurant",
+  "label": {
+    "restaurantName": "Restaurant name",
+    "description": "Description",
+    "address": "Address",
+    "latitude": "Latitude",
+    "longitude": "Longitude"
+  },
+  "placeholder": {
+    "restaurantName": "Enter restaurant name",
+    "description": "Enter restaurant description",
+    "address": "Enter restaurant address"
+  },
+  "button": {
+    "setLocation": "Set location",
+    "create": "Create restaurant",
+    "creating": "Creating..."
+  },
+  "validation": {
+    "restaurantNameRequired": "Restaurant name is required",
+    "addressRequired": "Address is required",
+    "latitudeRequired": "Latitude is required",
+    "longitudeRequired": "Longitude is required",
+    "addressLookupError": "Could not find that address.",
+    "userRequired": "You must be logged in to create a restaurant.",
+    "serverError": "Could not create restaurant right now."
+  }
+},
+"profile": {
+  "title": "Profile",
+  "name": "Name",
+  "address": "Address",
+  "changeAddress": "Change address",
+  "saveAddress": "Save address",
+  "placeholder": {
+    "address": "Enter new address"
+  },
+  "success": {
+    "addressUpdated": "Profile address updated."
+  },
+  "error": {
+    "addressRequired": "Address is required.",
+    "addressNotFound": "No address found for the entered value.",
+    "saveFailed": "Unable to save address right now."
+  }
+},
+"home": {
+  "title": "Captain Crave",
+  "subtitle": "Simple food discovery app for browsing restaurants and checking details.",
+  "signedInAs": "Signed in as {{name}}",
+  "viewRestaurants": "View restaurants",
+  "login": "Login",
+  "register": "Register"
+},
+"orderStatus": {
+  "loading": "Loading order status...",
+  "noActiveOrder": "You currently have no active order. Completed orders will appear in history later.",
+  "title": "Order status",
+  "orderNumber": "Order #CCID{{id}}",
+  "progressAria": "Order progress",
+  "error": {
+    "loadFailed": "Failed to load order details."
+  },
+  "step": {
+    "placed": "Placed",
+    "preparing": "Preparing",
+    "readyForPickup": "Ready for pickup",
+    "completed": "Completed",
+    "onTheWay": "On the way",
+    "delivered": "Delivered"
+  },
+  "status": {
+    "pending": "Pending",
+    "preparing": "Preparing",
+    "onTheWay": "On the way",
+    "readyForPickup": "Ready for pickup",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "message": {
+    "pending": "Your order has been placed and is waiting for the restaurant.",
+    "preparing": "Your food is being prepared.",
+    "onTheWay": "Your order is on the way. Almost there!",
+    "readyForPickup": "Your order is ready for pickup at the restaurant.",
+    "delivered": "Your order has been delivered.",
+    "cancelled": "Your order was cancelled.",
+    "waiting": "Waiting for order status."
+  },
+  "summary": {
+    "title": "Order summary",
+    "quantity": "Qty",
+    "total": "Total"
+  }
+},
+"orderManage": {
+  "title": "Manage Orders",
+  "subtitle": "View active orders by default and browse historic orders separately.",
+  "loading": "Loading orders...",
+  "empty": "No orders found.",
+  "mode": {
+    "active": "Active Orders",
+    "history": "Historic Orders"
+  },
+  "table": {
+    "order": "Order",
+    "customer": "Customer",
+    "total": "Total",
+    "type": "Type",
+    "status": "Status",
+    "action": "Action"
+  },
+  "button": {
+    "view": "View",
+    "saveChanges": "Save Changes"
+  },
+  "details": {
+    "orderNumber": "Order #{{id}}",
+    "historicReadonly": "This is a historic order and cannot be edited."
+  },
+  "label": {
+    "customer": "Customer",
+    "status": "Status",
+    "total": "Total"
+  },
+  "items": {
+    "title": "Items"
+  },
+  "aria": {
+    "orders": "Restaurant orders"
+  },
+  "success": {
+    "updated": "Order updated successfully."
+  },
+  "error": {
+    "notAllowed": "You are not allowed to manage orders.",
+    "notFound": "No orders were found for this account.",
+    "loadFailed": "Unable to load orders right now.",
+    "invalidNextStatus": "Please select a valid next status for this order.",
+    "updateFailed": "Unable to update the order right now."
+  }
+}
+}

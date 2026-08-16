@@ -1,0 +1,97 @@
+<form
+  class="auth-card"
+  *transloco="let t"
+  [formRoot]="registerForm"
+>
+  <h2>{{ t("register.title") }}</h2>
+
+  @if (registerError()) {
+    <p class="error">{{ registerError() }}</p>
+  }
+
+  <label class="form-label">{{ t("register.label.role") }}</label>
+  <select class="form-input" [formField]="registerForm.role">
+    <option [value]="Role.Customer">{{ t("register.role.customer") }}</option>
+    <option [value]="Role.Restaurant">{{ t("register.role.restaurant") }}</option>
+  </select>
+
+  <label class="form-label">{{ t("register.label.name") }}</label>
+  <input
+    class="form-input"
+    type="text"
+    [formField]="registerForm.name"
+    [placeholder]="t('register.placeholder.name')"
+  />
+
+  @if (registerForm.name().touched() && registerForm.name().invalid()) {
+    <ul>
+      @for (error of registerForm.name().errors(); track error.kind) {
+        <li>{{ error.message }}</li>
+      }
+    </ul>
+  }
+
+  <label class="form-label">{{ t("register.label.email") }}</label>
+  <input
+    class="form-input"
+    type="email"
+    [formField]="registerForm.email"
+    [placeholder]="t('register.placeholder.email')"
+  />
+
+  @if (registerForm.email().touched() && registerForm.email().invalid()) {
+    <ul>
+      @for (error of registerForm.email().errors(); track error.kind) {
+        <li>{{ error.message }}</li>
+      }
+    </ul>
+  }
+
+  <label class="form-label">{{ t("register.label.password") }}</label>
+  <input
+    class="form-input"
+    type="password"
+    [formField]="registerForm.password"
+    [placeholder]="t('register.placeholder.password')"
+  />
+
+  @if (registerForm.password().touched() && registerForm.password().invalid()) {
+    <ul>
+      @for (error of registerForm.password().errors(); track error.kind) {
+        <li>{{ error.message }}</li>
+      }
+    </ul>
+  }
+
+  <label class="form-label">{{ t("register.label.confirmPassword") }}</label>
+  <input
+    class="form-input"
+    type="password"
+    [formField]="registerForm.confirmPassword"
+    [placeholder]="t('register.placeholder.confirmPassword')"
+  />
+
+  @if (
+    registerForm.confirmPassword().touched() &&
+    registerForm.confirmPassword().invalid()
+  ) {
+    <ul>
+      @for (error of registerForm.confirmPassword().errors(); track error.kind) {
+        <li>{{ error.message }}</li>
+      }
+    </ul>
+  }
+
+  <button
+    class="form-button"
+    type="submit"
+    [disabled]="registerForm().invalid() || isSubmitting()"
+  >
+    {{ isSubmitting() ? t("register.creatingAccount") : t("register.button") }}
+  </button>
+
+  <div class="form-link">
+    {{ t("register.alreadyHaveAccount") }}
+    <a routerLink="/login">{{ t("register.login") }}</a>
+  </div>
+</form>
