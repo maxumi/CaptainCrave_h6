@@ -1,0 +1,341 @@
+{
+  "foo": "Foo",
+  "bar": "Bjælke",
+  "dashboard": {
+    "title": "Dashboardtitel",
+    "desc": "Dashboardbeskrivelse"
+  },
+  "navbar": {
+    "search": "Søg",
+    "signIn": "Log ind",
+    "signOut": "Log ud",
+    "register": "Opret konto",
+    "lang": {
+      "en": "English",
+      "da": "Dansk"
+    }
+  },
+  "login": {
+    "title": "Log ind på din konto",
+    "button": "Log ind",
+    "signingIn": "Logger ind...",
+    "error": {
+      "signInFailed": "Kan ikke logge ind lige nu. Prøv igen."
+    },
+    "validation": {
+      "emailRequired": "Email er påkrævet",
+      "emailInvalid": "Indtast en gyldig emailadresse",
+      "passwordRequired": "Adgangskode er påkrævet"
+    },
+    "createAccount": "Har du ikke en konto?",
+    "signUp": "Opret konto",
+    "label": {
+      "email": "Email",
+      "password": "Adgangskode"
+    },
+    "placeholder": {
+      "email": "Indtast email",
+      "password": "Indtast adgangskode"
+    }
+  },
+  "register": {
+    "title": "Opret konto",
+    "alreadyHaveAccount": "Har du allerede en konto?",
+    "login": "Log ind",
+    "button": "Opret konto",
+    "creatingAccount": "Opretter konto...",
+    "error": {
+      "createFailed": "Kunne ikke oprette konto"
+    },
+    "validation": {
+      "nameRequired": "Navn er påkrævet",
+      "emailRequired": "Email er påkrævet",
+      "emailInvalid": "Indtast en gyldig email",
+      "passwordRequired": "Adgangskode er påkrævet",
+      "passwordMinLength": "Adgangskoden skal være mindst 8 tegn",
+      "confirmPasswordRequired": "Bekræft venligst din adgangskode",
+      "passwordMismatch": "Adgangskoderne matcher ikke"
+    },
+    "label": {
+      "role": "Rolle",
+      "name": "Navn",
+      "email": "Email",
+      "password": "Adgangskode",
+      "confirmPassword": "Bekræft adgangskode"
+    },
+    "role": {
+      "customer": "Kunde",
+      "restaurant": "Restaurant"
+    },
+    "placeholder": {
+      "name": "Indtast dit navn",
+      "email": "Indtast email",
+      "password": "Indtast adgangskode",
+      "confirmPassword": "Gentag adgangskode"
+    }
+  },
+    "restaurants": {
+      "title": "Restauranter nær dig",
+      "subtitle": " ",
+      "status": {
+        "open": "Åben",
+        "closed": "Lukket"
+      },
+      "loading": "Indlæser restauranter...",
+      "empty": "Ingen restauranter fundet.",
+      "error": {
+        "notAuthenticated": "Bruger er ikke godkendt.",
+        "restaurantLocationMissing": "Restaurantens placering er ikke tilgængelig.",
+        "restaurantLocationFailed": "Kunne ikke indlæse restaurantens placering.",
+        "userLocationMissing": "Brugerens placering er ikke tilgængelig. Opdater din profil med en gyldig adresse.",
+        "loadFailed": "Kunne ikke indlæse restauranter lige nu."
+      }
+  },
+"restaurantInfo": {
+  "menu": "Menu",
+  "addItem": "Tilføj vare",
+  "loading": "Indlæser menu...",
+  "empty": "Ingen menuvarer fundet.",
+  "saveDialog": {
+    "title": "Gem menupunkt",
+    "message": "Vil du gemme dette menupunkt?",
+    "button": {
+      "no": "Nej",
+      "ok": "OK"
+    }
+  },
+  "error": {
+    "missingRestaurantId": "Restaurant-id mangler.",
+    "loadFailed": "Menuen kunne ikke indlæses lige nu.",
+    "customerOnly": "Kun kundekonti kan tilføje varer til kurven.",
+    "singleRestaurantOnly": "Du kan kun tilføje varer fra én restaurant. Ryd din kurv først."
+  },
+  "message": {
+    "addedToCart": "{{name}} blev tilføjet til kurven."
+  }
+},
+"menuEdit": {
+  "title": "Administrer menu",
+  "subtitle": "Tilføj, rediger eller fjern menupunkter fra din restaurant",
+  "addNewItem": "+ Tilføj ny vare",
+  "searchLabel": "Søg i menuvarer",
+  "searchPlaceholder": "Søg menuvarer",
+  "loading": "Indlæser menuvarer...",
+  "noRestaurant": "Ingen restaurantprofil fundet for din konto endnu.",
+  "view": "Vis",
+  "createItem": "Opret vare",
+  "saveChanges": "Gem ændringer",
+  "deleteItem": "Slet menuvare",
+  "saving": "Gemmer...",
+  "saveDialog": {
+    "title": "Gem menuvare",
+    "message": "Vil du gemme denne menuvare?",
+    "button": {
+      "no": "Nej",
+      "ok": "OK"
+    }
+  },
+  "deleteDialog": {
+    "title": "Slet menuvare",
+    "message": "Vil du slette denne menuvare?",
+    "button": {
+      "no": "Nej",
+      "ok": "OK"
+    }
+  },
+  "status": {
+    "inStock": "På lager",
+    "outOfStock": "Udsolgt"
+  },
+  "table": {
+    "item": "Vare",
+    "price": "Pris",
+    "status": "Status",
+    "action": "Handling"
+  },
+  "fields": {
+    "name": "Navn",
+    "price": "Pris",
+    "description": "Beskrivelse",
+    "inStock": "På lager"
+  },
+  "form": {
+    "addTitle": "Tilføj ny menuvare",
+    "editTitle": "Rediger {{name}}",
+    "addSubtitle": "Opret en ny menuvare",
+    "editSubtitle": "Opdater menuvarens detaljer"
+  },
+  "aria": {
+    "filters": "Menufiltre",
+    "menuItems": "Menuvarer"
+  },
+  "error": {
+    "missingRestaurant": "Restaurantkontekst mangler. Opdater siden, og prøv igen.",
+    "loadFailed": "Kunne ikke indlæse menuvarer. Prøv igen.",
+    "saveFailed": "Kunne ikke gemme menuvaren.",
+    "deleteFailed": "Kunne ikke slette menuvaren."
+  }
+},
+"cart": {
+  "title": "Kurv",
+  "amount": "Antal",
+  "remove": "Fjern",
+  "orderType": "Ordretype",
+  "delivery": "Levering",
+  "pickup": "Afhentning",
+  "total": "Total",
+  "clearCart": "Ryd kurv",
+  "checkout": "Bestil",
+  "placingOrder": "Opretter ordre...",
+  "empty": "Din kurv er tom.",
+  "error": {
+    "notLoggedIn": "Du skal være logget ind for at afgive en ordre.",
+    "customerOnly": "Kun kundekonti kan afgive ordrer.",
+    "empty": "Din kurv er tom.",
+    "addressRequired": "Opdater din profiladresse før checkout.",
+    "checkoutFailed": "Kunne ikke oprette ordren lige nu."
+  }
+},
+"restaurantCreate": {
+  "title": "Opret restaurant",
+  "label": {
+    "restaurantName": "Restaurantnavn",
+    "description": "Beskrivelse",
+    "address": "Adresse",
+    "latitude": "Breddegrad",
+    "longitude": "Længdegrad"
+  },
+  "placeholder": {
+    "restaurantName": "Indtast restaurantnavn",
+    "description": "Indtast restaurantbeskrivelse",
+    "address": "Indtast restaurantadresse"
+  },
+  "button": {
+    "setLocation": "Angiv placering",
+    "create": "Opret restaurant",
+    "creating": "Opretter..."
+  },
+  "validation": {
+    "restaurantNameRequired": "Restaurantnavn er påkrævet",
+    "addressRequired": "Adresse er påkrævet",
+    "latitudeRequired": "Breddegrad er påkrævet",
+    "longitudeRequired": "Længdegrad er påkrævet",
+    "addressLookupError": "Kunne ikke finde adressen.",
+    "userRequired": "Du skal være logget ind for at oprette en restaurant.",
+    "serverError": "Kunne ikke oprette restauranten lige nu."
+  }
+},
+"profile": {
+  "title": "Profil",
+  "name": "Navn",
+  "address": "Adresse",
+  "changeAddress": "Skift adresse",
+  "saveAddress": "Gem adresse",
+  "placeholder": {
+    "address": "Indtast ny adresse"
+  },
+  "success": {
+    "addressUpdated": "Profiladressen er opdateret."
+  },
+  "error": {
+    "addressRequired": "Adresse er påkrævet.",
+    "addressNotFound": "Ingen adresse fundet for den indtastede værdi.",
+    "saveFailed": "Kunne ikke gemme adressen lige nu."
+  }
+},
+"home": {
+  "title": "Captain Crave",
+  "subtitle": "En simpel madapp til at finde restauranter og se detaljer.",
+  "signedInAs": "Logget ind som {{name}}",
+  "viewRestaurants": "Se restauranter",
+  "login": "Log ind",
+  "register": "Opret konto"
+},
+"orderStatus": {
+  "loading": "Indlæser ordrestatus...",
+  "noActiveOrder": "Du har ingen aktiv ordre lige nu. Afsluttede ordrer vises senere i historikken.",
+  "title": "Ordrestatus",
+  "orderNumber": "Ordre #CCID{{id}}",
+  "progressAria": "Ordreforløb",
+  "error": {
+    "loadFailed": "Kunne ikke indlæse ordredetaljer."
+  },
+  "step": {
+    "placed": "Afgivet",
+    "preparing": "Tilberedes",
+    "readyForPickup": "Klar til afhentning",
+    "completed": "Afsluttet",
+    "onTheWay": "På vej",
+    "delivered": "Leveret"
+  },
+  "status": {
+    "pending": "Afventer",
+    "preparing": "Tilberedes",
+    "onTheWay": "På vej",
+    "readyForPickup": "Klar til afhentning",
+    "delivered": "Leveret",
+    "cancelled": "Annulleret"
+  },
+  "message": {
+    "pending": "Din ordre er afgivet og venter på restauranten.",
+    "preparing": "Din mad bliver tilberedt.",
+    "onTheWay": "Din ordre er på vej. Den er der snart!",
+    "readyForPickup": "Din ordre er klar til afhentning på restauranten.",
+    "delivered": "Din ordre er blevet leveret.",
+    "cancelled": "Din ordre blev annulleret.",
+    "waiting": "Venter på ordrestatus."
+  },
+  "summary": {
+    "title": "Ordreoversigt",
+    "quantity": "Antal",
+    "total": "Total"
+  }
+},
+"orderManage": {
+  "title": "Administrer ordrer",
+  "subtitle": "Se aktive ordrer som standard, og gennemse tidligere ordrer separat.",
+  "loading": "Indlæser ordrer...",
+  "empty": "Ingen ordrer fundet.",
+  "mode": {
+    "active": "Aktive ordrer",
+    "history": "Tidligere ordrer"
+  },
+  "table": {
+    "order": "Ordre",
+    "customer": "Kunde",
+    "total": "Total",
+    "type": "Type",
+    "status": "Status",
+    "action": "Handling"
+  },
+  "button": {
+    "view": "Vis",
+    "saveChanges": "Gem ændringer"
+  },
+  "details": {
+    "orderNumber": "Ordre #{{id}}",
+    "historicReadonly": "Dette er en tidligere ordre og kan ikke redigeres."
+  },
+  "label": {
+    "customer": "Kunde",
+    "status": "Status",
+    "total": "Total"
+  },
+  "items": {
+    "title": "Varer"
+  },
+  "aria": {
+    "orders": "Restaurantordrer"
+  },
+  "success": {
+    "updated": "Ordren blev opdateret."
+  },
+  "error": {
+    "notAllowed": "Du har ikke tilladelse til at administrere ordrer.",
+    "notFound": "Ingen ordrer blev fundet for denne konto.",
+    "loadFailed": "Kunne ikke indlæse ordrer lige nu.",
+    "invalidNextStatus": "Vælg en gyldig næste status for denne ordre.",
+    "updateFailed": "Kunne ikke opdatere ordren lige nu."
+  }
+}
+}

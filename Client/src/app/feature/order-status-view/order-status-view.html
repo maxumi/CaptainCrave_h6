@@ -1,0 +1,89 @@
+<div class="order-status-page" *transloco="let t">
+  @if (isLoading()) {
+    <p class="loading-text">{{ t('orderStatus.loading') }}</p>
+  } @else if (loadError()) {
+    <p class="error-text">{{ loadError() }}</p>
+  } @else if (noActiveOrder()) {
+    <p class="loading-text">{{ t('orderStatus.noActiveOrder') }}</p>
+  } @else if (order(); as order) {
+    <div class="card order-status-card">
+      <header class="order-header">
+        <h1>{{ t('orderStatus.title') }}</h1>
+
+        <p class="order-number">
+          {{ t('orderStatus.orderNumber', { id: order.id }) }}
+        </p>
+
+        <p class="order-date">
+          {{ order.createdAt | date: 'MMMM d, y - h:mm a' }}
+        </p>
+      </header>
+
+      <div class="current-status">
+        <div class="current-status-icon">
+          @if (order.status === OrderStatus.OnTheWay) {
+            <mat-icon>two_wheeler</mat-icon>
+          } @else if (order.status === OrderStatus.ReadyForPickup) {
+            <mat-icon>store</mat-icon>
+          } @else if (order.status === OrderStatus.Preparing) {
+            <mat-icon>restaurant</mat-icon>
+          } @else if (order.status === OrderStatus.Delivered) {
+            <mat-icon>home</mat-icon>
+          } @else {
+            <mat-icon>check</mat-icon>
+          }
+        </div>
+
+        <div>
+          <h2>{{ statusTitle }}</h2>
+          <p>{{ statusMessage }}</p>
+        </div>
+      </div>
+
+      <div class="timeline" [attr.aria-label]="t('orderStatus.progressAria')">
+        @for (step of steps; track step.label; let index = $index) {
+          <div
+            class="timeline-step"
+            [class.completed]="isCompleted(index)"
+            [class.active]="isActive(index)"
+            [class.upcoming]="isPending(index)"
+          >
+            <div class="step-line"></div>
+
+            <div class="step-circle">
+              <mat-icon>{{ step.icon }}</mat-icon>
+            </div>
+
+            <p class="step-label">{{ step.label }}</p>
+          </div>
+        }
+      </div>
+
+      <div class="order-summary">
+        <h3>{{ t('orderStatus.summary.title') }}</h3>
+
+        <div class="order-items">
+          @for (item of order.items; track item.menuItemName) {
+            <div class="order-item">
+              <div>
+                <p class="item-name">{{ item.menuItemName }}</p>
+                <p class="item-quantity">
+                  {{ t('orderStatus.summary.quantity') }}: {{ item.quantity }}
+                </p>
+              </div>
+
+              <p class="item-price">
+                {{ item.price * item.quantity | number: '1.2-2' }} kr.
+              </p>
+            </div>
+          }
+        </div>
+
+        <div class="order-total">
+          <span>{{ t('orderStatus.summary.total') }}</span>
+          <strong>{{ order.totalPrice | number: '1.2-2' }} kr.</strong>
+        </div>
+      </div>
+    </div>
+  }
+</div>

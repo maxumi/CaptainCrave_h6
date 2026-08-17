@@ -1,0 +1,92 @@
+<div class="page" *transloco="let t">
+  <section class="cart-card card">
+    <h1>{{ t('cart.title') }}</h1>
+
+    @if (cartItems().length) {
+      <div class="cart-items">
+        @for (item of cartItems(); track item.menuItemId) {
+          <div class="cart-item card">
+            <img [src]="item.imageUrl || 'burger-king.png'" [alt]="item.name" />
+
+            <div class="item-details">
+              <h2>{{ item.name }}</h2>
+              <p>kr. {{ item.price }}</p>
+
+              <label>
+                {{ t('cart.amount') }}
+                <input
+                  type="number"
+                  min="1"
+                  [value]="item.quantity"
+                  class="amount-input"
+                  (input)="onQuantityInput(item, $event)"
+                />
+              </label>
+
+              <button class="remove-btn" type="button" (click)="removeItem(item)">
+                {{ t('cart.remove') }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="delivery-choice">
+        <h3>{{ t('cart.orderType') }}</h3>
+
+        <label>
+          <input
+            type="radio"
+            name="deliveryType"
+            [checked]="selectedDeliveryType() === DeliveryType.Delivery"
+            (change)="selectedDeliveryType.set(DeliveryType.Delivery)"
+          />
+          {{ t('cart.delivery') }}
+        </label>
+
+        <label>
+          <input
+            type="radio"
+            name="deliveryType"
+            [checked]="selectedDeliveryType() === DeliveryType.Pickup"
+            (change)="selectedDeliveryType.set(DeliveryType.Pickup)"
+          />
+          {{ t('cart.pickup') }}
+        </label>
+      </div>
+
+      <div class="cart-summary">
+        <p>{{ t('cart.total') }}: {{ t('cart.currency') }} {{ total() }}</p>
+
+        <div class="cart-actions">
+          <button class="btn" type="button" (click)="clearCart()">
+            {{ t('cart.clearCart') }}
+          </button>
+
+          <button
+            class="btn"
+            type="button"
+            [disabled]="isSubmittingOrder() || !canCheckout()"
+            (click)="checkout()"
+          >
+            {{ isSubmittingOrder() ? t('cart.placingOrder') : t('cart.checkout') }}
+          </button>
+        </div>
+      </div>
+
+      @if (!canCheckout()) {
+        <p class="checkout-state checkout-state-error">
+          {{ t('cart.error.customerOnly') }}
+        </p>
+      }
+
+      @if (checkoutError()) {
+        <p class="checkout-state checkout-state-error">{{ checkoutError() }}</p>
+      }
+    } @else {
+      <div class="cart-empty">
+        <p>{{ t('cart.empty') }}</p>
+      </div>
+    }
+  </section>
+</div>
