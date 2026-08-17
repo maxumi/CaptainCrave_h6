@@ -1,6 +1,2 @@
 @CaptainCrave.Api_HostAddress = http://localhost:5286
 
-GET {{CaptainCrave.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
