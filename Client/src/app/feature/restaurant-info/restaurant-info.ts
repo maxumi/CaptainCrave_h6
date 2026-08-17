@@ -30,15 +30,49 @@ export class RestaurantInfo implements OnInit {
   readonly isLoading = signal(true);
   readonly loadError = signal<string | null>(null);
   readonly addMessage = signal<string | null>(null);
-  readonly canAddToCart = computed(() => this.authService.user()?.role === Role.Customer);
+
+  readonly canAddToCart = computed(
+    () => this.authService.user()?.role === Role.Customer
+  );
+
+  readonly uncategorizedItems = computed(() => {
+    const categoryIds = new Set(
+      this.categories().map((category) => category.id)
+    );
+
+    return this.menuItems().filter(
+      (item) => !item.categoryId || !categoryIds.has(item.categoryId)
+    );
+  });
+
+  readonly itemsByCategory = computed(() => {
+    const items = this.menuItems();
+    const result = new Map<number, MenuItemDto[]>();
+
+    for (const category of this.categories()) {
+      const categoryItems = items.filter(
+        (item) => item.categoryId === category.id
+      );
+
+      if (categoryItems.length) {
+        result.set(category.id, categoryItems);
+      }
+    }
+
+    return result;
+  });
 
   private restaurantId = 0;
 
   ngOnInit(): void {
-    const restaurantId = Number(this.route.snapshot.queryParamMap.get('restaurantId'));
+    const restaurantId = Number(
+      this.route.snapshot.queryParamMap.get('restaurantId')
+    );
 
     if (!Number.isFinite(restaurantId) || restaurantId <= 0) {
-      this.loadError.set(this.t('restaurantInfo.error.missingRestaurantId'));
+      this.loadError.set(
+        this.t('restaurantInfo.error.missingRestaurantId')
+      );
       this.isLoading.set(false);
       return;
     }
@@ -51,6 +85,7 @@ export class RestaurantInfo implements OnInit {
 
         if (!menus.length) {
           this.menuItems.set([]);
+          this.categories.set([]);
           this.isLoading.set(false);
           return;
         }
@@ -60,7 +95,9 @@ export class RestaurantInfo implements OnInit {
         this.loadMenuData(firstMenuId);
       },
       error: () => {
-        this.loadError.set(this.t('restaurantInfo.error.loadFailed'));
+        this.loadError.set(
+          this.t('restaurantInfo.error.loadFailed')
+        );
         this.isLoading.set(false);
       },
     });
@@ -68,32 +105,45 @@ export class RestaurantInfo implements OnInit {
 
   selectMenu(menuId: number): void {
     this.selectedMenuId.set(menuId);
+    this.addMessage.set(null);
     this.loadMenuData(menuId);
   }
 
   addToCart(item: MenuItemDto): void {
     if (!this.canAddToCart()) {
-      this.addMessage.set(this.t('restaurantInfo.error.customerOnly'));
+      this.addMessage.set(
+        this.t('restaurantInfo.error.customerOnly')
+      );
       return;
     }
 
-    const wasAdded = this.cartService.addItem(item, this.restaurantId);
+    const wasAdded = this.cartService.addItem(
+      item,
+      this.restaurantId
+    );
 
     if (!wasAdded) {
-      this.addMessage.set(this.t('restaurantInfo.error.singleRestaurantOnly'));
+      this.addMessage.set(
+        this.t('restaurantInfo.error.singleRestaurantOnly')
+      );
       return;
     }
 
     this.addMessage.set(
-      this.transloco.translate('restaurantInfo.message.addedToCart', {
-        name: item.name,
-      })
+      this.transloco.translate(
+        'restaurantInfo.message.addedToCart',
+        {
+          name: item.name,
+        }
+      )
     );
   }
 
   private loadMenuData(menuId: number): void {
     this.isLoading.set(true);
     this.loadError.set(null);
+    this.categories.set([]);
+    this.menuItems.set([]);
 
     this.categoryApiService.getByMenuId(menuId).subscribe({
       next: (categories) => {
@@ -105,13 +155,17 @@ export class RestaurantInfo implements OnInit {
             this.isLoading.set(false);
           },
           error: () => {
-            this.loadError.set(this.t('restaurantInfo.error.loadFailed'));
+            this.loadError.set(
+              this.t('restaurantInfo.error.loadFailed')
+            );
             this.isLoading.set(false);
           },
         });
       },
       error: () => {
-        this.loadError.set(this.t('restaurantInfo.error.loadFailed'));
+        this.loadError.set(
+          this.t('restaurantInfo.error.loadFailed')
+        );
         this.isLoading.set(false);
       },
     });
