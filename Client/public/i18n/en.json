@@ -7,6 +7,12 @@
   },
   "navbar": {
     "search": "Search",
+    "restaurants": "Restaurants",
+    "searchPage": "Search",
+    "map": "Map",
+    "orderStatus": "Order Status",
+    "manageRestaurant": "Manage Restaurant",
+    "cart": "Cart",
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "register": "Register",
@@ -77,6 +83,9 @@
   "restaurants": {
     "title": "Restaurants",
     "subtitle": " ",
+    "search": {
+      "openSearchPage": "Open Search"
+    },
     "map": {
       "openMapPage": "Open Nearby Map",
       "title": "Nearby Restaurants Map",
@@ -105,6 +114,24 @@
       "locationRequired": "Please enter an address.",
       "locationNotFound": "No location found for this address.",
       "userLocationMissing": "User location not available. Please update your profile with a valid address.",
+      "loadFailed": "Unable to load restaurants right now."
+    }
+  },
+  "restaurantsSearch": {
+    "title": "Search Restaurants",
+    "subtitle": "Search by restaurant name.",
+    "queryLabel": "Query",
+    "placeholder": "Type your search query",
+    "searchButton": "Search",
+    "clearButton": "Clear",
+    "loading": "Loading restaurants...",
+    "empty": "No restaurants match your query.",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{current}} of {{total}}"
+    },
+    "error": {
       "loadFailed": "Unable to load restaurants right now."
     }
   },

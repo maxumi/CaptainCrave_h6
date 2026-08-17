@@ -6,35 +6,43 @@ import * as L from 'leaflet';
 import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { LocationService } from '../../shared/LocationService';
+import { FormsModule } from '@angular/forms';
 
 const MAX_DISTANCE_KM = 50;
 
 @Component({
   selector: 'app-nearby-restaurants-map',
-  imports: [TranslocoModule, RouterLink],
+  imports: [TranslocoModule, FormsModule],
   templateUrl: './nearby-restaurants-map.html',
   styleUrl: './nearby-restaurants-map.css',
 })
 export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
-  private readonly restaurantApiService = inject(RestaurantApiService);
-  private readonly authService = inject(AuthService);
-  private readonly locationService = inject(LocationService);
-  private readonly transloco = inject(TranslocoService);
+    private readonly restaurantApiService = inject(RestaurantApiService);
+    private readonly authService = inject(AuthService);
+    private readonly locationService = inject(LocationService);
+    private readonly transloco = inject(TranslocoService);
 
-  readonly selectedLocation = this.locationService.selectedLocation;
-  readonly addressInput = signal(this.selectedLocation().label);
-  readonly nearbyRestaurants = signal<RestaurantDto[]>([]);
-  readonly isLoading = signal(true);
-  readonly isResolvingAddress = signal(false);
-  readonly loadError = signal<string | null>(null);
+    // Signals for state
+    readonly selectedLocation = this.locationService.selectedLocation;
+    readonly addressInput = signal(this.selectedLocation().label);
+    readonly nearbyRestaurants = signal<RestaurantDto[]>([]);
+    readonly isLoading = signal(true);
+    readonly isResolvingAddress = signal(false);
+    readonly loadError = signal<string | null>(null);
 
-  private map!: L.Map;
-  private centerMarker!: L.Marker;
-  private restaurantMarkers: L.Marker[] = [];
+    // Leaflet map
+    private map!: L.Map;
+
+    // Marker for the selected location(center of the map)
+    private centerMarker!: L.Marker;
+
+    // Keeps all restaurant markers in one layer so they can be cleared together.
+    private readonly restaurantMarkers = L.layerGroup();
 
   ngOnInit(): void {
     const user = this.authService.user();
 
+    // Use the saved profile location unless the user has already selected another location.
     if (
       user?.latitude != null &&
       user?.longitude != null &&
@@ -46,6 +54,7 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
         user.address || this.selectedLocation().label,
         'profile'
       );
+
       this.addressInput.set(this.locationService.selectedLocation().label);
     }
   }
@@ -63,16 +72,21 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
 
+    // Add the shared restaurant marker layer to the map once.
+    this.restaurantMarkers.addTo(this.map);
+
     this.centerMarker = L.marker(mapCenter)
       .addTo(this.map)
       .bindPopup(currentLocation.label);
 
     this.loadNearbyRestaurantsFromSelectedLocation();
 
+    // Ensures Leaflet recalculates the map size after Angular finishes rendering.
     setTimeout(() => this.map.invalidateSize(), 0);
   }
 
   ngOnDestroy(): void {
+    // Clean up Leaflet resources when leaving the component.
     if (this.map) {
       this.map.remove();
     }
@@ -91,6 +105,7 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
 
     this.locationService
       .geocodeAddress(address)
+      // Always reset the resolving state, whether the request succeeds or fails.
       .pipe(finalize(() => this.isResolvingAddress.set(false)))
       .subscribe({
         next: (location) => {
@@ -125,28 +140,35 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
 
     this.restaurantApiService
       .getNearbyRestaurants(location.lat, location.lng, MAX_DISTANCE_KM)
+      // Keeps loading-state cleanup in one place for success and error cases.
+      .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (restaurants) => {
           this.nearbyRestaurants.set(restaurants);
-          restaurants.forEach((restaurant) => this.addRestaurantMarker(restaurant));
-          this.isLoading.set(false);
+
+          restaurants.forEach((restaurant) =>
+            this.addRestaurantMarker(restaurant)
+          );
         },
         error: () => {
           this.loadError.set(this.t('restaurants.error.loadFailed'));
-          this.isLoading.set(false);
         },
       });
   }
 
   private addRestaurantMarker(restaurant: RestaurantDto): void {
-    const marker = L.marker([restaurant.latitude, restaurant.longitude])
-      .addTo(this.map)
-      .bindPopup(`<strong>${restaurant.name}</strong><br>${restaurant.address}`);
-
-    this.restaurantMarkers.push(marker);
+    L.marker([restaurant.latitude, restaurant.longitude])
+      .bindPopup(
+        `<strong>${restaurant.name}</strong><br>${restaurant.address}`
+      )
+      .addTo(this.restaurantMarkers);
   }
 
-  private updateCenterMarker(lat: number, lng: number, label: string): void {
+  private updateCenterMarker(
+    lat: number,
+    lng: number,
+    label: string
+  ): void {
     const latLng: L.LatLngExpression = [lat, lng];
 
     this.centerMarker.setLatLng(latLng);
@@ -155,8 +177,8 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private clearRestaurantMarkers(): void {
-    this.restaurantMarkers.forEach((marker) => marker.remove());
-    this.restaurantMarkers = [];
+    // Clears all restaurant markers without removing the layer itself.
+    this.restaurantMarkers.clearLayers();
   }
 
   private t(key: string): string {

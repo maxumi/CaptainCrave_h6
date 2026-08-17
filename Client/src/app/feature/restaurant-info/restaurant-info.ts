@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { MenuItemCard } from './menu-item-card/menu-item-card';
 import { ActivatedRoute } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MenuItemApiService, MenuItemDto } from '../../shared/menu-item-api.service';
@@ -7,10 +8,11 @@ import { CategoryApiService, CategoryDto } from '../../shared/category-api.servi
 import { CartService } from '../../shared/cart.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Role } from '../../shared/models/user';
+import { finalize, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-restaurant-info',
-  imports: [TranslocoModule],
+  imports: [TranslocoModule, MenuItemCard],
   templateUrl: './restaurant-info.html',
   styleUrl: './restaurant-info.css',
 })
@@ -36,27 +38,29 @@ export class RestaurantInfo implements OnInit {
   );
 
   readonly uncategorizedItems = computed(() => {
+    // Get all valid category IDs. Set is for unique values.
     const categoryIds = new Set(
       this.categories().map((category) => category.id)
     );
 
+    // Keep items without a valid category.
     return this.menuItems().filter(
       (item) => !item.categoryId || !categoryIds.has(item.categoryId)
     );
   });
 
   readonly itemsByCategory = computed(() => {
-    const items = this.menuItems();
+    // Group menu items by category ID. 
     const result = new Map<number, MenuItemDto[]>();
 
-    for (const category of this.categories()) {
-      const categoryItems = items.filter(
-        (item) => item.categoryId === category.id
-      );
-
-      if (categoryItems.length) {
-        result.set(category.id, categoryItems);
+    for (const item of this.menuItems()) {
+      if (!item.categoryId) {
+        continue;
       }
+
+      const items = result.get(item.categoryId) ?? [];
+      items.push(item);
+      result.set(item.categoryId, items);
     }
 
     return result;
@@ -69,40 +73,38 @@ export class RestaurantInfo implements OnInit {
       this.route.snapshot.queryParamMap.get('restaurantId')
     );
 
+    // Validate the restaurantId parameter.
     if (!Number.isFinite(restaurantId) || restaurantId <= 0) {
-      this.loadError.set(
-        this.t('restaurantInfo.error.missingRestaurantId')
-      );
+      this.loadError.set(this.t('restaurantInfo.error.missingRestaurantId'));
       this.isLoading.set(false);
       return;
     }
 
     this.restaurantId = restaurantId;
+    this.loadMenus(restaurantId);
+  }
 
+  private loadMenus(restaurantId: number): void {
     this.menuApiService.getByRestaurantId(restaurantId).subscribe({
       next: (menus) => {
         this.menus.set(menus);
 
-        if (!menus.length) {
-          this.menuItems.set([]);
-          this.categories.set([]);
+        const firstMenu = menus[0];
+
+        if (!firstMenu) {
           this.isLoading.set(false);
           return;
         }
 
-        const firstMenuId = menus[0].id;
-        this.selectedMenuId.set(firstMenuId);
-        this.loadMenuData(firstMenuId);
+        this.selectedMenuId.set(firstMenu.id);
+        this.loadMenuData(firstMenu.id);
       },
       error: () => {
-        this.loadError.set(
-          this.t('restaurantInfo.error.loadFailed')
-        );
+        this.loadError.set(this.t('restaurantInfo.error.loadFailed'));
         this.isLoading.set(false);
       },
     });
   }
-
   selectMenu(menuId: number): void {
     this.selectedMenuId.set(menuId);
     this.addMessage.set(null);
@@ -145,30 +147,21 @@ export class RestaurantInfo implements OnInit {
     this.categories.set([]);
     this.menuItems.set([]);
 
-    this.categoryApiService.getByMenuId(menuId).subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-
-        this.menuItemApiService.getByMenuId(menuId).subscribe({
-          next: (items) => {
-            this.menuItems.set(items);
-            this.isLoading.set(false);
-          },
-          error: () => {
-            this.loadError.set(
-              this.t('restaurantInfo.error.loadFailed')
-            );
-            this.isLoading.set(false);
-          },
-        });
-      },
-      error: () => {
-        this.loadError.set(
-          this.t('restaurantInfo.error.loadFailed')
-        );
-        this.isLoading.set(false);
-      },
-    });
+    // Use forkJoin to load categories and menu items at the same time.
+    forkJoin({
+      categories: this.categoryApiService.getByMenuId(menuId),
+      items: this.menuItemApiService.getByMenuId(menuId),
+    })
+      .pipe(finalize(() => this.isLoading.set(false)))
+      .subscribe({
+        next: ({ categories, items }) => {
+          this.categories.set(categories);
+          this.menuItems.set(items);
+        },
+        error: () => {
+          this.loadError.set(this.t('restaurantInfo.error.loadFailed'));
+        },
+      });
   }
 
   private t(key: string): string {

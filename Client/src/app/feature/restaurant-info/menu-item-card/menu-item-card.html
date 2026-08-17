@@ -1,0 +1,28 @@
+<div class="menu-card card" *transloco="let t">
+  <div class="menu-card-content">
+    <h3>{{ item().name }}</h3>
+
+    <p class="price">
+      kr. {{ item().price }}
+    </p>
+
+    <p class="description">
+      {{ item().description }}
+    </p>
+
+    <button
+      class="btn add-btn"
+      type="button"
+      [disabled]="!canAddToCart()"
+      [attr.aria-label]="t('restaurantInfo.addItem')"
+      (click)="add.emit()"
+    >
+      {{ t('restaurantInfo.addItem') }}
+    </button>
+  </div>
+
+  <img
+    [src]="item().imageUrl || 'burger-king.png'"
+    [alt]="item().name"
+  />
+</div>

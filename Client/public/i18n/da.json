@@ -7,6 +7,12 @@
   },
   "navbar": {
     "search": "Søg",
+    "restaurants": "Restauranter",
+    "searchPage": "Søg",
+    "map": "Kort",
+    "orderStatus": "Ordrestatus",
+    "manageRestaurant": "Administrer restaurant",
+    "cart": "Kurv",
     "signIn": "Log ind",
     "signOut": "Log ud",
     "register": "Opret konto",
@@ -77,6 +83,9 @@
     "restaurants": {
       "title": "Restauranter",
       "subtitle": " ",
+      "search": {
+        "openSearchPage": "Aabn soegning"
+      },
       "map": {
         "openMapPage": "Aabn naerkort",
         "title": "Kort over naerliggende restauranter",
@@ -108,6 +117,24 @@
         "loadFailed": "Kunne ikke indlæse restauranter lige nu."
       }
   },
+"restaurantsSearch": {
+  "title": "Soeg restauranter",
+  "subtitle": "Soeg paa restaurantnavn.",
+  "queryLabel": "Soegeord",
+  "placeholder": "Skriv din soegning",
+  "searchButton": "Soeg",
+  "clearButton": "Ryd",
+  "loading": "Indlaeser restauranter...",
+  "empty": "Ingen restauranter matcher din soegning.",
+  "pagination": {
+    "previous": "Forrige",
+    "next": "Naeste",
+    "page": "Side {{current}} af {{total}}"
+  },
+  "error": {
+    "loadFailed": "Kunne ikke indlaese restauranter lige nu."
+  }
+},
 "restaurantInfo": {
   "menu": "Menu",
   "addItem": "Tilføj vare",

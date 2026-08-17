@@ -1,5 +1,5 @@
 <nav class="navbar" *transloco="let t">
-  <a class="brand" href="/" aria-label="Captain Crave home">
+  <a class="brand" routerLink="/" aria-label="Captain Crave home">
     <img src="captain_crave.png" alt="Captain Crave logo" />
     <span>Captain Crave</span>
   </a>
@@ -19,12 +19,26 @@
   </div>
   -->
 
+  <div class="nav-links">
+    <a class="nav-link" routerLink="/restaurants">{{ t('navbar.restaurants') }}</a>
+    <a class="nav-link" routerLink="/restaurants-search">{{ t('navbar.searchPage') }}</a>
+    <a class="nav-link" routerLink="/restaurants-map">{{ t('navbar.map') }}</a>
+
+    @if (isCustomer()) {
+      <a class="nav-link" routerLink="/order-status">{{ t('navbar.orderStatus') }}</a>
+    }
+
+    @if (isRestaurantOrAdmin()) {
+      <a class="nav-link" routerLink="/restaurant-edit">{{ t('navbar.manageRestaurant') }}</a>
+    }
+  </div>
+
   <div class="auth-buttons">
     @if (user()) {
-      @if (user()?.role !== 'Restaurant') {
+      @if (isCustomer()) {
         <button class="cart-btn" type="button" routerLink="/cart" aria-label="Cart">
           <mat-icon>shopping_cart</mat-icon>
-          <span>Cart</span>
+          <span>{{ t('navbar.cart') }}</span>
         </button>
       }
 
@@ -34,15 +48,15 @@
       </button>
 
       <button class="signin-btn" type="button" (click)="logout()">
-        Logout
+        {{ t('navbar.signOut') }}
       </button>
     } @else {
       <button class="signin-btn" type="button" routerLink="/login">
-        {{ t("navbar.signIn") }}
+        {{ t('navbar.signIn') }}
       </button>
 
       <button class="register-btn" type="button" routerLink="/register">
-        {{ t("navbar.register") }}
+        {{ t('navbar.register') }}
       </button>
     }
   </div>
@@ -53,8 +67,8 @@
       (change)="setLang($any($event.target).value)"
       aria-label="Select language"
     >
-      <option value="en">{{ t("navbar.lang.en") }}</option>
-      <option value="da">{{ t("navbar.lang.da") }}</option>
+      <option value="en">{{ t('navbar.lang.en') }}</option>
+      <option value="da">{{ t('navbar.lang.da') }}</option>
     </select>
   </div>
 </nav>

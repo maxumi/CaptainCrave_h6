@@ -13,6 +13,7 @@ import { roleGuard } from './core/auth/role-guard';
 import { RestaurantCreate } from './feature/restaurant-create/restaurant-create';
 import { OrderStatusView } from './feature/order-status-view/order-status-view';
 import { NearbyRestaurantsMap } from './feature/nearby-restaurants-map/nearby-restaurants-map';
+import { RestaurantsSearch } from './feature/restaurants-search/restaurants-search';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -25,6 +26,7 @@ export const routes: Routes = [
   { path: 'restaurant-create', component: RestaurantCreate, canActivate: [authGuard, roleGuard], data: { roles: ['Restaurant'] } },
   { path: 'restaurant-edit', component: RestaurantEdit, canActivate: [authGuard, roleGuard], data: { roles: ['Restaurant', 'Admin'] } },
   { path: 'restaurants', component: Restaurants },
+  { path: 'restaurants-search', component: RestaurantsSearch },
   { path: 'restaurants-map', component: NearbyRestaurantsMap },
   { path: 'restaurantInfo', component: RestaurantInfo },
   

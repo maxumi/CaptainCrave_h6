@@ -11,10 +11,10 @@
 
       <div class="location-controls">
         <input
-          type="text"
-          [value]="addressInput()"
-          (input)="addressInput.set($any($event.target).value)"
-          [placeholder]="t('restaurants.location.placeholder')"
+        type="text"
+        [ngModel]="addressInput()"
+        (ngModelChange)="addressInput.set($event)"
+        [placeholder]="t('restaurants.location.placeholder')"
         />
 
         <button
