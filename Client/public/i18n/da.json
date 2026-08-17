@@ -77,6 +77,21 @@
     "restaurants": {
       "title": "Restauranter",
       "subtitle": " ",
+      "map": {
+        "openMapPage": "Aabn naerkort",
+        "title": "Kort over naerliggende restauranter",
+        "subtitle": "Brug din valgte placering til at udforske restauranter paa kortet.",
+        "nearbyListTitle": "Restauranter i dette omraade"
+      },
+      "location": {
+        "title": "Leveringsadresse",
+        "description": "Vælg adressen for at finde nærliggende restauranter.",
+        "placeholder": "Indtast leveringsadresse",
+        "updateButton": "Opdater placering",
+        "updating": "Opdaterer...",
+        "resetButton": "Brug standardplacering",
+        "currentPrefix": "Nuværende placering:"
+      },
       "status": {
         "open": "Åben",
         "closed": "Lukket"
@@ -87,6 +102,8 @@
         "notAuthenticated": "Bruger er ikke godkendt.",
         "restaurantLocationMissing": "Restaurantens placering er ikke tilgængelig.",
         "restaurantLocationFailed": "Kunne ikke indlæse restaurantens placering.",
+        "locationRequired": "Indtast venligst en adresse.",
+        "locationNotFound": "Ingen placering fundet for adressen.",
         "userLocationMissing": "Brugerens placering er ikke tilgængelig. Opdater din profil med en gyldig adresse.",
         "loadFailed": "Kunne ikke indlæse restauranter lige nu."
       }
@@ -204,8 +221,10 @@
   "remove": "Fjern",
   "orderType": "Ordretype",
   "delivery": "Levering",
+  "deliveryAddress": "Leveringsadresse",
   "pickup": "Afhentning",
   "total": "Total",
+  "currency": "kr.",
   "clearCart": "Ryd kurv",
   "checkout": "Bestil",
   "placingOrder": "Opretter ordre...",
@@ -214,7 +233,7 @@
     "notLoggedIn": "Du skal være logget ind for at afgive en ordre.",
     "customerOnly": "Kun kundekonti kan afgive ordrer.",
     "empty": "Din kurv er tom.",
-    "addressRequired": "Opdater din profiladresse før checkout.",
+    "addressRequired": "Vælg venligst en leveringsadresse først.",
     "checkoutFailed": "Kunne ikke oprette ordren lige nu."
   }
 },
