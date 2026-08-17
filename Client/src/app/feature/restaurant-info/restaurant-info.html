@@ -46,7 +46,7 @@
             @for (item of menuItems(); track item.id) {
               @if (item.categoryId === category.id) {
                 <div class="menu-card card">
-                  <div>
+                  <div class="menu-card-content">
                     <h3>{{ item.name }}</h3>
                     <p class="price">kr. {{ item.price }}</p>
                     <p class="description">{{ item.description }}</p>
@@ -77,7 +77,7 @@
           @for (item of menuItems(); track item.id) {
             @if (!item.categoryId) {
               <div class="menu-card card">
-                <div>
+                <div class="menu-card-content">
                   <h3>{{ item.name }}</h3>
                   <p class="price">kr. {{ item.price }}</p>
                   <p class="description">{{ item.description }}</p>

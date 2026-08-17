@@ -1,15 +1,15 @@
-<section class="card menu-items-section" *transloco="let t">
-	<div class="menu-items-header">
+<section class="card cc-section" *transloco="let t">
+	<div class="cc-flex-between cc-stack-mobile cc-mb-16">
 		<div>
-			<h2>{{ menuName }}</h2>
+			<h2 class="cc-title">{{ menuName }}</h2>
 		</div>
 
-		<div class="menu-items-header-actions">
-			<button type="button" class="btn add-btn" (click)="onAddItem()">
+		<div class="cc-actions-tight cc-stack-mobile">
+			<button type="button" class="btn add-btn cc-full-mobile" (click)="onAddItem()">
 				{{ t('menuEdit.addNewItem') }}
 			</button>
 
-			<button type="button" class="btn delete-btn" (click)="onDeleteMenu()">
+			<button type="button" class="btn cc-btn-danger cc-btn-min cc-full-mobile" (click)="onDeleteMenu()">
 				{{ t('menuEdit.deleteMenu') }}
 			</button>
 		</div>
@@ -23,7 +23,7 @@
 	}
 
 	@if (menuItems.length) {
-		<div class="table-head">
+		<div class="cc-data-head cc-grid-4 cc-hide-mobile">
 			<span>{{ t('menuEdit.table.item') }}</span>
 			<span>{{ t('menuEdit.table.price') }}</span>
 			<span>{{ t('menuEdit.table.status') }}</span>
@@ -31,8 +31,8 @@
 		</div>
 
 		@for (item of menuItems; track item.id) {
-			<div class="table-row" [class.selected]="selectedItemId === item.id">
-				<div class="item-cell">
+			<div class="cc-data-row cc-grid-4 cc-grid-mobile-1" [class.selected]="selectedItemId === item.id">
+				<div class="cc-data-cell">
 					<strong>{{ item.name }}</strong>
 				</div>
 
@@ -44,7 +44,7 @@
 					</span>
 				</span>
 
-				<div class="actions">
+				<div class="cc-actions">
 					<button type="button" class="btn" (click)="onSelectItem(item)">
 						{{ t('menuEdit.view') }}
 					</button>

@@ -1,8 +1,8 @@
 <div *transloco="let t">
-  <header class="menu-header">
+  <header class="cc-flex-between cc-stack-mobile cc-mb-24">
     <div>
-      <h1>{{ t('menuEdit.title') }}</h1>
-      <p>{{ t('menuEdit.subtitle') }}</p>
+      <h1 class="cc-title">{{ t('menuEdit.title') }}</h1>
+      <p class="cc-subtitle">{{ t('menuEdit.subtitle') }}</p>
     </div>
   </header>
 
@@ -30,19 +30,19 @@
   }
 
   @if (store.menus().length) {
-    <section class="menu-table card" [attr.aria-label]="t('menuEdit.aria.menuItems')">
-      <div class="table-head">
+    <section class="card cc-overflow-hidden" [attr.aria-label]="t('menuEdit.aria.menuItems')">
+      <div class="cc-data-head cc-grid-2-1 cc-hide-mobile">
         <span>{{ t('menuEdit.menuTable.name') }}</span>
         <span>{{ t('menuEdit.menuTable.action') }}</span>
       </div>
 
       @for (menu of store.menus(); track menu.id) {
-        <div class="table-row" [class.selected]="store.menuId() === menu.id">
-          <div class="item-cell">
+        <div class="cc-data-row cc-grid-2-1 cc-grid-mobile-1" [class.selected]="store.menuId() === menu.id">
+          <div class="cc-data-cell">
             <strong>{{ menu.name }}</strong>
           </div>
 
-          <div class="actions">
+          <div class="cc-actions">
             <button type="button" class="btn" (click)="selectMenu(menu.id)">
               {{ store.menuId() === menu.id ? t('menuEdit.menuTable.selected') : t('menuEdit.menuTable.select') }}
             </button>
@@ -50,8 +50,8 @@
         </div>
       }
 
-      <div class="menu-create-actions">
-        <button type="button" class="btn add-btn" (click)="createMenu()">
+      <div class="cc-card-action-row cc-stack-mobile">
+        <button type="button" class="btn add-btn cc-btn-min cc-full-mobile" (click)="createMenu()">
           {{ t('menuEdit.createMenu') }}
         </button>
       </div>
