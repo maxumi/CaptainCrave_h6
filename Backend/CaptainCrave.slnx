@@ -1,2 +1,5 @@
 <Solution>
+  <Project Path="CaptainCrave.Api/CaptainCrave.Api.csproj" />
+  <Project Path="CaptainCrave.AppHost/CaptainCrave.AppHost.csproj" />
+  <Project Path="CaptainCrave.Tests/CaptainCrave.Tests.csproj" />
 </Solution>

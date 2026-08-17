@@ -5,12 +5,21 @@ namespace Api.Repositories;
 // Defines data access operations for menus.
 public interface IMenuRepository
 {
-    // Returns all menus belonging to the specified restaurant.
+    /// <summary>
+    /// Returns all menus belonging to the specified restaurant.
+    /// </summary>
+    /// <param name="restaurantId">The owning restaurant's id.</param>
     Task<IEnumerable<Menu>> GetByRestaurantIdAsync(int restaurantId);
 
-    // Returns a menu by ID, or null if not found.
+    /// <summary>
+    /// Returns a menu by ID, or null if not found.
+    /// </summary>
+    /// <param name="id">The menu's id.</param>
     Task<Menu?> GetByIdAsync(int id);
 
-    // Saves a new menu and returns it with the generated ID.
+    /// <summary>
+    /// Saves a new menu and returns it with the generated ID.
+    /// </summary>
+    /// <param name="menu">The entity to insert.</param>
     Task<Menu> CreateAsync(Menu menu);
 }

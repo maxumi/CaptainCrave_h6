@@ -9,15 +9,24 @@ public class MenuRepository(AppDbContext db) : IMenuRepository
 {
     private readonly AppDbContext _db = db;
 
-    // Fetches all menus for the given restaurant.
+    /// <summary>
+    /// Fetches all menus for the given restaurant.
+    /// </summary>
+    /// <param name="restaurantId">The owning restaurant's id.</param>
     public async Task<IEnumerable<Menu>> GetByRestaurantIdAsync(int restaurantId) =>
         await _db.Menus.AsNoTracking().Where(m => m.RestaurantId == restaurantId).ToListAsync();
 
-    // Fetches a single menu by primary key.
+    /// <summary>
+    /// Fetches a single menu by primary key.
+    /// </summary>
+    /// <param name="id">The menu's id.</param>
     public async Task<Menu?> GetByIdAsync(int id) =>
         await _db.Menus.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
 
-    // Inserts a new menu row and returns it with its generated ID.
+    /// <summary>
+    /// Inserts a new menu row and returns it with its generated ID.
+    /// </summary>
+    /// <param name="menu">The entity to insert.</param>
     public async Task<Menu> CreateAsync(Menu menu)
     {
         _db.Menus.Add(menu);

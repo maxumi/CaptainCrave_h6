@@ -24,7 +24,10 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
         return int.TryParse(claimValue, out var userId) ? userId : null;
     }
 
-    // Returns all menus for the specified restaurant.
+    /// <summary>
+    /// Returns all menus for the specified restaurant.
+    /// </summary>
+    /// <param name="restaurantId">Route value identifying the restaurant.</param>
     [HttpGet("restaurant/{restaurantId}")]
     public async Task<IActionResult> GetByRestaurant(int restaurantId)
     {
@@ -32,7 +35,10 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
         return Ok(menus);
     }
 
-    // Returns a single menu by ID, or 404 if not found.
+    /// <summary>
+    /// Returns a single menu by ID, or 404 if not found.
+    /// </summary>
+    /// <param name="id">Route value identifying the menu.</param>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -43,7 +49,11 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
         return Ok(menu);
     }
 
-    // Creates a new menu and returns it with a 201 status.
+    /// <summary>
+    /// Creates a new menu and returns it with a 201 status. Restaurant users may only
+    /// create menus for the restaurant they own; Admins can target any restaurant.
+    /// </summary>
+    /// <param name="dto">The requested menu's restaurant id and name.</param>
     [HttpPost]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Create(CreateMenuDto dto)

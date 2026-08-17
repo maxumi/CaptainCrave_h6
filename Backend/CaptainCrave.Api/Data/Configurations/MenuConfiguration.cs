@@ -13,19 +13,23 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
 
         builder.HasKey(m => m.Id);
 
+        // id: auto-generated primary key.
         builder.Property(m => m.Id)
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
 
+        // restaurant_id: required FK, every menu must belong to exactly one restaurant.
         builder.Property(m => m.RestaurantId)
             .HasColumnName("restaurant_id")
             .IsRequired();
 
+        // name: required display name, max 100 characters.
         builder.Property(m => m.Name)
             .HasColumnName("name")
             .IsRequired()
             .HasMaxLength(100);
 
+        // One restaurant has many menus; deleting the restaurant deletes its menus too.
         builder.HasOne(m => m.Restaurant)
             .WithMany(r => r.Menus)
             .HasForeignKey(m => m.RestaurantId)
