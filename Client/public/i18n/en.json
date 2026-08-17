@@ -7,6 +7,12 @@
   },
   "navbar": {
     "search": "Search",
+    "restaurants": "Restaurants",
+    "searchPage": "Search",
+    "map": "Map",
+    "orderStatus": "Order Status",
+    "manageRestaurant": "Manage Restaurant",
+    "cart": "Cart",
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "register": "Register",
@@ -77,6 +83,24 @@
   "restaurants": {
     "title": "Restaurants",
     "subtitle": " ",
+    "search": {
+      "openSearchPage": "Open Search"
+    },
+    "map": {
+      "openMapPage": "Open Nearby Map",
+      "title": "Nearby Restaurants Map",
+      "subtitle": "Use your selected location to explore restaurants on the map.",
+      "nearbyListTitle": "Restaurants in this area"
+    },
+    "location": {
+      "title": "Delivery location",
+      "description": "Choose the address to find nearby restaurants.",
+      "placeholder": "Enter delivery address",
+      "updateButton": "Update location",
+      "updating": "Updating...",
+      "resetButton": "Use default location",
+      "currentPrefix": "Current location:"
+    },
     "loading": "Loading restaurants...",
     "empty": "No restaurants found.",
     "status": {
@@ -87,7 +111,27 @@
       "notAuthenticated": "User not authenticated.",
       "restaurantLocationMissing": "Restaurant location not available.",
       "restaurantLocationFailed": "Unable to load restaurant location.",
+      "locationRequired": "Please enter an address.",
+      "locationNotFound": "No location found for this address.",
       "userLocationMissing": "User location not available. Please update your profile with a valid address.",
+      "loadFailed": "Unable to load restaurants right now."
+    }
+  },
+  "restaurantsSearch": {
+    "title": "Search Restaurants",
+    "subtitle": "Search by restaurant name.",
+    "queryLabel": "Query",
+    "placeholder": "Type your search query",
+    "searchButton": "Search",
+    "clearButton": "Clear",
+    "loading": "Loading restaurants...",
+    "empty": "No restaurants match your query.",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {{current}} of {{total}}"
+    },
+    "error": {
       "loadFailed": "Unable to load restaurants right now."
     }
   },
@@ -204,8 +248,10 @@
   "remove": "Remove",
   "orderType": "Order type",
   "delivery": "Delivery",
+  "deliveryAddress": "Delivery address",
   "pickup": "Pickup",
   "total": "Total",
+  "currency": "kr.",
   "clearCart": "Clear cart",
   "checkout": "Checkout",
   "placingOrder": "Placing order...",
@@ -214,7 +260,7 @@
     "notLoggedIn": "You must be logged in to place an order.",
     "customerOnly": "Only customer accounts can place orders.",
     "empty": "Your cart is empty.",
-    "addressRequired": "Please update your profile address before checkout.",
+    "addressRequired": "Please choose a delivery address first.",
     "checkoutFailed": "Unable to place order right now."
   }
 },

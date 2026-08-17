@@ -12,6 +12,18 @@
   margin-top: 0;
 }
 
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.header-actions .btn {
+  display: inline-flex;
+  text-decoration: none;
+  margin-top: 8px;
+}
+
 .restaurants-state {
   margin: 12px 0 20px;
   font-size: 15px;
@@ -63,4 +75,10 @@
   display: inline-block;
   margin-top: 12px;
   font-size: 14px;
+}
+
+@media (max-width: 780px) {
+  .restaurants-page {
+    padding: 20px;
+  }
 }

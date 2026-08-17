@@ -1,0 +1,97 @@
+<div class="restaurants-search-page" *transloco="let t">
+  <section class="restaurants-search-card card">
+    <div class="page-header">
+      <h1>{{ t('restaurantsSearch.title') }}</h1>
+      <p>{{ t('restaurantsSearch.subtitle') }}</p>
+    </div>
+
+    <div class="search-controls">
+      <label for="restaurants-query">{{ t('restaurantsSearch.queryLabel') }}</label>
+
+      <div class="search-row">
+        <input
+          id="restaurants-query"
+          type="text"
+          class="form-control"
+          [placeholder]="t('restaurantsSearch.placeholder')"
+          [ngModel]="query()"
+          (ngModelChange)="query.set($event)"
+          (keyup.enter)="applyQuery()"
+        />
+
+        <button class="btn" type="button" (click)="applyQuery()">
+          {{ t('restaurantsSearch.searchButton') }}
+        </button>
+
+        <button class="btn btn-secondary" type="button" (click)="clearQuery()">
+          {{ t('restaurantsSearch.clearButton') }}
+        </button>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <p class="search-state">{{ t('restaurantsSearch.loading') }}</p>
+    }
+
+    @if (loadError()) {
+      <p class="search-state search-state-error">{{ loadError() }}</p>
+    }
+
+    @if (!isLoading() && !loadError() && pagedRestaurants().length) {
+      <div class="result-list">
+        @for (restaurant of pagedRestaurants(); track restaurant.id) {
+          <a
+            class="result-item card"
+            [routerLink]="['/restaurantInfo']"
+            [queryParams]="{ restaurantId: restaurant.id }"
+          >
+            <h2>{{ restaurant.name }}</h2>
+            <p>{{ restaurant.description || restaurant.address }}</p>
+            <span class="status" [class.out]="!restaurant.isActive">
+              {{
+                restaurant.isActive
+                  ? t('restaurants.status.open')
+                  : t('restaurants.status.closed')
+              }}
+            </span>
+          </a>
+        }
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination-controls">
+          <button
+            class="btn btn-secondary"
+            type="button"
+            [disabled]="!hasPreviousPage()"
+            (click)="goToPreviousPage()"
+          >
+            {{ t('restaurantsSearch.pagination.previous') }}
+          </button>
+
+          <span class="page-indicator">
+            {{
+              t('restaurantsSearch.pagination.page', {
+                current: page(),
+                total: totalPages(),
+              })
+            }}
+          </span>
+
+          <button
+            class="btn btn-secondary"
+            type="button"
+            [disabled]="!hasNextPage()"
+            (click)="goToNextPage()"
+          >
+            {{ t('restaurantsSearch.pagination.next') }}
+          </button>
+        </div>
+      }
+    }
+
+    @if (!isLoading() && !loadError() && !nameFilteredRestaurants().length) {
+      <p class="search-state">{{ t('restaurantsSearch.empty') }}</p>
+    }
+  </section>
+</div>

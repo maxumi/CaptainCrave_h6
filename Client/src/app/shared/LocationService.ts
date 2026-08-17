@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 
 export interface LocationResult {
@@ -8,12 +8,10 @@ export interface LocationResult {
   label: string;
 }
 
-export interface Restaurant {
-  id: number;
-  lat: number;
-  lng: number;
-  name: string;
-  cuisine?: string;
+export type LocationSource = 'default' | 'guest' | 'profile';
+
+export interface StoredLocation extends LocationResult {
+  source: LocationSource;
 }
 
 interface NominatimResult {
@@ -22,24 +20,13 @@ interface NominatimResult {
   display_name: string;
 }
 
-interface OverpassElement {
-  id: number;
-  lat?: number;
-  lon?: number;
-  tags?: {
-    name?: string;
-    cuisine?: string;
-    amenity?: string;
-  };
-}
-
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org/search';
-const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LocationService {
+  private readonly storageKey = 'selectedLocation';
   private readonly http = inject(HttpClient);
 
   readonly defaultLocation: LocationResult = {
@@ -47,6 +34,14 @@ export class LocationService {
     lng: 12.5683,
     label: 'Copenhagen, Denmark',
   };
+
+  readonly selectedLocation = signal<StoredLocation>(
+    this.readStoredLocation()
+  );
+
+  readonly hasUserSelectedLocation = computed(
+    () => this.selectedLocation().source !== 'default'
+  );
 
   geocodeAddress(address: string): Observable<LocationResult | null> {
     const trimmedAddress = address.trim();
@@ -66,33 +61,34 @@ export class LocationService {
       .pipe(map((results) => this.toLocationResult(results[0])));
   }
 
-  // Test function to see if we can get nearby restaurants from OpenStreetMap based on lat/lng.
-  getNearbyRestaurants(
+  setSelectedLocation(
+    location: LocationResult,
+    source: LocationSource = 'guest'
+  ): void {
+    const next: StoredLocation = {
+      lat: location.lat,
+      lng: location.lng,
+      label: location.label,
+      source,
+    };
+
+    this.persistLocation(next);
+    this.selectedLocation.set(next);
+  }
+
+  setSelectedLocationByValues(
     lat: number,
     lng: number,
-    radius = 1000
-  ): Observable<Restaurant[]> {
-    const query = `
-      [out:json][timeout:25];
-      (
-        node["amenity"="restaurant"](around:${radius},${lat},${lng});
-      );
-      out body;
-    `;
+    label: string,
+    source: LocationSource = 'guest'
+  ): void {
+    this.setSelectedLocation({ lat, lng, label }, source);
+  }
 
-    return this.http
-      .post<{ elements: OverpassElement[] }>(OVERPASS_URL, query, {
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-      })
-      .pipe(
-        map((data) =>
-          data.elements
-            .filter((element) => element.lat != null && element.lon != null)
-            .map((element) => this.toRestaurant(element))
-        )
-      );
+  resetSelectedLocation(): void {
+    const fallback = this.getDefaultStoredLocation();
+    this.persistLocation(fallback);
+    this.selectedLocation.set(fallback);
   }
 
   private toLocationResult(
@@ -109,13 +105,56 @@ export class LocationService {
     };
   }
 
-  private toRestaurant(element: OverpassElement): Restaurant {
+  private readStoredLocation(): StoredLocation {
+    const fallback = this.getDefaultStoredLocation();
+    const raw = localStorage.getItem(this.storageKey);
+
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as Partial<StoredLocation>;
+      const normalizedLabel =
+        typeof parsed.label === 'string' ? parsed.label.trim() : '';
+
+      const hasCoordinates =
+        Number.isFinite(parsed.lat) && Number.isFinite(parsed.lng);
+      const hasLabel = !!normalizedLabel;
+
+      if (!hasCoordinates || !hasLabel) {
+        return fallback;
+      }
+
+      return {
+        lat: Number(parsed.lat),
+        lng: Number(parsed.lng),
+        label: normalizedLabel,
+        source: this.isValidLocationSource(parsed.source)
+          ? parsed.source
+          : 'guest',
+      };
+    } catch {
+      return fallback;
+    }
+  }
+
+  private getDefaultStoredLocation(): StoredLocation {
     return {
-      id: element.id,
-      lat: element.lat as number,
-      lng: element.lon as number,
-      name: element.tags?.name ?? 'Unnamed restaurant',
-      cuisine: element.tags?.cuisine,
+      lat: this.defaultLocation.lat,
+      lng: this.defaultLocation.lng,
+      label: this.defaultLocation.label,
+      source: 'default',
     };
+  }
+
+  private persistLocation(location: StoredLocation): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(location));
+  }
+
+  private isValidLocationSource(
+    source: unknown
+  ): source is LocationSource {
+    return source === 'default' || source === 'guest' || source === 'profile';
   }
 }

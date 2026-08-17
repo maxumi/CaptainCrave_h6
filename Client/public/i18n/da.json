@@ -7,6 +7,12 @@
   },
   "navbar": {
     "search": "Søg",
+    "restaurants": "Restauranter",
+    "searchPage": "Søg",
+    "map": "Kort",
+    "orderStatus": "Ordrestatus",
+    "manageRestaurant": "Administrer restaurant",
+    "cart": "Kurv",
     "signIn": "Log ind",
     "signOut": "Log ud",
     "register": "Opret konto",
@@ -77,6 +83,24 @@
     "restaurants": {
       "title": "Restauranter",
       "subtitle": " ",
+      "search": {
+        "openSearchPage": "Aabn soegning"
+      },
+      "map": {
+        "openMapPage": "Aabn naerkort",
+        "title": "Kort over naerliggende restauranter",
+        "subtitle": "Brug din valgte placering til at udforske restauranter paa kortet.",
+        "nearbyListTitle": "Restauranter i dette omraade"
+      },
+      "location": {
+        "title": "Leveringsadresse",
+        "description": "Vælg adressen for at finde nærliggende restauranter.",
+        "placeholder": "Indtast leveringsadresse",
+        "updateButton": "Opdater placering",
+        "updating": "Opdaterer...",
+        "resetButton": "Brug standardplacering",
+        "currentPrefix": "Nuværende placering:"
+      },
       "status": {
         "open": "Åben",
         "closed": "Lukket"
@@ -87,10 +111,30 @@
         "notAuthenticated": "Bruger er ikke godkendt.",
         "restaurantLocationMissing": "Restaurantens placering er ikke tilgængelig.",
         "restaurantLocationFailed": "Kunne ikke indlæse restaurantens placering.",
+        "locationRequired": "Indtast venligst en adresse.",
+        "locationNotFound": "Ingen placering fundet for adressen.",
         "userLocationMissing": "Brugerens placering er ikke tilgængelig. Opdater din profil med en gyldig adresse.",
         "loadFailed": "Kunne ikke indlæse restauranter lige nu."
       }
   },
+"restaurantsSearch": {
+  "title": "Soeg restauranter",
+  "subtitle": "Soeg paa restaurantnavn.",
+  "queryLabel": "Soegeord",
+  "placeholder": "Skriv din soegning",
+  "searchButton": "Soeg",
+  "clearButton": "Ryd",
+  "loading": "Indlaeser restauranter...",
+  "empty": "Ingen restauranter matcher din soegning.",
+  "pagination": {
+    "previous": "Forrige",
+    "next": "Naeste",
+    "page": "Side {{current}} af {{total}}"
+  },
+  "error": {
+    "loadFailed": "Kunne ikke indlaese restauranter lige nu."
+  }
+},
 "restaurantInfo": {
   "menu": "Menu",
   "addItem": "Tilføj vare",
@@ -204,8 +248,10 @@
   "remove": "Fjern",
   "orderType": "Ordretype",
   "delivery": "Levering",
+  "deliveryAddress": "Leveringsadresse",
   "pickup": "Afhentning",
   "total": "Total",
+  "currency": "kr.",
   "clearCart": "Ryd kurv",
   "checkout": "Bestil",
   "placingOrder": "Opretter ordre...",
@@ -214,7 +260,7 @@
     "notLoggedIn": "Du skal være logget ind for at afgive en ordre.",
     "customerOnly": "Kun kundekonti kan afgive ordrer.",
     "empty": "Din kurv er tom.",
-    "addressRequired": "Opdater din profiladresse før checkout.",
+    "addressRequired": "Vælg venligst en leveringsadresse først.",
     "checkoutFailed": "Kunne ikke oprette ordren lige nu."
   }
 },

@@ -1,0 +1,101 @@
+.restaurants-search-page {
+  padding: 40px 16px;
+}
+
+.restaurants-search-card {
+  max-width: 780px;
+  margin: 40px auto;
+  padding: 24px;
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.page-header p {
+  margin: 8px 0 16px;
+  color: var(--color-muted);
+}
+
+.search-controls label {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+}
+
+.btn-secondary {
+  background-color: var(--color-white);
+  color: var(--color-dark);
+}
+
+.search-state {
+  margin-top: 14px;
+}
+
+.search-state-error {
+  color: var(--color-danger);
+}
+
+.result-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.result-item {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 16px;
+}
+
+.result-item h2 {
+  margin: 0;
+}
+
+.result-item p {
+  margin: 8px 0 10px;
+  color: var(--color-muted);
+}
+
+.pagination-controls {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.page-indicator {
+  font-weight: 600;
+}
+
+@media (max-width: 780px) {
+  .restaurants-search-page {
+    padding: 20px;
+  }
+
+  .restaurants-search-card {
+    margin: 20px auto;
+    padding: 18px;
+  }
+
+  .search-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-indicator {
+    text-align: center;
+  }
+}
