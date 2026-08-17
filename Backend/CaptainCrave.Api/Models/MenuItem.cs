@@ -1,10 +1,10 @@
 namespace Api.Models;
 
-// Represents a single item on a restaurant's menu
+// Represents a single item on a menu, optionally grouped under a category
 public class MenuItem
 {
     public int Id { get; set; }
-    public int RestaurantId { get; set; }
+    public int MenuId { get; set; }
     public int? CategoryId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
@@ -13,6 +13,6 @@ public class MenuItem
     public bool IsAvailable { get; set; } = true;
 
     // Navigation properties
-    public Restaurant Restaurant { get; set; } = null!;
+    public Menu Menu { get; set; } = null!;
     public Category? Category { get; set; }
 }

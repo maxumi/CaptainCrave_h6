@@ -10,10 +10,11 @@ namespace Api.Controllers;
 // Handles HTTP requests for menu item resources.
 [ApiController]
 [Route("api/[controller]")]
-public class MenuItemsController(IMenuItemService menuItemService, IRestaurantService restaurantService) : ControllerBase
+public class MenuItemsController(IMenuItemService menuItemService, IRestaurantService restaurantService, IMenuService menuService) : ControllerBase
 {
     private readonly IMenuItemService _menuItemService = menuItemService;
     private readonly IRestaurantService _restaurantService = restaurantService;
+    private readonly IMenuService _menuService = menuService;
 
     // Returns all menu items for the specified restaurant.
     [HttpGet("restaurant/{restaurantId:int}")]
@@ -23,6 +24,17 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
             return BadRequest();
 
         var items = await _menuItemService.GetByRestaurantIdAsync(restaurantId);
+        return Ok(items);
+    }
+
+    // Returns all menu items for the specified menu.
+    [HttpGet("menu/{menuId:int}")]
+    public async Task<IActionResult> GetByMenuId(int menuId)
+    {
+        if (menuId <= 0)
+            return BadRequest();
+
+        var items = await _menuItemService.GetByMenuIdAsync(menuId);
         return Ok(items);
     }
 
@@ -49,7 +61,11 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
                 return Unauthorized();
 
             var restaurant = await _restaurantService.GetByUserIdAsync(userId.Value);
-            if (restaurant is null || restaurant.Id != dto.RestaurantId)
+            if (restaurant is null)
+                return NotFound();
+
+            var menu = await _menuService.GetByIdAsync(dto.MenuId);
+            if (menu is null || menu.RestaurantId != restaurant.Id)
                 return NotFound();
         }
 

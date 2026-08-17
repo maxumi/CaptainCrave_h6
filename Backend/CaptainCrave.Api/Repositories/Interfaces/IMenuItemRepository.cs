@@ -5,8 +5,11 @@ namespace Api.Repositories;
 // Defines data access operations for menu items.
 public interface IMenuItemRepository
 {
-    // Returns all menu items belonging to the specified restaurant.
+    // Returns all menu items belonging to the specified restaurant, across all of its menus.
     Task<IEnumerable<MenuItem>> GetByRestaurantIdAsync(int restaurantId);
+
+    // Returns all menu items belonging to the specified menu.
+    Task<IEnumerable<MenuItem>> GetByMenuIdAsync(int menuId);
 
     // Returns all menu items under the specified category.
     Task<IEnumerable<MenuItem>> GetByCategoryIdAsync(int categoryId);

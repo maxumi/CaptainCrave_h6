@@ -17,8 +17,8 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
 
-        builder.Property(m => m.RestaurantId)
-            .HasColumnName("restaurant_id")
+        builder.Property(m => m.MenuId)
+            .HasColumnName("menu_id")
             .IsRequired();
 
         builder.Property(m => m.CategoryId)
@@ -46,6 +46,11 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
             .HasColumnName("is_available")
             .IsRequired()
             .HasDefaultValue(true);
+
+        builder.HasOne(m => m.Menu)
+            .WithMany(mn => mn.MenuItems)
+            .HasForeignKey(m => m.MenuId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(m => m.Category)
             .WithMany(c => c.MenuItems)

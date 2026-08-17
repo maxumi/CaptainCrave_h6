@@ -5,7 +5,7 @@ namespace Api.DTOs;
 public class CreateCategoryDto
 {
     [Required]
-    public int RestaurantId { get; set; }
+    public int MenuId { get; set; }
 
     [Required]
     [MaxLength(100)]

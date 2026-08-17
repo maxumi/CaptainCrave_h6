@@ -17,13 +17,18 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
 
-        builder.Property(c => c.RestaurantId)
-            .HasColumnName("restaurant_id")
+        builder.Property(c => c.MenuId)
+            .HasColumnName("menu_id")
             .IsRequired();
 
         builder.Property(c => c.Name)
             .HasColumnName("name")
             .IsRequired()
             .HasMaxLength(100);
+
+        builder.HasOne(c => c.Menu)
+            .WithMany(m => m.Categories)
+            .HasForeignKey(c => c.MenuId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

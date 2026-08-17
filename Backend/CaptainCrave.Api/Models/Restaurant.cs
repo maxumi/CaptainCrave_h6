@@ -16,6 +16,5 @@ public class Restaurant
 
     // Navigation properties
     public User User { get; set; } = null!;
-    public ICollection<Category> Categories { get; set; } = new List<Category>();
-    public ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
+    public ICollection<Menu> Menus { get; set; } = new List<Menu>();
 }

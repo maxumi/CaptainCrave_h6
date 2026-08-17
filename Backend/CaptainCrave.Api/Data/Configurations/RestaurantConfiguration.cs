@@ -63,12 +63,7 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Restaurant>
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasMany(r => r.Categories)
-            .WithOne(c => c.Restaurant)
-            .HasForeignKey(c => c.RestaurantId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasMany(r => r.MenuItems)
+        builder.HasMany(r => r.Menus)
             .WithOne(m => m.Restaurant)
             .HasForeignKey(m => m.RestaurantId)
             .OnDelete(DeleteBehavior.Cascade);

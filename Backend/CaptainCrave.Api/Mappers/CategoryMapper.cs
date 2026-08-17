@@ -10,14 +10,14 @@ public static class CategoryMapper
     public static CategoryDto ToDto(this Category category) => new()
     {
         Id = category.Id,
-        RestaurantId = category.RestaurantId,
+        MenuId = category.MenuId,
         Name = category.Name
     };
 
     // Maps a CreateCategoryDto to a Category entity ready to be persisted.
     public static Category ToCategory(this CreateCategoryDto dto) => new()
     {
-        RestaurantId = dto.RestaurantId,
+        MenuId = dto.MenuId,
         Name = dto.Name
     };
 }

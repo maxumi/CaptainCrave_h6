@@ -10,7 +10,7 @@ public static class MenuItemMapper
     public static MenuItemDto ToDto(this MenuItem menuItem) => new()
     {
         Id = menuItem.Id,
-        RestaurantId = menuItem.RestaurantId,
+        MenuId = menuItem.MenuId,
         CategoryId = menuItem.CategoryId,
         Name = menuItem.Name,
         Description = menuItem.Description,
@@ -22,7 +22,7 @@ public static class MenuItemMapper
     // Maps a CreateMenuItemDto to a MenuItem entity
     public static MenuItem ToMenuItem(this CreateMenuItemDto dto) => new()
     {
-        RestaurantId = dto.RestaurantId,
+        MenuId = dto.MenuId,
         CategoryId = dto.CategoryId,
         Name = dto.Name,
         Description = dto.Description,
