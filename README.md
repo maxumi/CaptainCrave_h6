@@ -46,6 +46,10 @@ dotnet user-secrets set "Jwt:Secret" "your-super-secret-key-at-least-32-characte
 dotnet user-secrets set "Jwt:Issuer" "CaptainCrave.Api"
 
 dotnet user-secrets set "Jwt:Audience" "CaptainCrave.Client"
+
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=CaptainCraveDb;Trusted_Connection=True;TrustServerCertificate=True"
 ```
 
-Replace the JWT secret with your own secure secret.
+Replace the JWT secret with your own secure secret, and adjust the connection string to match your local SQL Server instance.
+
+See [Backend/CaptainCrave.Api/README.md](Backend/CaptainCrave.Api/README.md) for the full API setup guide, project structure, and endpoint overview.
