@@ -1,120 +1,82 @@
 <div *transloco="let t">
-  <header class="menu-header">
+  <header class="cc-flex-between cc-stack-mobile cc-mb-24">
     <div>
-      <h1>{{ t('menuEdit.title') }}</h1>
-      <p>{{ t('menuEdit.subtitle') }}</p>
+      <h1 class="cc-title">{{ t('menuEdit.title') }}</h1>
+      <p class="cc-subtitle">{{ t('menuEdit.subtitle') }}</p>
     </div>
-
-    <button type="button" class="btn add-btn" (click)="startCreateItem()">
-      {{ t('menuEdit.addNewItem') }}
-    </button>
   </header>
 
-  <section class="menu-filters" [attr.aria-label]="t('menuEdit.aria.filters')">
-    <label class="menu-search">
-      <span class="sr-only">{{ t('menuEdit.searchLabel') }}</span>
-      <input class="form-control" type="search" [placeholder]="t('menuEdit.searchPlaceholder')" />
-    </label>
-  </section>
+  @if (store.isLoading()) {
+    <p>{{ t('menuEdit.loading') }}</p>
+  }
 
-  <section class="menu-table card" [attr.aria-label]="t('menuEdit.aria.menuItems')">
-    @if (store.isLoading()) {
-      <p>{{ t('menuEdit.loading') }}</p>
-    }
+  @if (store.errorMessage()) {
+    <p>{{ store.errorMessage() }}</p>
+  }
 
-    @if (store.errorMessage()) {
-      <p>{{ store.errorMessage() }}</p>
-    }
+  @if (store.hasNoRestaurant()) {
+    <p>{{ t('menuEdit.noRestaurant') }}</p>
+    <a href="/restaurant-create" class="btn add-btn">{{ t('menuEdit.createRestaurantProfile') }}</a>
+  }
 
-    @if (store.hasNoRestaurant()) {
-      <p>{{ t('menuEdit.noRestaurant') }}</p>
-      <a href="/restaurant-create" class="btn add-btn">Create restaurant profile</a>
-    }
-
-    <div class="table-head">
-      <span>{{ t('menuEdit.table.item') }}</span>
-      <span>{{ t('menuEdit.table.price') }}</span>
-      <span>{{ t('menuEdit.table.status') }}</span>
-      <span>{{ t('menuEdit.table.action') }}</span>
+  @if (!store.isLoading() && !store.menus().length && !store.hasNoRestaurant()) {
+    <div class="card empty-state">
+      <h2>{{ t('menuEdit.emptyMenu.title') }}</h2>
+      <p>{{ t('menuEdit.emptyMenu.message') }}</p>
+      <button type="button" class="btn add-btn" (click)="createMenu()">
+        {{ t('menuEdit.createMenu') }}
+      </button>
     </div>
+  }
 
-    @for (item of store.menuItems(); track item.id) {
-      <div class="table-row" [class.selected]="store.selectedItem()?.id === item.id">
-        <div class="item-cell">
-          <strong>{{ item.name }}</strong>
-        </div>
-
-        <span>{{ item.price }}{{ currency }}</span>
-
-        <span>
-          <span class="status" [class.out]="!item.isAvailable">
-            {{ item.isAvailable ? t('menuEdit.status.inStock') : t('menuEdit.status.outOfStock') }}
-          </span>
-        </span>
-
-        <div class="actions">
-          <button type="button" class="btn" (click)="selectItem(item)">
-            {{ t('menuEdit.view') }}
-          </button>
-        </div>
+  @if (store.menus().length) {
+    <section class="card cc-overflow-hidden" [attr.aria-label]="t('menuEdit.aria.menuItems')">
+      <div class="cc-data-head cc-grid-2-1 cc-hide-mobile">
+        <span>{{ t('menuEdit.menuTable.name') }}</span>
+        <span>{{ t('menuEdit.menuTable.action') }}</span>
       </div>
-    }
-  </section>
+
+      @for (menu of store.menus(); track menu.id) {
+        <div class="cc-data-row cc-grid-2-1 cc-grid-mobile-1" [class.selected]="store.menuId() === menu.id">
+          <div class="cc-data-cell">
+            <strong>{{ menu.name }}</strong>
+          </div>
+
+          <div class="cc-actions">
+            <button type="button" class="btn" (click)="selectMenu(menu.id)">
+              {{ store.menuId() === menu.id ? t('menuEdit.menuTable.selected') : t('menuEdit.menuTable.select') }}
+            </button>
+          </div>
+        </div>
+      }
+
+      <div class="cc-card-action-row cc-stack-mobile">
+        <button type="button" class="btn add-btn cc-btn-min cc-full-mobile" (click)="createMenu()">
+          {{ t('menuEdit.createMenu') }}
+        </button>
+      </div>
+    </section>
+  }
+
+  @if (store.menuId()) {
+    <app-menu-item-list
+      [menuName]="store.menus().find(menu => menu.id === store.menuId())?.name ?? null"
+      [menuItems]="store.menuItems()"
+      [selectedItemId]="store.selectedItem()?.id ?? null"
+      [currency]="currency"
+      (addItem)="startCreateItem()"
+      (deleteMenu)="deleteSelectedMenu()"
+      (selectItem)="selectItem($event)"
+    />
+  }
 
   @if (store.selectedItem() || store.mode() === 'create') {
-    <form class="item-details card" [formRoot]="menuForm">
-      <header>
-        <div>
-          <h2>
-            {{ store.mode() === 'create' ? t('menuEdit.form.addTitle') : t('menuEdit.form.editTitle', { name: menuModel().name }) }}
-          </h2>
-          <p>
-            {{ store.mode() === 'create' ? t('menuEdit.form.addSubtitle') : t('menuEdit.form.editSubtitle') }}
-          </p>
-        </div>
-
-        <div class="detail-actions">
-          <button
-            type="submit"
-            class="btn save-btn"
-            [disabled]="menuForm().invalid() || store.isSubmitting()"
-          >
-            {{ store.isSubmitting() ? t('menuEdit.saving') : (store.mode() === 'create' ? t('menuEdit.createItem') : t('menuEdit.saveChanges')) }}
-          </button>
-
-          @if (store.mode() !== 'create') {
-            <button
-              type="button"
-              class="btn delete-btn"
-              (click)="confirmDelete()"
-            >
-              {{ t('menuEdit.deleteItem') }}
-            </button>
-          }
-        </div>
-      </header>
-
-      <div class="edit-form">
-        <label>
-          {{ t('menuEdit.fields.name') }}
-          <input class="form-control" type="text" [formField]="menuForm.name" />
-        </label>
-
-        <label>
-          {{ t('menuEdit.fields.price') }}
-          <input class="form-control" type="number" [formField]="menuForm.price" />
-        </label>
-
-        <label>
-          {{ t('menuEdit.fields.description') }}
-          <textarea class="form-control" [formField]="menuForm.description"></textarea>
-        </label>
-
-        <label class="checkbox-field">
-          <input type="checkbox" [formField]="menuForm.isAvailable" />
-          {{ t('menuEdit.fields.inStock') }}
-        </label>
-      </div>
-    </form>
+    <app-menu-editor-form
+      [mode]="store.mode()"
+      [itemName]="menuModel().name"
+      [isSubmitting]="store.isSubmitting()"
+      [menuForm]="menuForm"
+      (deleteItem)="confirmDelete()"
+    />
   }
 </div>

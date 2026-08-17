@@ -1,0 +1,157 @@
+.cc-flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cc-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cc-actions-tight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cc-title {
+  margin: 0;
+  color: var(--color-dark);
+}
+
+.cc-subtitle {
+  margin: 6px 0 0;
+  color: var(--color-muted);
+}
+
+.cc-mb-16 {
+  margin-bottom: 16px;
+}
+
+.cc-mb-24 {
+  margin-bottom: 24px;
+}
+
+.cc-section {
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.cc-section-lg {
+  margin-top: 24px;
+  padding: 24px;
+}
+
+.cc-overflow-hidden {
+  overflow: hidden;
+}
+
+.cc-data-head,
+.cc-data-row {
+  display: grid;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.cc-data-head {
+  background-color: #f0f0f0;
+  font-weight: bold;
+  color: var(--color-muted);
+}
+
+.cc-data-row {
+  border-top: 1px solid var(--color-border);
+  transition: background-color 0.2s ease;
+}
+
+.cc-data-row:hover,
+.cc-data-row.selected {
+  background-color: #f8f8f8;
+}
+
+.cc-data-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cc-grid-2-1 {
+  grid-template-columns: 2fr 1fr;
+}
+
+.cc-grid-4 {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.cc-card-action-row {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.cc-btn-min {
+  min-width: 130px;
+}
+
+.cc-btn-danger {
+  border-color: var(--color-danger);
+  background-color: var(--color-danger);
+  color: var(--color-white);
+}
+
+.cc-btn-danger:hover {
+  background-color: var(--color-white);
+  color: var(--color-danger);
+}
+
+.cc-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.cc-form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: bold;
+  color: var(--color-dark);
+}
+
+.cc-checkbox-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.cc-checkbox-field input {
+  width: auto;
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .cc-stack-mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .cc-hide-mobile {
+    display: none;
+  }
+
+  .cc-grid-mobile-1 {
+    grid-template-columns: 1fr;
+  }
+
+  .cc-full-mobile {
+    width: 100%;
+  }
+}

@@ -1,1 +1,55 @@
-<p>menu-item-list works!</p>
+<section class="card cc-section" *transloco="let t">
+	<div class="cc-flex-between cc-stack-mobile cc-mb-16">
+		<div>
+			<h2 class="cc-title">{{ menuName }}</h2>
+		</div>
+
+		<div class="cc-actions-tight cc-stack-mobile">
+			<button type="button" class="btn add-btn cc-full-mobile" (click)="onAddItem()">
+				{{ t('menuEdit.addNewItem') }}
+			</button>
+
+			<button type="button" class="btn cc-btn-danger cc-btn-min cc-full-mobile" (click)="onDeleteMenu()">
+				{{ t('menuEdit.deleteMenu') }}
+			</button>
+		</div>
+	</div>
+
+	@if (!menuItems.length) {
+		<div class="card empty-state">
+			<h2>{{ t('menuEdit.emptyMenu.title') }}</h2>
+			<p>{{ t('menuEdit.emptyMenu.message') }}</p>
+		</div>
+	}
+
+	@if (menuItems.length) {
+		<div class="cc-data-head cc-grid-4 cc-hide-mobile">
+			<span>{{ t('menuEdit.table.item') }}</span>
+			<span>{{ t('menuEdit.table.price') }}</span>
+			<span>{{ t('menuEdit.table.status') }}</span>
+			<span>{{ t('menuEdit.table.action') }}</span>
+		</div>
+
+		@for (item of menuItems; track item.id) {
+			<div class="cc-data-row cc-grid-4 cc-grid-mobile-1" [class.selected]="selectedItemId === item.id">
+				<div class="cc-data-cell">
+					<strong>{{ item.name }}</strong>
+				</div>
+
+				<span>{{ item.price }}{{ currency }}</span>
+
+				<span>
+					<span class="status" [class.out]="!item.isAvailable">
+						{{ item.isAvailable ? t('menuEdit.status.inStock') : t('menuEdit.status.outOfStock') }}
+					</span>
+				</span>
+
+				<div class="cc-actions">
+					<button type="button" class="btn" (click)="onSelectItem(item)">
+						{{ t('menuEdit.view') }}
+					</button>
+				</div>
+			</div>
+		}
+	}
+</section>
