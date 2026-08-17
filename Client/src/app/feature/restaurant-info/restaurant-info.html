@@ -24,32 +24,85 @@
       <p class="menu-state menu-state-success">{{ addMessage() }}</p>
     }
 
-    <div class="menu-grid">
-      @for (item of menuItems(); track item.id) {
-        <div class="menu-card card">
-          <div>
-            <h3>{{ item.name }}</h3>
-            <p class="price">kr. {{ item.price }}</p>
-            <p class="description">{{ item.description }}</p>
-
-            <button
-              class="btn add-btn"
-              type="button"
-              [disabled]="!canAddToCart()"
-              [attr.aria-label]="t('restaurantInfo.addItem')"
-              (click)="addToCart(item)"
-            >
-              {{ t('restaurantInfo.addItem') }}
-            </button>
-          </div>
-
-          <img [src]="item.imageUrl || 'burger-king.png'" [alt]="item.name" />
-        </div>
+    <div class="menu-tabs">
+      @for (menu of menus(); track menu.id) {
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="selectedMenuId() === menu.id"
+          (click)="selectMenu(menu.id)"
+        >
+          {{ menu.name }}
+        </button>
       }
     </div>
+
+    @if (selectedMenuId() !== null) {
+      @for (category of categories(); track category.id) {
+        <section class="category-section">
+          <h3>{{ category.name }}</h3>
+
+          <div class="menu-grid">
+            @for (item of menuItems(); track item.id) {
+              @if (item.categoryId === category.id) {
+                <div class="menu-card card">
+                  <div>
+                    <h3>{{ item.name }}</h3>
+                    <p class="price">kr. {{ item.price }}</p>
+                    <p class="description">{{ item.description }}</p>
+
+                    <button
+                      class="btn add-btn"
+                      type="button"
+                      [disabled]="!canAddToCart()"
+                      [attr.aria-label]="t('restaurantInfo.addItem')"
+                      (click)="addToCart(item)"
+                    >
+                      {{ t('restaurantInfo.addItem') }}
+                    </button>
+                  </div>
+
+                  <img [src]="item.imageUrl || 'burger-king.png'" [alt]="item.name" />
+                </div>
+              }
+            }
+          </div>
+        </section>
+      }
+
+      <section class="category-section">
+        <h3>Uncategorized</h3>
+
+        <div class="menu-grid">
+          @for (item of menuItems(); track item.id) {
+            @if (!item.categoryId) {
+              <div class="menu-card card">
+                <div>
+                  <h3>{{ item.name }}</h3>
+                  <p class="price">kr. {{ item.price }}</p>
+                  <p class="description">{{ item.description }}</p>
+
+                  <button
+                    class="btn add-btn"
+                    type="button"
+                    [disabled]="!canAddToCart()"
+                    [attr.aria-label]="t('restaurantInfo.addItem')"
+                    (click)="addToCart(item)"
+                  >
+                    {{ t('restaurantInfo.addItem') }}
+                  </button>
+                </div>
+
+                <img [src]="item.imageUrl || 'burger-king.png'" [alt]="item.name" />
+              </div>
+            }
+          }
+        </div>
+      </section>
+    }
   }
 
-  @if (!isLoading() && !loadError() && !menuItems().length) {
+  @if (!isLoading() && !loadError() && !menus().length) {
     <p class="menu-state">{{ t('restaurantInfo.empty') }}</p>
   }
 </div>

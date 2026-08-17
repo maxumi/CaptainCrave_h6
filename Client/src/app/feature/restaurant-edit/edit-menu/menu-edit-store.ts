@@ -3,7 +3,7 @@ import { EMPTY, Observable, of, throwError } from 'rxjs';
 import { catchError, finalize, map, switchMap } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import { MenuItem, MenuEditMode, UpdateMenuItemRequest } from './edit-menu.models';
-import { MenuItemApiService } from '../../../shared/menu-item-api.service';
+import { MenuItemApiService, MenuItemDto } from '../../../shared/menu-item-api.service';
 import { RestaurantApiService } from '../../../shared/restaurant-api.service';
 
 /**
@@ -31,9 +31,9 @@ export class MenuEditStore {
   /** Selected item in use */
   readonly selectedItem = signal<MenuItem | null>(null);
 
-  /** The restaurantId is needed to create new menu items 
-   * and to know which restaurant's menu items to load. */
+  /** The restaurantId is needed to know which restaurant owns the active menu. */
   readonly restaurantId = signal<number | null>(null);
+  readonly menuId = signal<number | null>(null);
 
   load(): void {
     this.isLoading.set(true);
@@ -47,6 +47,8 @@ export class MenuEditStore {
 
         return this.menuApiService.getMenuItemsByRestaurant(restaurant.id);
       }),
+
+      map((items: MenuItemDto[]) => items.map(item => this.toLocalItem(item))),
 
       catchError((error: { status?: number }) => {
         if (error.status === 404) {
@@ -64,6 +66,10 @@ export class MenuEditStore {
       }),
     ).subscribe(items => {
       this.menuItems.set(items);
+
+      if (!this.menuId() && items.length > 0) {
+        this.menuId.set(items[0].menuId);
+      }
     });
   }
 
@@ -89,9 +95,15 @@ selectItem(item: MenuItem): MenuItem | null {
   // A menu item can only be created when a restaurant has been loaded.
   startCreateItem(): MenuItem | null {
     const restaurantId = this.restaurantId();
+    const menuId = this.menuId();
 
     if (restaurantId == null) {
       this.errorMessage.set(this.t('error.missingRestaurant'));
+      return null;
+    }
+
+    if (menuId == null || menuId <= 0) {
+      this.errorMessage.set(this.t('error.missingMenu'));
       return null;
     }
 
@@ -100,13 +112,14 @@ selectItem(item: MenuItem): MenuItem | null {
     this.mode.set('create');
 
     return this.createDraftItem({
-      restaurantId,
+      menuId,
       categoryId: null,
     });
   }
 
   saveItem(item: MenuItem): Observable<MenuItem> {
     const restaurantId = this.restaurantId();
+    const menuId = item.menuId || this.menuId();
 
     if (restaurantId == null) {
       const message = this.t('error.missingRestaurant');
@@ -114,12 +127,18 @@ selectItem(item: MenuItem): MenuItem | null {
       return throwError(() => new Error(message));
     }
 
+    if (menuId == null || menuId <= 0) {
+      const message = this.t('error.missingMenu');
+      this.errorMessage.set(message);
+      return throwError(() => new Error(message));
+    }
+
     this.errorMessage.set('');
     this.isSubmitting.set(true);
 
-     // New items are created. Existing items are updated.
+    // New items are created. Existing items are updated.
     const isNewItem = this.mode() === 'create' || item.id === 0;
-    const payload = this.toPayload(item, restaurantId);
+    const payload = this.toPayload(item, menuId);
 
     const request = isNewItem
       ? this.menuApiService.create(payload)
@@ -178,7 +197,7 @@ selectItem(item: MenuItem): MenuItem | null {
   createDraftItem(overrides: Partial<MenuItem> = {}): MenuItem {
     return {
       id: 0,
-      restaurantId: this.restaurantId() ?? 0,
+      menuId: this.menuId() ?? 0,
       categoryId: null,
       name: '',
       description: '',
@@ -233,14 +252,28 @@ selectItem(item: MenuItem): MenuItem | null {
     this.menuItems.set([]);
     this.selectedItem.set(null);
     this.restaurantId.set(null);
+    this.menuId.set(null);
+  }
+
+  private toLocalItem(dto: MenuItemDto): MenuItem {
+    return {
+      id: dto.id,
+      menuId: dto.menuId,
+      categoryId: dto.categoryId,
+      name: dto.name,
+      description: dto.description,
+      imageUrl: dto.imageUrl,
+      price: dto.price,
+      isAvailable: dto.isAvailable,
+    };
   }
 
   private toPayload(
     item: MenuItem,
-    restaurantId: number
+    menuId: number
   ): UpdateMenuItemRequest {
     return {
-      restaurantId,
+      menuId,
       categoryId: item.categoryId,
       name: item.name,
       description: item.description,
