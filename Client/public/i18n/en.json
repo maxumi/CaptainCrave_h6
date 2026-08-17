@@ -75,7 +75,7 @@
     }
   },
   "restaurants": {
-    "title": "Restaurants near you",
+    "title": "Restaurants",
     "subtitle": " ",
     "loading": "Loading restaurants...",
     "empty": "No restaurants found.",
@@ -96,6 +96,7 @@
     "addItem": "Add item",
     "loading": "Loading menu...",
     "empty": "No menu items found.",
+    "uncategorized": "Uncategorized",
     "saveDialog": {
       "title": "Save menu item",
       "message": "Do you want to save this menu item?",
@@ -117,15 +118,33 @@
   "menuEdit": {
     "title": "Manage Menu",
     "subtitle": "Add, edit or remove menu items from your restaurant",
+    "mode": {
+      "menus": "Menus",
+      "items": "Menu Items"
+    },
     "addNewItem": "+ Add New Item",
+    "createMenu": "Create Menu",
+    "createMenuPrompt": "Enter a name for your menu:",
+    "emptyMenu": {
+      "title": "No menu selected",
+      "message": "Create your first menu to start adding items."
+    },
+    "menuTable": {
+      "name": "Menu",
+      "action": "Action",
+      "select": "Select",
+      "selected": "Selected"
+    },
     "searchLabel": "Search menu items",
     "searchPlaceholder": "Search Menu Items",
     "loading": "Loading menu items...",
     "noRestaurant": "No restaurant profile found for your account yet.",
+    "createRestaurantProfile": "Create restaurant profile",
     "view": "View",
     "createItem": "Create Item",
     "saveChanges": "Save Changes",
     "deleteItem": "Delete menu item",
+    "deleteMenu": "Delete menu",
     "saving": "Saving...",
     "saveDialog": {
       "title": "Save menu item",
@@ -171,6 +190,9 @@
     },
     "error": {
       "missingRestaurant": "Restaurant context is missing. Please refresh and try again.",
+      "missingMenu": "No menu is selected for this restaurant yet.",
+      "invalidMenuName": "Please enter a valid menu name.",
+      "createMenuFailed": "Could not create the menu.",
       "loadFailed": "Failed to load menu items. Please try again.",
       "saveFailed": "Could not save this menu item.",
       "deleteFailed": "Could not delete this menu item."

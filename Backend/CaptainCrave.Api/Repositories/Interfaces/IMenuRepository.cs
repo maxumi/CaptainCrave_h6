@@ -22,4 +22,10 @@ public interface IMenuRepository
     /// </summary>
     /// <param name="menu">The entity to insert.</param>
     Task<Menu> CreateAsync(Menu menu);
+
+    /// <summary>
+    /// Removes a menu and any child menu items through cascade delete.
+    /// </summary>
+    /// <param name="menu">The entity to delete.</param>
+    Task DeleteAsync(Menu menu);
 }

@@ -32,4 +32,8 @@ export class MenuApiService {
   create(payload: CreateMenuRequest): Observable<MenuDto> {
     return this.http.post<MenuDto>(this.menusUrl, payload);
   }
+
+  delete(menuId: number): Observable<void> {
+    return this.http.delete<void>(`${this.menusUrl}/${menuId}`);
+  }
 }

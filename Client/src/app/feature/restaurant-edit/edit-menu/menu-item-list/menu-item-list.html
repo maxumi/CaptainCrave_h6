@@ -1,1 +1,55 @@
-<p>menu-item-list works!</p>
+<section class="card menu-items-section" *transloco="let t">
+	<div class="menu-items-header">
+		<div>
+			<h2>{{ menuName }}</h2>
+		</div>
+
+		<div class="menu-items-header-actions">
+			<button type="button" class="btn add-btn" (click)="onAddItem()">
+				{{ t('menuEdit.addNewItem') }}
+			</button>
+
+			<button type="button" class="btn delete-btn" (click)="onDeleteMenu()">
+				{{ t('menuEdit.deleteMenu') }}
+			</button>
+		</div>
+	</div>
+
+	@if (!menuItems.length) {
+		<div class="card empty-state">
+			<h2>{{ t('menuEdit.emptyMenu.title') }}</h2>
+			<p>{{ t('menuEdit.emptyMenu.message') }}</p>
+		</div>
+	}
+
+	@if (menuItems.length) {
+		<div class="table-head">
+			<span>{{ t('menuEdit.table.item') }}</span>
+			<span>{{ t('menuEdit.table.price') }}</span>
+			<span>{{ t('menuEdit.table.status') }}</span>
+			<span>{{ t('menuEdit.table.action') }}</span>
+		</div>
+
+		@for (item of menuItems; track item.id) {
+			<div class="table-row" [class.selected]="selectedItemId === item.id">
+				<div class="item-cell">
+					<strong>{{ item.name }}</strong>
+				</div>
+
+				<span>{{ item.price }}{{ currency }}</span>
+
+				<span>
+					<span class="status" [class.out]="!item.isAvailable">
+						{{ item.isAvailable ? t('menuEdit.status.inStock') : t('menuEdit.status.outOfStock') }}
+					</span>
+				</span>
+
+				<div class="actions">
+					<button type="button" class="btn" (click)="onSelectItem(item)">
+						{{ t('menuEdit.view') }}
+					</button>
+				</div>
+			</div>
+		}
+	}
+</section>

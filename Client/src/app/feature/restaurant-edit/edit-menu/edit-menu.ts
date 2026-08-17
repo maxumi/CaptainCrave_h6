@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { form, FormField, FormRoot, min } from '@angular/forms/signals';
+import { form, min } from '@angular/forms/signals';
 import { MatDialog } from '@angular/material/dialog';
-import { TranslocoModule } from '@jsverse/transloco';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import {
   catchError,
   firstValueFrom,
@@ -15,19 +15,18 @@ import { DeleteDialog } from './delete-dialog/delete-dialog';
 import { SaveDialog } from './save-dialog/save-dialog';
 import { MenuEditStore } from './menu-edit-store';
 import { MenuItem } from './edit-menu.models';
+import { MenuItemList } from './menu-item-list/menu-item-list';
+import { MenuEditorForm } from './menu-editor-form/menu-editor-form';
 
 @Component({
   selector: 'app-edit-menu',
-  imports: [TranslocoModule, FormField, FormRoot],
+  imports: [TranslocoModule, MenuItemList, MenuEditorForm],
   templateUrl: './edit-menu.html',
   styleUrl: './edit-menu.css',
 
-  // Provides a store instance for this component.
-  // prevents menu edit state from leaking into other pages.
   providers: [MenuEditStore],
 })
 export class EditMenu implements OnInit {
-  // Shared dialog settings for save and delete confirmation dialogs.
   private static readonly DIALOG_CONFIG = {
     width: '250px',
     enterAnimationDuration: '200ms',
@@ -35,34 +34,49 @@ export class EditMenu implements OnInit {
   };
 
   private readonly dialog = inject(MatDialog);
+  private readonly transloco = inject(TranslocoService);
 
-  // Store handles menu state, loading, saving, deleting, and errors.
   readonly store = inject(MenuEditStore);
 
-  // Local form draft.
-  // This is separate from store.selectedItem so changes in the form do not
-  // directly modify the item in the menu list before saving.
   readonly menuModel = signal<MenuItem>(this.store.createDraftItem());
-
-
   readonly currency = 'kr.';
 
-readonly menuForm = form(
-  this.menuModel,
-  (path) => {
-    min(path.price, 1, {
-      message: 'Price must be at least 0',
-    });
-  },
-  {
-    submission: {
-      action: () => this.submitMenuForm(),
+  readonly menuForm = form(
+    this.menuModel,
+    (path) => {
+      min(path.price, 1, {
+        message: 'Price must be at least 1',
+      });
     },
-  }
-);
+    {
+      submission: {
+        action: () => this.submitMenuForm(),
+      },
+    }
+  );
 
   ngOnInit(): void {
     this.store.load();
+  }
+
+  selectMenu(menuId: number): void {
+    this.store.selectMenu(menuId);
+    this.store.selectedItem.set(null);
+    this.store.mode.set('edit');
+    this.menuModel.set(this.store.createDraftItem({
+      menuId,
+      categoryId: null,
+    }));
+  }
+
+  resetItemDraft(): void {
+    this.store.selectedItem.set(null);
+    this.store.mode.set('edit');
+    this.store.errorMessage.set('');
+    this.menuModel.set(this.store.createDraftItem({
+      menuId: this.store.menuId() ?? 0,
+      categoryId: null,
+    }));
   }
 
   selectItem(item: MenuItem): void {
@@ -73,67 +87,108 @@ readonly menuForm = form(
       return;
     }
 
-    this.menuModel.set(this.store.createDraftItem());
+    this.menuModel.set(this.store.createDraftItem({
+      menuId: this.store.menuId() ?? 0,
+      categoryId: null,
+    }));
   }
 
   startCreateItem(): void {
-    // Store switches to create mode and returns an empty draft item.
     const draft = this.store.startCreateItem();
 
-    // Check Draft is not null, 
-    // because startCreateItem can return null if there is no restaurant.
     if (draft) {
       this.menuModel.set(draft);
     }
   }
 
+  createMenu(): void {
+    const menuName = window.prompt(this.transloco.translate('menuEdit.createMenuPrompt'));
+
+    if (menuName == null) {
+      return;
+    }
+
+    const cleanName = menuName.trim();
+
+    if (!cleanName) {
+      this.store.errorMessage.set(this.transloco.translate('menuEdit.error.invalidMenuName'));
+      return;
+    }
+
+    this.store.createMenu(cleanName).subscribe({
+      next: (menu) => {
+        this.store.selectMenu(menu.id);
+        this.menuModel.set(this.store.createDraftItem({
+          menuId: menu.id,
+          categoryId: null,
+        }));
+      },
+    });
+  }
+
   private submitMenuForm() {
-    // submit seems to require async so use firstValueFrom to convert the observable to a promise.
     return firstValueFrom(
-      // Ask the user to confirm before saving.
       this.dialog.open(SaveDialog, EditMenu.DIALOG_CONFIG).afterClosed().pipe(
-        switchMap(confirmed => {
+        switchMap((confirmed) => {
           if (!confirmed) {
             return of(null);
           }
 
-          // Save the current form draft through the store.
           return this.store.saveItem(this.menuModel()).pipe(
-            tap(saved => {
-              // Update the form with the saved item returned from the backend.
-              // This is useful for new items because the backend gives them an ID.
+            tap((saved) => {
               this.menuModel.set(saved);
             }),
-
-            // The signal form expects null when submission succeeds.
             map(() => null),
           );
         }),
-
-        catchError(() => {
-          return of({
-            kind: 'serverError' as const,
-            message: this.store.errorMessage(),
-          });
-        }),
+        catchError(() => of({
+          kind: 'serverError' as const,
+          message: this.store.errorMessage(),
+        })),
       ),
     );
   }
 
   confirmDelete(): void {
-    // Ask the user to confirm before deleting.
     this.dialog.open(DeleteDialog, EditMenu.DIALOG_CONFIG).afterClosed().pipe(
-      switchMap(confirmed => {
+      switchMap((confirmed) => {
         if (!confirmed) {
           return of(false);
         }
         return this.store.deleteSelected();
       }),
-
-      tap(deleted => {
-        // If delete succeeded, reset the form to an empty draft.
+      tap((deleted) => {
         if (deleted) {
-          this.menuModel.set(this.store.createDraftItem());
+          this.menuModel.set(this.store.createDraftItem({
+            menuId: this.store.menuId() ?? 0,
+            categoryId: null,
+          }));
+        }
+      }),
+    ).subscribe();
+  }
+
+  deleteSelectedMenu(): void {
+    const menuId = this.store.menuId();
+    if (menuId == null) {
+      return;
+    }
+
+    this.dialog.open(DeleteDialog, EditMenu.DIALOG_CONFIG).afterClosed().pipe(
+      switchMap((confirmed) => {
+        if (!confirmed) {
+          return of(false);
+        }
+
+        return this.store.deleteMenu(menuId);
+      }),
+      tap((deleted) => {
+        if (deleted) {
+          this.store.errorMessage.set('');
+          this.menuModel.set(this.store.createDraftItem({
+            menuId: this.store.menuId() ?? 0,
+            categoryId: null,
+          }));
         }
       }),
     ).subscribe();

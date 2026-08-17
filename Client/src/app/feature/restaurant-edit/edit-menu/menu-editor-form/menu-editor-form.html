@@ -1,1 +1,55 @@
-<p>menu-editor-form works!</p>
+<form class="item-details card" [formRoot]="menuForm" *transloco="let t">
+	<header>
+		<div>
+			<h2>
+				{{ mode === 'create' ? t('menuEdit.form.addTitle') : t('menuEdit.form.editTitle', { name: itemName }) }}
+			</h2>
+
+			<p>
+				{{ mode === 'create' ? t('menuEdit.form.addSubtitle') : t('menuEdit.form.editSubtitle') }}
+			</p>
+		</div>
+
+		<div class="detail-actions">
+			<button
+				type="submit"
+				class="btn save-btn"
+				[disabled]="menuForm().invalid() || isSubmitting"
+			>
+				{{ isSubmitting ? t('menuEdit.saving') : (mode === 'create' ? t('menuEdit.createItem') : t('menuEdit.saveChanges')) }}
+			</button>
+
+			@if (mode !== 'create') {
+				<button
+					type="button"
+					class="btn delete-btn"
+					(click)="onDeleteItem()"
+				>
+					{{ t('menuEdit.deleteItem') }}
+				</button>
+			}
+		</div>
+	</header>
+
+	<div class="edit-form">
+		<label>
+			{{ t('menuEdit.fields.name') }}
+			<input class="form-control" type="text" [formField]="menuForm.name" />
+		</label>
+
+		<label>
+			{{ t('menuEdit.fields.price') }}
+			<input class="form-control" type="number" [formField]="menuForm.price" />
+		</label>
+
+		<label>
+			{{ t('menuEdit.fields.description') }}
+			<textarea class="form-control" [formField]="menuForm.description"></textarea>
+		</label>
+
+		<label class="checkbox-field">
+			<input type="checkbox" [formField]="menuForm.isAvailable" />
+			{{ t('menuEdit.fields.inStock') }}
+		</label>
+	</div>
+</form>

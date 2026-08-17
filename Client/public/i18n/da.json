@@ -75,7 +75,7 @@
     }
   },
     "restaurants": {
-      "title": "Restauranter nær dig",
+      "title": "Restauranter",
       "subtitle": " ",
       "status": {
         "open": "Åben",
@@ -96,6 +96,7 @@
   "addItem": "Tilføj vare",
   "loading": "Indlæser menu...",
   "empty": "Ingen menuvarer fundet.",
+  "uncategorized": "Uden kategori",
   "saveDialog": {
     "title": "Gem menupunkt",
     "message": "Vil du gemme dette menupunkt?",
@@ -117,15 +118,33 @@
 "menuEdit": {
   "title": "Administrer menu",
   "subtitle": "Tilføj, rediger eller fjern menupunkter fra din restaurant",
+  "mode": {
+    "menus": "Menuer",
+    "items": "Menuvarer"
+  },
   "addNewItem": "+ Tilføj ny vare",
+  "createMenu": "Opret menu",
+  "createMenuPrompt": "Indtast et navn til din menu:",
+  "emptyMenu": {
+    "title": "Ingen menu valgt",
+    "message": "Opret din første menu for at begynde at tilføje varer."
+  },
+  "menuTable": {
+    "name": "Menu",
+    "action": "Handling",
+    "select": "Vælg",
+    "selected": "Valgt"
+  },
   "searchLabel": "Søg i menuvarer",
   "searchPlaceholder": "Søg menuvarer",
   "loading": "Indlæser menuvarer...",
   "noRestaurant": "Ingen restaurantprofil fundet for din konto endnu.",
+  "createRestaurantProfile": "Opret restaurantprofil",
   "view": "Vis",
   "createItem": "Opret vare",
   "saveChanges": "Gem ændringer",
   "deleteItem": "Slet menuvare",
+  "deleteMenu": "Slet menu",
   "saving": "Gemmer...",
   "saveDialog": {
     "title": "Gem menuvare",
@@ -171,6 +190,9 @@
   },
   "error": {
     "missingRestaurant": "Restaurantkontekst mangler. Opdater siden, og prøv igen.",
+    "missingMenu": "Der er ikke valgt en menu for denne restaurant endnu.",
+    "invalidMenuName": "Indtast venligst et gyldigt menunavn.",
+    "createMenuFailed": "Kunne ikke oprette menuen.",
     "loadFailed": "Kunne ikke indlæse menuvarer. Prøv igen.",
     "saveFailed": "Kunne ikke gemme menuvaren.",
     "deleteFailed": "Kunne ikke slette menuvaren."

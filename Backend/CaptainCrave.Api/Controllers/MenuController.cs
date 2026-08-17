@@ -75,4 +75,24 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
         var created = await _menuService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
+
+    /// <summary>
+    /// Deletes a menu when the caller owns its restaurant or is an admin.
+    /// Menu item rows are removed by the database cascade relationship.
+    /// </summary>
+    /// <param name="id">The menu id to delete.</param>
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var deleted = await _menuService.DeleteAsync(id, userId.Value, User.IsInRole("Admin"));
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
+    }
 }

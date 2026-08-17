@@ -33,4 +33,14 @@ public class MenuRepository(AppDbContext db) : IMenuRepository
         await _db.SaveChangesAsync();
         return menu;
     }
+
+    /// <summary>
+    /// Removes a menu row and allows the database cascade to delete associated menu items.
+    /// </summary>
+    /// <param name="menu">The entity to delete.</param>
+    public async Task DeleteAsync(Menu menu)
+    {
+        _db.Menus.Remove(menu);
+        await _db.SaveChangesAsync();
+    }
 }
