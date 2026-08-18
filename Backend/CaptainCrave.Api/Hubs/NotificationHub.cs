@@ -1,5 +1,6 @@
 using Api.Models.Enums;
 using Api.Repositories;
+using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
@@ -26,7 +27,7 @@ public class NotificationHub(IRestaurantRepository restaurantRepository) : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, NotificationGroups.User(userId));
 
         // Restaurantejere lægges også i deres restaurants gruppe (bruges til "ny ordre modtaget").
-        if (Context.User.GetRole() == UserRole.Restaurant)
+        if (Context.User!.GetRole() == UserRole.Restaurant)
         {
             var restaurant = await _restaurantRepository.GetSingleByUserIdAsync(userId);
             if (restaurant is not null)
