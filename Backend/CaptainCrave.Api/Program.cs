@@ -107,6 +107,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Build app
 var app = builder.Build();
 
+// Seed testdata (kun i Development), så der ikke skal oprette data manuelt.
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(db);
+}
+
 // Swagger
 if (app.Environment.IsDevelopment())
 {
