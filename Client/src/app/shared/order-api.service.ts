@@ -106,6 +106,14 @@ export class OrderApiService {
   }
 
   getCustomerHistoricOrders(): Observable<OrderDto[]> {
-    return this.http.get<OrderDto[]>(`${this.ordersUrl}/customer/history`);
+    return this.http.get<OrderDto[]>(`${this.ordersUrl}/customer/history`).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          return of([]);
+        }
+
+        return throwError(() => error);
+      })
+    );
   }
 }

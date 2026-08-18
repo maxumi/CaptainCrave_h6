@@ -11,6 +11,7 @@
     "searchPage": "Søg",
     "map": "Kort",
     "orderStatus": "Ordrestatus",
+    "orderHistory": "Ordrehistorik",
     "manageRestaurant": "Administrer restaurant",
     "cart": "Kurv",
     "signIn": "Log ind",
@@ -358,6 +359,14 @@
     "quantity": "Antal",
     "total": "Total"
   }
+},
+"orderHistory": {
+  "title": "Ordrehistorik",
+  "loading": "Indlæser ordrehistorik...",
+  "empty": "Du har ikke afgivet nogen ordrer endnu.",
+  "fallbackMessage": "Historik-endepunktet er endnu ikke tilgængeligt i backend, så der er ingen gemte ordrer at vise lige nu.",
+  "orderNumber": "Ordre #CCID{{id}}",
+  "loadError": "Kunne ikke indlæse ordrehistorikken lige nu."
 },
 "orderManage": {
   "title": "Administrer ordrer",

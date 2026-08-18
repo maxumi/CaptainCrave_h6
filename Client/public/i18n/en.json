@@ -11,6 +11,7 @@
     "searchPage": "Search",
     "map": "Map",
     "orderStatus": "Order Status",
+    "orderHistory": "Order History",
     "manageRestaurant": "Manage Restaurant",
     "cart": "Cart",
     "signIn": "Sign In",
@@ -358,6 +359,14 @@
     "quantity": "Qty",
     "total": "Total"
   }
+},
+"orderHistory": {
+  "title": "Order history",
+  "loading": "Loading order history...",
+  "empty": "You have not placed any orders yet.",
+  "fallbackMessage": "The backend history endpoint is not available yet, so there are no saved orders to show right now.",
+  "orderNumber": "Order #CCID{{id}}",
+  "loadError": "Unable to load order history right now."
 },
 "orderManage": {
   "title": "Manage Orders",
