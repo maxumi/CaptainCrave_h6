@@ -85,13 +85,13 @@
       "title": "Restauranter",
       "subtitle": " ",
       "search": {
-        "openSearchPage": "Aabn soegning"
+        "openSearchPage": "Åben søgning"
       },
       "map": {
-        "openMapPage": "Aabn naerkort",
-        "title": "Kort over naerliggende restauranter",
-        "subtitle": "Brug din valgte placering til at udforske restauranter paa kortet.",
-        "nearbyListTitle": "Restauranter i dette omraade"
+        "openMapPage": "Åben nærkort",
+        "title": "Kort over nærliggende restauranter",
+        "subtitle": "Brug din valgte placering til at udforske restauranter på kortet.",
+        "nearbyListTitle": "Restauranter i dette område"
       },
       "location": {
         "title": "Leveringsadresse",
