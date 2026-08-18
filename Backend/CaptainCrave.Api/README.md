@@ -84,6 +84,19 @@ The API listens on the ports configured in `Properties/launchSettings.json`. In 
 
 Most write endpoints require `Authorize(Roles = ...)` and a `Bearer` token obtained from `/api/auth/login`.
 
+## Real-time notifications (SignalR)
+
+The API pushes live order updates over a SignalR hub instead of clients polling:
+
+- **Hub endpoint:** `/hubs/notifications` (requires a JWT, same as the REST API)
+- **`NewOrder`** - sent to a restaurant when it receives a new order
+- **`OrderStatusChanged`** - sent to a customer when their order's status changes
+
+On connect, each client is placed into a personal group (`user-{id}`) and, for restaurant
+owners, their restaurant's group (`restaurant-{id}`) — see `Hubs/NotificationHub.cs`. Order
+events are sent via `INotificationService`/`SignalRNotificationService`, called from
+`OrderService` whenever an order is created or its status changes.
+
 ## Tests
 
 Unit tests live in `Backend/CaptainCrave.Tests`:
