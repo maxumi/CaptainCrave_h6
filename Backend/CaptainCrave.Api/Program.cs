@@ -143,8 +143,10 @@ if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedAsync(db);
-}
+    var userManager =
+        scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+    await DbSeeder.SeedAsync(db, userManager);}
 
 // Swagger
 if (app.Environment.IsDevelopment())
