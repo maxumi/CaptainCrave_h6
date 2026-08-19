@@ -1,0 +1,80 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+
+namespace Api.Controllers;
+
+// Handles requests related to image uploads.
+[ApiController]
+[Route("api/[controller]")]
+public class UploadsController : ControllerBase
+{
+    // Used for path to the uploads folder in the project directory.
+    private readonly IWebHostEnvironment _environment;
+
+    public UploadsController(IWebHostEnvironment environment)
+    {
+        _environment = environment;
+    }
+
+    // Post image upload
+    [HttpPost]
+    public async Task<IActionResult> UploadImage(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file uploaded.");
+
+        // Get the uploads folder path from appsettings.json
+        var uploadsFolder = Path.Combine(_environment.ContentRootPath, "uploads");
+
+        // Ensure the uploads folder exists
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        // Generate a unique filename to avoid overwriting existing files
+        var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        // Save the file to the uploads folder
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        // Return the relative path to the uploaded file
+        var relativePath = Path.Combine("uploads", uniqueFileName);
+        return Ok(new { FilePath = relativePath });
+    }
+
+    // get image by filename
+    [HttpGet("{filename}")]
+    public IActionResult GetImage(string filename)
+    {
+        var uploadsFolder = Path.Combine(_environment.ContentRootPath, "uploads");
+        var filePath = Path.Combine(uploadsFolder, filename);
+
+        if (!System.IO.File.Exists(filePath))
+            return NotFound("File not found.");
+
+        var fileBytes = System.IO.File.ReadAllBytes(filePath);
+        var contentType = "application/octet-stream"; // Default content type
+
+        // Optionally, you can set the content type based on the file extension
+        var extension = Path.GetExtension(filename).ToLowerInvariant();
+        switch (extension)
+        {
+            case ".jpg":
+            case ".jpeg":
+                contentType = "image/jpeg";
+                break;
+            case ".png":
+                contentType = "image/png";
+                break;
+            case ".gif":
+                contentType = "image/gif";
+                break;
+        }
+
+        return File(fileBytes, contentType);
+    }
+}

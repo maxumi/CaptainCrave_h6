@@ -52,3 +52,7 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# for uploads of images
+Backend/CaptainCrave.Api/Uploads/*
+!Backend/CaptainCrave.Api/Uploads/.gitkeep
