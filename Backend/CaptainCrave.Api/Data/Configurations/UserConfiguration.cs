@@ -12,7 +12,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable("users");
 
-        builder.HasKey(u => u.Id);
+        // builder.HasKey(u => u.Id);
 
         builder.Property(u => u.Id)
             .HasColumnName("id")
@@ -28,8 +28,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(255);
 
-        builder.HasIndex(u => u.Email)
-            .IsUnique();
+        // builder.HasIndex(u => u.Email)
+        //     .IsUnique();
 
         builder.Property(u => u.Address)
             .HasColumnName("address")
