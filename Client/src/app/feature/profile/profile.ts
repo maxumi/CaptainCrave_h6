@@ -7,6 +7,7 @@ import { LocationResult, LocationService } from '../../shared/LocationService';
 import { AuthService } from '../../core/auth/auth.service';
 import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api.service';
 import { UserApiService } from '../../shared/user-api.service';
+import { configureLeafletDefaultIcons } from '../../shared/leaflet-icons';
 
 @Component({
   selector: 'app-profile',
@@ -81,6 +82,8 @@ export class Profile implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    configureLeafletDefaultIcons();
+
     const user = this.authService.user();
     const latitude = user?.latitude ?? this.defaultLocation.lat;
     const longitude = user?.longitude ?? this.defaultLocation.lng;

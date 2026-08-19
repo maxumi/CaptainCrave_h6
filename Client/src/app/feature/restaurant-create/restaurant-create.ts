@@ -12,6 +12,7 @@ import {
 } from '../../shared/restaurant-api.service';
 import { LocationResult, LocationService } from '../../shared/LocationService';
 import { AuthService } from '../../core/auth/auth.service';
+import { configureLeafletDefaultIcons } from '../../shared/leaflet-icons';
 
 interface RestaurantFormData {
   restaurantName: string;
@@ -80,6 +81,8 @@ export class RestaurantCreate implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    configureLeafletDefaultIcons();
+
     const defaultLocation = this.locationService.defaultLocation;
     const location: L.LatLngExpression = [
       defaultLocation.lat,

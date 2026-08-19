@@ -7,6 +7,7 @@ import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api
 import { AuthService } from '../../core/auth/auth.service';
 import { LocationService } from '../../shared/LocationService';
 import { FormsModule } from '@angular/forms';
+import { configureLeafletDefaultIcons } from '../../shared/leaflet-icons';
 
 const MAX_DISTANCE_KM = 50;
 
@@ -60,6 +61,8 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
+    configureLeafletDefaultIcons();
+
     const currentLocation = this.selectedLocation();
     const mapCenter: L.LatLngExpression = [
       currentLocation.lat,
