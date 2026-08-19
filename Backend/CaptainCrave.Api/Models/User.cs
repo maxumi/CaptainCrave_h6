@@ -1,17 +1,15 @@
 using Api.Models.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace Api.Models;
 
 // Represents a user stored in the database
-public class User
+public class User : IdentityUser<int>
 {
-    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
-    public string PasswordHash { get; set; } = string.Empty;
     public UserRole Role { get; set; } = UserRole.Customer;
     public DateTime CreatedAt { get; set; }
 }
