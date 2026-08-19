@@ -1,107 +1,322 @@
-# CaptainCrave.Api
+# CaptainCrave Backend
 
-ASP.NET Core Web API for CaptainCrave - a food delivery platform connecting customers with restaurants.
+ASP.NET Core 10 Web API for the CaptainCrave food ordering platform.
 
-## Tech stack
+---
 
-- **ASP.NET Core 10** (Web API, Controllers)
-- **Entity Framework Core** with SQL Server
-- **JWT Bearer** authentication (custom `TokenService`, BCrypt password hashing)
-- **Swagger / OpenAPI** (available at `/swagger` in Development)
+## Table of Contents
 
-## Project structure
+- [Architecture](#architecture)
+- [Code Patterns](#code-patterns)
+- [Real-time notifications (SignalR)](#real-time-notifications-signalr)
+- [API Endpoints](#api-endpoints)
+- [Technology](#technology)
+- [Authentication](#authentication)
+- [Secrets](#secrets)
+- [Database](#database)
+- [Seed data](#seed-data)
+- [Running the Project](#running-the-project)
+- [Tests](#tests)
+
+---
+
+## Architecture
+
+The backend uses a layered architecture. Each layer has one job, and each layer only talks to the layer directly below it.
+
+A request flows down through the layers, and the result flows back up through the same layers:
 
 ```
-Controllers/    HTTP endpoints (Auth, Users, Restaurants, Menus, Categories, MenuItems, Orders)
-Services/       Business logic
-Repositories/   EF Core data access
-Models/         Database entities
-DTOs/           Request/response payloads
-Mappers/        Entity <-> DTO conversions
-Data/           AppDbContext + EF Core fluent configurations
-Migrations/     EF Core migrations
+Request:   Controller -> Service -> Repository -> Database
+Response:  Controller <- Service <- Repository <- Database
 ```
 
-## Setup guide
+For example, when a controller needs data, it asks a service. The service asks a repository. The repository queries the database. The result then travels back up: the repository returns it to the service, and the service returns it to the controller. So the call goes down, and the data comes back up, through the same chain. A controller never queries the database directly, and a service never deals with HTTP objects.
 
-### Prerequisites
+Layers only depend on the layer below them through interfaces (for example, a service depends on `IRestaurantRepository`, not on `RestaurantRepository` directly). This keeps layers loosely coupled and easy to test, because a real repository can be swapped for a fake one in tests.
 
-- .NET 10 SDK
-- SQL Server (LocalDB, a full instance, or a container) reachable from your machine
-- EF Core CLI tools: `dotnet tool install --global dotnet-ef` (skip if already installed)
+| Layer | Folder | Responsibility |
+|---|---|---|
+| Controllers | `Controllers/` | Receive HTTP requests, validate input, return responses |
+| Services | `Services/` | Business logic (ownership checks, status transitions, sending notifications) |
+| Repositories | `Repositories/` | Database queries via EF Core |
+| Models | `Models/` | EF Core entities mapped to database tables |
+| DTOs | `DTOs/` | Data shapes used at the API boundary (never expose entities directly) |
+| Mappers | `Mappers/` | Convert between models and DTOs |
+| Configurations | `Data/Configurations/` | Fluent API table and column setup per entity |
+| Hubs | `Hubs/` | SignalR hub for real-time communication with clients |
+| Data | `Data/` | `AppDbContext`, EF Core configurations, `DbSeeder` |
 
-### 1. Configure user secrets
+**Rules:** controllers never touch the database directly, services never know about HTTP, repositories never contain business rules.
 
-Run these commands from this folder (`Backend/CaptainCrave.Api`):
+### Domain model
+
+```
+Restaurant --< Menu --< Category
+                  \--< MenuItem >-- Category (optional)
+```
+
+A `Restaurant` can have multiple `Menu`s. Each `Menu` has its own `Category` list (for example "Burgere", "Tilbehør", "Drikkevarer") and its own `MenuItem`s. A `MenuItem` belongs to exactly one `Menu`, and its `CategoryId` is optional, so items can be listed without a category (for example a combo or daily deal). The `Menu` layer exists so a restaurant can have more than one menu card (for example seasonal, or breakfast and lunch) without duplicating categories or items.
+
+Orders (`Order` and `OrderItem`) store a reference to the customer, the restaurant, and a snapshot of the ordered menu items with their quantity and price at order time.
+
+### Orchestration (.NET Aspire)
+
+The API is also wired up under `CaptainCrave.AppHost`, a .NET Aspire app host that starts the API together with the Angular client with a single command (`aspire run` from `Backend/CaptainCrave.AppHost`), and shows both in one dashboard for local development.
+
+---
+
+## Code Patterns
+
+### Dependency injection
+All services and repositories are registered as `Scoped` in `Program.cs` and injected via primary constructors:
+
+```csharp
+public class RestaurantService(IRestaurantRepository repo) : IRestaurantService
+```
+
+### DTOs at the boundary
+Entities are never returned directly from controllers. Every response is mapped to a DTO via a static extension method:
+
+```csharp
+public static RestaurantDto ToDto(this Restaurant r) => new() { Id = r.Id, Name = r.Name, ... };
+```
+
+### Repository pattern
+All database access goes through a typed interface. No `AppDbContext` in controllers or services:
+
+```csharp
+public interface IRestaurantRepository
+{
+    Task<IEnumerable<Restaurant>> GetAllAsync();
+    Task<Restaurant?> GetByIdAsync(int id);
+    Task<Restaurant> CreateAsync(Restaurant restaurant);
+}
+```
+
+### Input validation
+Simple rules use data annotations. Cross-field rules (e.g. delivery address required when type is `Delivery`) use `IValidatableObject`:
+
+```csharp
+public IEnumerable<ValidationResult> Validate(ValidationContext ctx)
+{
+    if (DeliveryType == DeliveryType.Delivery && string.IsNullOrWhiteSpace(DeliveryAddress))
+        yield return new ValidationResult("Delivery address is required.", [nameof(DeliveryAddress)]);
+}
+```
+
+### Role-based authorization
+Endpoints are protected with `[Authorize(Roles = "...")]`. The role is embedded in the JWT at login as a claim (`UserRole`: `Customer`, `Restaurant`, `Admin`). Public read endpoints have no attribute:
+
+```csharp
+[HttpPost]
+[Authorize(Roles = "Restaurant,Admin")]
+public async Task<IActionResult> Create(CreateRestaurantDto dto) { ... }
+```
+
+Ownership is enforced in the service layer on top of the role check. A `Restaurant` user can only manage menus, menu items, and orders that belong to their own restaurant. `Admin` bypasses this check.
+
+### Error handling
+Services throw typed exceptions. Controllers catch them and map to HTTP status codes:
+
+```csharp
+catch (KeyNotFoundException ex)          { return BadRequest(new { message = ex.Message }); }
+catch (UnauthorizedAccessException ex)   { return StatusCode(403, new { message = ex.Message }); }
+catch (InvalidOperationException ex)     { return Conflict(new { message = ex.Message }); } // or BadRequest, depending on the case
+```
+
+This keeps HTTP status codes out of the service layer, so a service does not need to know it is being called from a web request.
+
+### Fluent API configuration
+Each entity has its own `IEntityTypeConfiguration<T>` in `Data/Configurations/` (`RestaurantConfiguration`, `MenuConfiguration`, `CategoryConfiguration`, `MenuItemConfiguration`, `OrderConfiguration`, `OrderItemConfiguration`, `UserConfiguration`), keeping `AppDbContext.OnModelCreating` clean. Tables/columns use snake_case naming.
+
+---
+
+## Real-time notifications (SignalR)
+
+Instead of clients polling for order updates, the API pushes live events over a SignalR hub:
+
+- **Hub endpoint:** `/hubs/notifications`. Requires the same JWT used for the REST API.
+- **`NewOrder`**: sent to a restaurant when it receives a new order.
+- **`OrderStatusChanged`**: sent to a customer when their order's status changes.
+
+When a client connects (`NotificationHub.OnConnectedAsync`), it is placed into a personal group (`user-{id}`). If the user is a restaurant owner, it is also placed into their restaurant's group (`restaurant-{id}`). See `Hubs/NotificationHub.cs` and `Hubs/NotificationGroup.cs`. Events are raised through `INotificationService` and `SignalRNotificationService`, and are called from `OrderService` whenever an order is created (`CreateAsync`) or its status changes (`UpdateStatusAsync`).
+
+Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connection. So the JWT is instead passed as a query string (`?access_token=...`). `Program.cs` reads this in a custom `JwtBearerEvents.OnMessageReceived` handler, scoped to paths starting with `/hubs`. CORS for the hub uses one specific origin (`http://localhost:4200`) with `.AllowCredentials()`, because SignalR requires credentialed requests, not a wildcard origin.
+
+---
+
+## API Endpoints
+
+### Auth (public)
+| Method | Route | Description |
+|---|---|---|
+| POST | `/api/auth/register` | Create a new user account |
+| POST | `/api/auth/login` | Login and receive a JWT token |
+
+### Users
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/users/me` | Authenticated | Current user's profile |
+| PUT | `/api/users/me` | Authenticated | Update current user's profile |
+
+### Restaurants
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/restaurants` | Public | List all restaurants |
+| GET | `/api/restaurants/nearby?latitude=&longitude=&radiusKm=` | Public | List restaurants within a radius of a point |
+| GET | `/api/restaurants/{id}` | Public | Get a restaurant by ID |
+| GET | `/api/restaurants/me` | Restaurant, Admin | The caller's own restaurant profile |
+| GET | `/api/restaurants/{id}/menus` | Public | All menus for a restaurant |
+| GET | `/api/restaurants/{id}/menu-items` | Public | All menu items for a restaurant, across its menus |
+| POST | `/api/restaurants` | Restaurant, Admin | Create a restaurant (bound to the caller's account) |
+
+### Menus
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/menus/restaurant/{restaurantId}` | Public | All menus for a restaurant |
+| GET | `/api/menus/{id}` | Public | Get a menu by ID |
+| POST | `/api/menus` | Restaurant, Admin | Create a menu (restaurant users may only target their own restaurant) |
+| DELETE | `/api/menus/{id}` | Restaurant, Admin | Delete a menu (cascades to its categories/menu items) |
+
+### Categories
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/categories/restaurant/{restaurantId}` | Public | All categories for a restaurant, across all of its menus |
+| GET | `/api/categories/menu/{menuId}` | Public | All categories belonging to one menu |
+| POST | `/api/categories` | Restaurant, Admin | Create a category |
+
+### Menu Items
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/menuitems/restaurant/{restaurantId}` | Public | All menu items for a restaurant |
+| GET | `/api/menuitems/menu/{menuId}` | Public | All menu items for one menu |
+| POST | `/api/menuitems` | Restaurant, Admin | Create a menu item (`CategoryId` optional) |
+| PUT | `/api/menuitems/{id}` | Restaurant, Admin | Update a menu item |
+| DELETE | `/api/menuitems/{id}` | Restaurant, Admin | Delete a menu item |
+
+### Orders
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| POST | `/api/orders` | Customer, Admin | Place an order |
+| GET | `/api/orders/{id}` | Authenticated | Get order details |
+| GET | `/api/orders/customer/active` (alias: `/api/orders/active`) | Customer | The caller's current active order |
+| GET | `/api/orders/customer/history` | Customer | The caller's past orders |
+| GET | `/api/orders/restaurant/active` | Restaurant, Admin | Active orders for the caller's restaurant |
+| GET | `/api/orders/restaurant/history` | Restaurant, Admin | Completed orders for the caller's restaurant |
+| PATCH | `/api/orders/{id}/status` | Restaurant, Admin | Update order status (`Preparing`, `OnTheWay`, `ReadyForPickup`, `Delivered`, `Cancelled`, ...). Triggers an `OrderStatusChanged` SignalR event to the customer |
+
+Most write endpoints require `Authorize(Roles = ...)` and a `Bearer` token obtained from `/api/auth/login`. Read (`GET`) endpoints for restaurants/menus/categories/menu items are public so the storefront can be browsed without logging in.
+
+---
+
+## Technology
+
+| Package | Version | Purpose |
+|---|---|---|
+| .NET 10 / ASP.NET Core 10 | 10.0 | Web framework |
+| Entity Framework Core (SqlServer, Design, Tools) | 10.0.10 | Code-first ORM, migrations, SQL Server provider |
+| ASP.NET Core SignalR | built-in | Real-time push notifications (`/hubs/notifications`) |
+| Microsoft.AspNetCore.Authentication.JwtBearer | 10.0.10 | JWT bearer authentication middleware |
+| System.IdentityModel.Tokens.Jwt | 8.22.0 | JWT generation and validation (`TokenService`) |
+| BCrypt.Net-Next | 4.2.0 | Password hashing |
+| Swashbuckle.AspNetCore / SwaggerUI | 10.2.3 | API documentation at `/swagger` |
+| Microsoft.OpenApi | 2.7.5 | OpenAPI types used for the Swagger JWT security scheme |
+| .NET Aspire (`CaptainCrave.AppHost`) | n/a | Local orchestration of the API and the Angular client |
+
+---
+
+## Authentication
+
+1. User registers with name, email, and password (`POST /api/auth/register`).
+2. Password is hashed with BCrypt before storage. Plain-text is never saved.
+3. On login (`POST /api/auth/login`), the submitted password is verified against the stored hash.
+4. A signed JWT is returned containing the user ID, email, and role (`Customer`/`Restaurant`/`Admin`) as claims.
+5. Protected routes require `Authorization: Bearer <token>` in the request header. SignalR connections instead pass the same token as an `access_token` query parameter (see [Real-time notifications](#real-time-notifications-signalr)).
+
+The token is signed with HMAC-SHA256 using the secret configured in user secrets.
+
+---
+
+## Secrets
+
+Sensitive values are not stored in source code or `appsettings.json`. They are managed with the .NET User Secrets manager.
+
+| Key | Description |
+|---|---|
+| `ConnectionStrings:DefaultConnection` | SQL Server connection string |
+| `Jwt:Secret` | Signing key for JWT tokens (minimum 32 characters) |
+| `Jwt:Issuer` | JWT issuer (e.g. `CaptainCrave.Api`) |
+| `Jwt:Audience` | JWT audience (e.g. `CaptainCrave.Client`) |
 
 ```bash
 dotnet user-secrets init
-
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=CaptainCraveDb;Trusted_Connection=True;TrustServerCertificate=True"
 dotnet user-secrets set "Jwt:Secret" "your-super-secret-key-at-least-32-characters-long"
 dotnet user-secrets set "Jwt:Issuer" "CaptainCrave.Api"
 dotnet user-secrets set "Jwt:Audience" "CaptainCrave.Client"
-
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=CaptainCraveDb;Trusted_Connection=True;TrustServerCertificate=True"
 ```
 
 Adjust the connection string's `Server=` value to match your SQL Server instance (e.g. `(localdb)\MSSQLLocalDB` if you have LocalDB installed instead of a full instance).
 
-### 2. Apply database migrations
+`appsettings.json` contains non-sensitive defaults only and is safe to commit.
 
+---
+
+## Database
+
+Managed with EF Core migrations. All tables use snake_case column names configured via Fluent API (see `Data/Configurations/`).
+
+Apply all pending migrations:
 ```bash
 dotnet ef database update
 ```
 
-This creates the `CaptainCraveDb` database and applies all migrations (users, restaurants, menus, categories, menu items, orders).
+Add a new migration after changing a model:
+```bash
+dotnet ef migrations add <MigrationName>
+dotnet ef database update
+```
 
-### 3. Run the API
+---
+
+## Seed data
+
+In the `Development` environment, `Program.cs` calls `DbSeeder.SeedAsync` once at startup. It checks whether the `restaurants` table already has any rows. If so, it skips seeding entirely, so it is safe to leave in place across restarts.
+
+If the table is empty, it seeds 6 well-known fast-food restaurants (Burger King, McDonald's, KFC, Subway, Domino's Pizza, Pizza Hut), each with:
+- an owner `User` (`Role = Restaurant`, password `Password123!`, email like `burgerking@captaincrave.dk`),
+- one `Menu` with a few `Category` groups,
+- several `MenuItem`s per category plus one ungrouped "daily deal" item,
+- a real restaurant logo `ImageUrl` (sourced from Wikimedia Commons).
+
+This means the team does not have to manually create test data. Running the API once against an empty database is enough. To force a reseed, clear the `restaurants`, `menus`, `categories`, `menu_items`, and seeded `users` rows, then restart the API. Note that `dotnet ef database update` is **not** needed for this: that command only applies schema migrations, not seed data.
+
+---
+
+## Running the Project
 
 Standalone:
-
 ```bash
 dotnet run
 ```
 
 Or via the Aspire AppHost (also starts the Angular client), from `Backend/CaptainCrave.AppHost`:
-
 ```bash
 aspire run
 ```
 
-The API listens on the ports configured in `Properties/launchSettings.json`. In Development, Swagger UI is available at `/swagger`.
+The API listens on the ports configured in `Properties/launchSettings.json`. In Development, Swagger UI is available at `/swagger`, and the database is auto-seeded (see [Seed data](#seed-data)).
 
-## API overview
-
-| Area | Base route | Notes |
-|------|-----------|-------|
-| Auth | `POST /api/auth/register`, `POST /api/auth/login` | Returns a JWT on success |
-| Users | `GET /api/users/me` | Current authenticated user's profile |
-| Restaurants | `GET /api/restaurants`, `GET /api/restaurants/{id}`, `GET /api/restaurants/{id}/menus`, `GET /api/restaurants/{id}/menu-items`, `POST /api/restaurants` | `nearby`/`me` variants for location search and the owner's own restaurant |
-| Menus | `GET /api/menus/restaurant/{restaurantId}`, `GET /api/menus/{id}`, `POST /api/menus` | A restaurant can have multiple menus |
-| Categories | `GET /api/categories/restaurant/{restaurantId}`, `GET /api/categories/menu/{menuId}`, `POST /api/categories` | Optional grouping for menu items within a menu |
-| Menu items | `GET /api/menuitems/restaurant/{restaurantId}`, `GET /api/menuitems/menu/{menuId}`, `POST/PUT/DELETE` | `CategoryId` is optional |
-| Orders | `POST /api/orders`, `GET /api/orders/{id}`, `GET /api/orders/customer/*`, `GET /api/orders/restaurant/*`, `PATCH /api/orders/{id}/status` | Role-restricted by `Customer`/`Restaurant`/`Admin` |
-
-Most write endpoints require `Authorize(Roles = ...)` and a `Bearer` token obtained from `/api/auth/login`.
-
-## Real-time notifications (SignalR)
-
-The API pushes live order updates over a SignalR hub instead of clients polling:
-
-- **Hub endpoint:** `/hubs/notifications` (requires a JWT, same as the REST API)
-- **`NewOrder`** - sent to a restaurant when it receives a new order
-- **`OrderStatusChanged`** - sent to a customer when their order's status changes
-
-On connect, each client is placed into a personal group (`user-{id}`) and, for restaurant
-owners, their restaurant's group (`restaurant-{id}`) — see `Hubs/NotificationHub.cs`. Order
-events are sent via `INotificationService`/`SignalRNotificationService`, called from
-`OrderService` whenever an order is created or its status changes.
+---
 
 ## Tests
 
-Unit tests live in `Backend/CaptainCrave.Tests`:
+Unit tests live in `Backend/CaptainCrave.Tests` (xUnit, Moq, EF Core InMemory, `Microsoft.AspNetCore.Mvc.Testing`, `Microsoft.AspNetCore.SignalR.Client`):
 
 ```bash
 cd ../CaptainCrave.Tests
 dotnet test
 ```
+
+
