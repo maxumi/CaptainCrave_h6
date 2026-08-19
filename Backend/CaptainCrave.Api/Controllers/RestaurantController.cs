@@ -2,6 +2,7 @@ using Api.DTOs;
 using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -114,5 +115,70 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
 
         var created = await _restaurantService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
+
+    // Deletes the caller's restaurant if authorized. This is a soft delete: the restaurant
+    // (and its menus and menu items) are hidden, not removed, and can be restored.
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var deleted = await _restaurantService.DeleteAsync(id, userId.Value, User.IsInRole("Admin"));
+        if (!deleted)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    // Restores a previously soft-deleted restaurant if the caller owns it or is an admin.
+    [HttpPost("{id}/restore")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> Restore(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var restored = await _restaurantService.RestoreAsync(id, userId.Value, User.IsInRole("Admin"));
+        if (!restored)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    // Permanently deletes a restaurant (soft-deleted or not) if the caller owns it or is an admin. This cannot be undone.
+    [HttpDelete("{id}/permanent")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> HardDelete(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        try
+        {
+            var deleted = await _restaurantService.HardDeleteAsync(id, userId.Value, User.IsInRole("Admin"));
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
+        }
+        catch (DbUpdateException)
+        {
+            return Conflict(new { message = "Cannot permanently delete this restaurant because it still has related data, such as past orders." });
+        }
+    }
+
+    // Returns every soft-deleted restaurant, for an admin trash view.
+    [HttpGet("deleted")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetDeleted()
+    {
+        var restaurants = await _restaurantService.GetDeletedAsync();
+        return Ok(restaurants);
     }
 }

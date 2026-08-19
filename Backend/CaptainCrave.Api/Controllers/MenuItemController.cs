@@ -2,6 +2,7 @@ using Api.DTOs;
 using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -93,6 +94,7 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
     }
 
     // Deletes an existing menu item if the caller is authorized.
+    // This is a soft delete: the item is hidden, not removed, and can be restored.
     [HttpDelete("{id}")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -106,5 +108,60 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
             return NotFound();
 
         return NoContent();
+    }
+
+    // Restores a previously soft-deleted menu item if the caller is authorized.
+    [HttpPost("{id}/restore")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> Restore(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var restored = await _menuItemService.RestoreAsync(id, userId.Value, User.IsInRole("Admin"));
+        if (!restored)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    // Permanently deletes a menu item (soft-deleted or not) if the caller is authorized. This cannot be undone.
+    [HttpDelete("{id}/permanent")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> HardDelete(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        try
+        {
+            var deleted = await _menuItemService.HardDeleteAsync(id, userId.Value, User.IsInRole("Admin"));
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
+        }
+        catch (DbUpdateException)
+        {
+            return Conflict(new { message = "Cannot permanently delete this menu item because it still appears on past orders." });
+        }
+    }
+
+    // Returns the soft-deleted menu items for a restaurant, so they can be reviewed and restored.
+    [HttpGet("restaurant/{restaurantId:int}/deleted")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> GetDeleted(int restaurantId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var items = await _menuItemService.GetDeletedByRestaurantIdAsync(restaurantId, userId.Value, User.IsInRole("Admin"));
+        if (items is null)
+            return StatusCode(StatusCodes.Status403Forbidden);
+
+        return Ok(items);
     }
 }

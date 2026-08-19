@@ -11,7 +11,11 @@ public static class CategoryMapper
     {
         Id = category.Id,
         MenuId = category.MenuId,
-        Name = category.Name
+        Name = category.Name,
+        IsDeleted = category.IsDeleted,
+        DeletedAt = category.DeletedAt,
+        CreatedAt = category.CreatedAt,
+        UpdatedAt = category.UpdatedAt
     };
 
     // Maps a CreateCategoryDto to a Category entity ready to be persisted.

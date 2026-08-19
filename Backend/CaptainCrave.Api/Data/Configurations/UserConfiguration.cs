@@ -51,10 +51,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasConversion<string>();
 
-        builder.Property(u => u.CreatedAt)
-            .HasColumnName("created_at")
-            .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()")
-            .ValueGeneratedOnAdd();
+        builder.ConfigureAudit();
     }
 }

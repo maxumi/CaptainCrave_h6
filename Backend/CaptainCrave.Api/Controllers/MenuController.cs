@@ -2,6 +2,7 @@ using Api.DTOs;
 using Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -78,7 +79,7 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
 
     /// <summary>
     /// Deletes a menu when the caller owns its restaurant or is an admin.
-    /// Menu item rows are removed by the database cascade relationship.
+    /// This is a soft delete: the menu (and its menu items) are hidden, not removed, and can be restored.
     /// </summary>
     /// <param name="id">The menu id to delete.</param>
     [HttpDelete("{id}")]
@@ -94,5 +95,70 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
             return NotFound();
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Restores a previously soft-deleted menu when the caller owns its restaurant or is an admin.
+    /// </summary>
+    /// <param name="id">The menu id to restore.</param>
+    [HttpPost("{id}/restore")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> Restore(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var restored = await _menuService.RestoreAsync(id, userId.Value, User.IsInRole("Admin"));
+        if (!restored)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Permanently deletes a menu (soft-deleted or not) when the caller owns its restaurant or is an admin.
+    /// This cannot be undone.
+    /// </summary>
+    /// <param name="id">The menu id to permanently delete.</param>
+    [HttpDelete("{id}/permanent")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> HardDelete(int id)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        try
+        {
+            var deleted = await _menuService.HardDeleteAsync(id, userId.Value, User.IsInRole("Admin"));
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
+        }
+        catch (DbUpdateException)
+        {
+            return Conflict(new { message = "Cannot permanently delete this menu because related data still references it." });
+        }
+    }
+
+    /// <summary>
+    /// Returns the soft-deleted menus for a restaurant, so they can be reviewed and restored.
+    /// </summary>
+    /// <param name="restaurantId">The owning restaurant's id.</param>
+    [HttpGet("restaurant/{restaurantId}/deleted")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> GetDeleted(int restaurantId)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var menus = await _menuService.GetDeletedByRestaurantIdAsync(restaurantId, userId.Value, User.IsInRole("Admin"));
+        if (menus is null)
+            return StatusCode(StatusCodes.Status403Forbidden);
+
+        return Ok(menus);
     }
 }

@@ -47,6 +47,12 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
             .IsRequired()
             .HasDefaultValue(true);
 
+        builder.ConfigureAudit();
+        builder.ConfigureSoftDelete();
+
+        // Soft-deleted menu items are hidden from every normal query, and so are items of a soft-deleted menu or restaurant.
+        builder.HasQueryFilter(m => !m.IsDeleted && !m.Menu.IsDeleted && !m.Menu.Restaurant.IsDeleted);
+
         builder.HasOne(m => m.Menu)
             .WithMany(mn => mn.MenuItems)
             .HasForeignKey(m => m.MenuId)

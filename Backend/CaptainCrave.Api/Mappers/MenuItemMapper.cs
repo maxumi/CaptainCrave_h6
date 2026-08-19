@@ -16,7 +16,11 @@ public static class MenuItemMapper
         Description = menuItem.Description,
         Price = menuItem.Price,
         ImageUrl = menuItem.ImageUrl,
-        IsAvailable = menuItem.IsAvailable
+        IsAvailable = menuItem.IsAvailable,
+        IsDeleted = menuItem.IsDeleted,
+        DeletedAt = menuItem.DeletedAt,
+        CreatedAt = menuItem.CreatedAt,
+        UpdatedAt = menuItem.UpdatedAt
     };
 
     // Maps a CreateMenuItemDto to a MenuItem entity

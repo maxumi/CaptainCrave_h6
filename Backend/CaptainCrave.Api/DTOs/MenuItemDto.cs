@@ -10,4 +10,11 @@ public class MenuItemDto
     public decimal Price { get; set; }
     public string ImageUrl { get; set; } = string.Empty;
     public bool IsAvailable { get; set; }
+
+    // Whether the menu item is soft-deleted (hidden but recoverable).
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

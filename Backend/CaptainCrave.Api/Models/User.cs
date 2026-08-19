@@ -3,7 +3,7 @@ using Api.Models.Enums;
 namespace Api.Models;
 
 // Represents a user stored in the database
-public class User
+public class User : IAuditable
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -14,4 +14,5 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
     public UserRole Role { get; set; } = UserRole.Customer;
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

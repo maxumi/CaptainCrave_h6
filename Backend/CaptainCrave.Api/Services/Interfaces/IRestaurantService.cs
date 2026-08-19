@@ -21,4 +21,16 @@ public interface IRestaurantService
     double latitude,
     double longitude,
     double radiusKm);
+
+    // Soft deletes a restaurant when the caller owns it or is an admin. The restaurant can be restored later.
+    Task<bool> DeleteAsync(int id, int userId, bool isAdmin);
+
+    // Restores a soft-deleted restaurant when the caller owns it or is an admin.
+    Task<bool> RestoreAsync(int id, int userId, bool isAdmin);
+
+    // Permanently deletes a restaurant (soft-deleted or not) when the caller owns it or is an admin.
+    Task<bool> HardDeleteAsync(int id, int userId, bool isAdmin);
+
+    // Returns every soft-deleted restaurant, for an admin trash view.
+    Task<IEnumerable<RestaurantDto>> GetDeletedAsync();
 }

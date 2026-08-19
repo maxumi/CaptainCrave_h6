@@ -18,7 +18,10 @@ public static class RestaurantMapper
         Longitude = restaurant.Longitude,
         ImageUrl = restaurant.ImageUrl,
         IsActive = restaurant.IsActive,
-        CreatedAt = restaurant.CreatedAt
+        CreatedAt = restaurant.CreatedAt,
+        UpdatedAt = restaurant.UpdatedAt,
+        IsDeleted = restaurant.IsDeleted,
+        DeletedAt = restaurant.DeletedAt
     };
 
     // Maps a CreateRestaurantDto to a Restaurant entity ready to be persisted.
