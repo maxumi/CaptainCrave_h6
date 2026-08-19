@@ -39,8 +39,8 @@ public class CategoryControllerTests
         var (controller, mockService) = CreateController();
         var categories = new List<CategoryDto>
         {
-            new() { Id = 1, RestaurantId = 1, Name = "Burgers" },
-            new() { Id = 2, RestaurantId = 1, Name = "Drinks" }
+            new() { Id = 1, MenuId = 1, Name = "Burgers" },
+            new() { Id = 2, MenuId = 1, Name = "Drinks" }
         };
         mockService.Setup(s => s.GetByRestaurantIdAsync(1)).ReturnsAsync(categories);
 
@@ -69,8 +69,8 @@ public class CategoryControllerTests
     public async Task Create_ValidDto_ReturnsCreated()
     {
         var (controller, mockService) = CreateController();
-        var dto = new CreateCategoryDto { RestaurantId = 1, Name = "Burgers" };
-        var created = new CategoryDto { Id = 3, RestaurantId = 1, Name = "Burgers" };
+        var dto = new CreateCategoryDto { MenuId = 1, Name = "Burgers" };
+        var created = new CategoryDto { Id = 3, MenuId = 1, Name = "Burgers" };
         mockService.Setup(s => s.CreateAsync(dto)).ReturnsAsync(created);
 
         var result = await controller.Create(dto);
@@ -83,8 +83,8 @@ public class CategoryControllerTests
     public async Task Create_ValidDto_ReturnsCreatedCategory()
     {
         var (controller, mockService) = CreateController();
-        var dto = new CreateCategoryDto { RestaurantId = 1, Name = "Burgers" };
-        var created = new CategoryDto { Id = 3, RestaurantId = 1, Name = "Burgers" };
+        var dto = new CreateCategoryDto { MenuId = 1, Name = "Burgers" };
+        var created = new CategoryDto { Id = 3, MenuId = 1, Name = "Burgers" };
         mockService.Setup(s => s.CreateAsync(dto)).ReturnsAsync(created);
 
         var result = await controller.Create(dto) as CreatedResult;

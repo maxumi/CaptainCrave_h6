@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Api.Data;
+using Api.Hubs;
 using Api.Repositories;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +20,9 @@ builder.Services.AddControllers()
             new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
         );
     });
+
+// SignalR (live ordre-notifikationer)
+builder.Services.AddSignalR();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -54,7 +58,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowClient", policy =>
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyHeader()
-              .AllowAnyMethod());
+              .AllowAnyMethod()
+              .AllowCredentials()); // SignalR kræver credentials sammen med en specifik origin
 });
 
 // DI — Auth
@@ -77,6 +82,9 @@ builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// DI — Notifikationer (SignalR)
+builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
+
 // JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
@@ -97,6 +105,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtSecret))
         };
+
+        // SignalR sender JWT'et via query-string for WebSocket/SSE, ikke Authorization-headeren.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
 // Database
@@ -106,6 +129,14 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Build app
 var app = builder.Build();
+
+// Seed testdata (kun i Development), så der ikke skal oprette data manuelt.
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DbSeeder.SeedAsync(db);
+}
 
 // Swagger
 if (app.Environment.IsDevelopment())
@@ -122,5 +153,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
+
+// Gør Program synlig for CaptainCrave.Tests, så WebApplicationFactory<Program> kan starte API'en i tests.
+public partial class Program { }
