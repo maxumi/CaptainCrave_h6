@@ -22,4 +22,12 @@ public interface IMenuService
     /// </summary>
     /// <param name="dto">The requested menu's restaurant id and name.</param>
     Task<MenuDto> CreateAsync(CreateMenuDto dto);
+
+    /// <summary>
+    /// Deletes a menu when the caller owns that restaurant or is an admin.
+    /// </summary>
+    /// <param name="id">Menu ID to delete.</param>
+    /// <param name="userId">The current user.</param>
+    /// <param name="isAdmin">Whether the current user is an admin.</param>
+    Task<bool> DeleteAsync(int id, int userId, bool isAdmin);
 }

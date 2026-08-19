@@ -7,6 +7,13 @@
   },
   "navbar": {
     "search": "Søg",
+    "restaurants": "Restauranter",
+    "searchPage": "Søg",
+    "map": "Kort",
+    "orderStatus": "Ordrestatus",
+    "orderHistory": "Ordrehistorik",
+    "manageRestaurant": "Administrer restaurant",
+    "cart": "Kurv",
     "signIn": "Log ind",
     "signOut": "Log ud",
     "register": "Opret konto",
@@ -75,8 +82,26 @@
     }
   },
     "restaurants": {
-      "title": "Restauranter nær dig",
+      "title": "Restauranter",
       "subtitle": " ",
+      "search": {
+        "openSearchPage": "Åben søgning"
+      },
+      "map": {
+        "openMapPage": "Åben nærkort",
+        "title": "Kort over nærliggende restauranter",
+        "subtitle": "Brug din valgte placering til at udforske restauranter på kortet.",
+        "nearbyListTitle": "Restauranter i dette område"
+      },
+      "location": {
+        "title": "Leveringsadresse",
+        "description": "Vælg adressen for at finde nærliggende restauranter.",
+        "placeholder": "Indtast leveringsadresse",
+        "updateButton": "Opdater placering",
+        "updating": "Opdaterer...",
+        "resetButton": "Brug standardplacering",
+        "currentPrefix": "Nuværende placering:"
+      },
       "status": {
         "open": "Åben",
         "closed": "Lukket"
@@ -87,15 +112,36 @@
         "notAuthenticated": "Bruger er ikke godkendt.",
         "restaurantLocationMissing": "Restaurantens placering er ikke tilgængelig.",
         "restaurantLocationFailed": "Kunne ikke indlæse restaurantens placering.",
+        "locationRequired": "Indtast venligst en adresse.",
+        "locationNotFound": "Ingen placering fundet for adressen.",
         "userLocationMissing": "Brugerens placering er ikke tilgængelig. Opdater din profil med en gyldig adresse.",
         "loadFailed": "Kunne ikke indlæse restauranter lige nu."
       }
   },
+"restaurantsSearch": {
+  "title": "Søg restauranter",
+  "subtitle": "Søg på restaurantnavn.",
+  "queryLabel": "Søgeord",
+  "placeholder": "Skriv din søgning",
+  "searchButton": "Søg",
+  "clearButton": "Ryd",
+  "loading": "Indlæser restauranter...",
+  "empty": "Ingen restauranter matcher din søgning.",
+  "pagination": {
+    "previous": "Forrige",
+    "next": "Næste",
+    "page": "Side {{current}} af {{total}}"
+  },
+  "error": {
+    "loadFailed": "Kunne ikke indlæse restauranter lige nu."
+  }
+},
 "restaurantInfo": {
   "menu": "Menu",
   "addItem": "Tilføj vare",
   "loading": "Indlæser menu...",
   "empty": "Ingen menuvarer fundet.",
+  "uncategorized": "Uden kategori",
   "saveDialog": {
     "title": "Gem menupunkt",
     "message": "Vil du gemme dette menupunkt?",
@@ -117,15 +163,33 @@
 "menuEdit": {
   "title": "Administrer menu",
   "subtitle": "Tilføj, rediger eller fjern menupunkter fra din restaurant",
+  "mode": {
+    "menus": "Menuer",
+    "items": "Menuvarer"
+  },
   "addNewItem": "+ Tilføj ny vare",
+  "createMenu": "Opret menu",
+  "createMenuPrompt": "Indtast et navn til din menu:",
+  "emptyMenu": {
+    "title": "Ingen menu valgt",
+    "message": "Opret din første menu for at begynde at tilføje varer."
+  },
+  "menuTable": {
+    "name": "Menu",
+    "action": "Handling",
+    "select": "Vælg",
+    "selected": "Valgt"
+  },
   "searchLabel": "Søg i menuvarer",
   "searchPlaceholder": "Søg menuvarer",
   "loading": "Indlæser menuvarer...",
   "noRestaurant": "Ingen restaurantprofil fundet for din konto endnu.",
+  "createRestaurantProfile": "Opret restaurantprofil",
   "view": "Vis",
   "createItem": "Opret vare",
   "saveChanges": "Gem ændringer",
   "deleteItem": "Slet menuvare",
+  "deleteMenu": "Slet menu",
   "saving": "Gemmer...",
   "saveDialog": {
     "title": "Gem menuvare",
@@ -171,6 +235,9 @@
   },
   "error": {
     "missingRestaurant": "Restaurantkontekst mangler. Opdater siden, og prøv igen.",
+    "missingMenu": "Der er ikke valgt en menu for denne restaurant endnu.",
+    "invalidMenuName": "Indtast venligst et gyldigt menunavn.",
+    "createMenuFailed": "Kunne ikke oprette menuen.",
     "loadFailed": "Kunne ikke indlæse menuvarer. Prøv igen.",
     "saveFailed": "Kunne ikke gemme menuvaren.",
     "deleteFailed": "Kunne ikke slette menuvaren."
@@ -182,8 +249,10 @@
   "remove": "Fjern",
   "orderType": "Ordretype",
   "delivery": "Levering",
+  "deliveryAddress": "Leveringsadresse",
   "pickup": "Afhentning",
   "total": "Total",
+  "currency": "kr.",
   "clearCart": "Ryd kurv",
   "checkout": "Bestil",
   "placingOrder": "Opretter ordre...",
@@ -192,7 +261,7 @@
     "notLoggedIn": "Du skal være logget ind for at afgive en ordre.",
     "customerOnly": "Kun kundekonti kan afgive ordrer.",
     "empty": "Din kurv er tom.",
-    "addressRequired": "Opdater din profiladresse før checkout.",
+    "addressRequired": "Vælg venligst en leveringsadresse først.",
     "checkoutFailed": "Kunne ikke oprette ordren lige nu."
   }
 },
@@ -290,6 +359,14 @@
     "quantity": "Antal",
     "total": "Total"
   }
+},
+"orderHistory": {
+  "title": "Ordrehistorik",
+  "loading": "Indlæser ordrehistorik...",
+  "empty": "Du har ikke afgivet nogen ordrer endnu.",
+  "fallbackMessage": "Historik-endepunktet er endnu ikke tilgængeligt i backend, så der er ingen gemte ordrer at vise lige nu.",
+  "orderNumber": "Ordre #CCID{{id}}",
+  "loadError": "Kunne ikke indlæse ordrehistorikken lige nu."
 },
 "orderManage": {
   "title": "Administrer ordrer",

@@ -1,0 +1,55 @@
+<section class="order-history-page" *transloco="let t">
+  <div class="page-header">
+    <h1>{{ t('orderHistory.title') }}</h1>
+  </div>
+
+  @if (isLoading()) {
+    <p class="loading-text">{{ t('orderHistory.loading') }}</p>
+  } @else if (loadError()) {
+    <div class="card empty-state error-state">
+      <p>{{ loadError() }}</p>
+      <p>{{ t('orderHistory.fallbackMessage') }}</p>
+    </div>
+  } @else if (orders().length === 0) {
+    <div class="card empty-state">
+      <p>{{ t('orderHistory.empty') }}</p>
+    </div>
+  } @else {
+    <div class="orders-list">
+      @for (order of orders(); track order.id) {
+        <article class="card order-card">
+          <header class="order-card-header">
+            <div>
+              <p class="order-label">
+                {{ t('orderHistory.orderNumber', { id: order.id }) }}
+              </p>
+              <h2>{{ order.restaurantName }}</h2>
+            </div>
+
+            <span class="status" [ngClass]="order.status">
+              {{ order.status }}
+            </span>
+          </header>
+
+          <p class="order-date">{{ order.createdAt | date: 'medium' }}</p>
+
+          <ul class="order-items">
+            @for (item of order.items; track item.id) {
+              <li>
+                <span>{{ item.menuItemName }} × {{ item.quantity }}</span>
+                <strong>
+                  {{ (item.price * item.quantity) | number: '1.2-2' }} kr.
+                </strong>
+              </li>
+            }
+          </ul>
+
+          <div class="order-footer">
+            <span>{{ order.deliveryType }}</span>
+            <strong>{{ order.totalPrice | number: '1.2-2' }} kr.</strong>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

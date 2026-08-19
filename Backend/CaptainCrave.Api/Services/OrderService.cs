@@ -11,12 +11,14 @@ public class OrderService(
     IOrderRepository orderRepository,
     IUserRepository userRepository,
     IRestaurantRepository restaurantRepository,
-    IMenuItemRepository menuItemRepository) : IOrderService
+    IMenuItemRepository menuItemRepository,
+    INotificationService notificationService) : IOrderService
 {
     private readonly IOrderRepository _orderRepository = orderRepository;
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
     private readonly IMenuItemRepository _menuItemRepository = menuItemRepository;
+    private readonly INotificationService _notificationService = notificationService;
 
     // Retrieves an order by ID and maps it to a DTO, or returns null if not found.
     public async Task<OrderDto?> GetByIdAsync(int id)
@@ -64,6 +66,9 @@ public class OrderService(
         created.User = user;
         created.Restaurant = restaurant;
 
+        // Giv restauranten live besked om den nye ordre (SignalR).
+        await _notificationService.NotifyNewOrderAsync(restaurant.Id, created.Id);
+
         return created.ToDto();
     }
 
@@ -105,7 +110,13 @@ public class OrderService(
         if (!IsValidTransition(order.DeliveryType, order.Status, dto.Status))
             throw new InvalidOperationException($"Invalid transition from {order.Status} to {dto.Status} for {order.DeliveryType} orders.");
 
-        return await _orderRepository.UpdateStatusAsync(id, dto.Status);
+        var success = await _orderRepository.UpdateStatusAsync(id, dto.Status);
+
+        // Giv kunden live besked om den nye status (SignalR), men kun hvis opdateringen lykkedes.
+        if (success)
+            await _notificationService.NotifyOrderStatusChangedAsync(order.UserId, order.Id, dto.Status);
+
+        return success;
     }
 
     // Retrieves the active order for a user.

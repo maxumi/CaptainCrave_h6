@@ -13,7 +13,7 @@ export interface RestaurantDto {
 
 export interface MenuItem {
   id: number;
-  restaurantId: number;
+  menuId: number;
   categoryId: number | null;
   name: string;
   description: string;
@@ -23,7 +23,7 @@ export interface MenuItem {
 }
 
 export interface UpdateMenuItemRequest {
-  restaurantId: number;
+  menuId: number;
   categoryId: number | null;
   name: string;
   description: string;

@@ -1,0 +1,53 @@
+<div class="nearby-map-page" *transloco="let t">
+  <div class="nearby-map-card">
+    <div class="page-header">
+      <h1>{{ t('restaurants.map.title') }}</h1>
+      <p>{{ t('restaurants.map.subtitle') }}</p>
+    </div>
+
+    <section class="location-card">
+      <h2>{{ t('restaurants.location.title') }}</h2>
+      <p class="location-description">{{ t('restaurants.location.description') }}</p>
+
+      <div class="location-controls">
+        <input
+        type="text"
+        [ngModel]="addressInput()"
+        (ngModelChange)="addressInput.set($event)"
+        [placeholder]="t('restaurants.location.placeholder')"
+        />
+
+        <button
+          class="btn"
+          type="button"
+          [disabled]="isResolvingAddress()"
+          (click)="setLocationFromAddress()"
+        >
+          {{
+            isResolvingAddress()
+              ? t('restaurants.location.updating')
+              : t('restaurants.location.updateButton')
+          }}
+        </button>
+
+        <button class="btn" type="button" (click)="useDefaultLocation()">
+          {{ t('restaurants.location.resetButton') }}
+        </button>
+      </div>
+
+      <p class="location-current">
+        {{ t('restaurants.location.currentPrefix') }} {{ selectedLocation().label }}
+      </p>
+    </section>
+
+    <div id="nearby-restaurants-map"></div>
+
+    @if (isLoading()) {
+      <p class="map-state">{{ t('restaurants.loading') }}</p>
+    }
+
+    @if (loadError()) {
+      <p class="map-state map-state-error">{{ loadError() }}</p>
+    }
+  </div>
+</div>

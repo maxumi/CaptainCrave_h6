@@ -7,6 +7,7 @@ import { CreateOrderRequest, DeliveryType, OrderApiService } from '../../shared/
 import { finalize } from 'rxjs';
 import { Role } from '../../shared/models/user';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { LocationService } from '../../shared/LocationService';
 
 @Component({
   selector: 'app-cart',
@@ -18,6 +19,7 @@ export class Cart implements OnInit {
   readonly cartService = inject(CartService);
   private readonly authService = inject(AuthService);
   private readonly orderApiService = inject(OrderApiService);
+  private readonly locationService = inject(LocationService);
   private readonly router = inject(Router);
   readonly DeliveryType = DeliveryType;
   readonly selectedDeliveryType = signal<DeliveryType>(DeliveryType.Delivery);
@@ -28,6 +30,7 @@ export class Cart implements OnInit {
   readonly isSubmittingOrder = signal(false);
   readonly checkoutError = signal<string | null>(null);
   readonly canCheckout = computed(() => this.authService.user()?.role === Role.Customer);
+  readonly selectedLocation = this.locationService.selectedLocation;
 
   ngOnInit(): void {
     this.orderApiService.getCustomerActiveOrder().subscribe(order => {
@@ -78,10 +81,11 @@ export class Cart implements OnInit {
     }
 
     const selectedDeliveryType = this.selectedDeliveryType();
+    const selectedLocation = this.selectedLocation();
 
     if (
       selectedDeliveryType === DeliveryType.Delivery &&
-      (!user.address || user.latitude == null || user.longitude == null)
+      !this.locationService.hasUserSelectedLocation()
     ) {
       this.checkoutError.set(this.t('cart.error.addressRequired'));
       return;
@@ -100,7 +104,7 @@ export class Cart implements OnInit {
     };
 
     if (selectedDeliveryType === DeliveryType.Delivery) {
-      payload.deliveryAddress = user.address;
+      payload.deliveryAddress = selectedLocation.label;
     }
 
     this.isSubmittingOrder.set(true);

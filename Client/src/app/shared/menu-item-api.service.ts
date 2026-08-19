@@ -5,17 +5,18 @@ import { environment } from '../../environments/environment';
 
 export interface MenuItemDto {
   id: number;
-  restaurantId: number;
+  menuId: number;
   categoryId: number | null;
   name: string;
   description: string;
   price: number;
   imageUrl: string;
   isAvailable: boolean;
+  restaurantId?: number;
 }
 
 export interface UpdateMenuItemRequest {
-  restaurantId: number;
+  menuId: number;
   categoryId: number | null;
   name: string;
   description: string;
@@ -35,8 +36,12 @@ export class MenuItemApiService {
     return this.http.get<MenuItemDto[]>(`${this.menuItemsUrl}/restaurant/${restaurantId}`);
   }
 
+  getByMenuId(menuId: number): Observable<MenuItemDto[]> {
+    return this.http.get<MenuItemDto[]>(`${this.menuItemsUrl}/menu/${menuId}`);
+  }
+
   getMenuItemsByRestaurant(restaurantId: number): Observable<MenuItemDto[]> {
-    return this.http.get<MenuItemDto[]>(`${this.menuItemsUrl}/restaurant/${restaurantId}`);
+    return this.getByRestaurantId(restaurantId);
   }
 
   create(payload: UpdateMenuItemRequest): Observable<MenuItemDto> {

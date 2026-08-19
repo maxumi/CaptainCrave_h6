@@ -1,9 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { EMPTY, Observable, of, throwError } from 'rxjs';
+import { EMPTY, Observable, forkJoin, of, throwError } from 'rxjs';
 import { catchError, finalize, map, switchMap } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import { MenuItem, MenuEditMode, UpdateMenuItemRequest } from './edit-menu.models';
-import { MenuItemApiService } from '../../../shared/menu-item-api.service';
+import { MenuItemApiService, MenuItemDto } from '../../../shared/menu-item-api.service';
+import { MenuApiService, MenuDto } from '../../../shared/menu-api.service';
 import { RestaurantApiService } from '../../../shared/restaurant-api.service';
 
 /**
@@ -15,7 +16,8 @@ import { RestaurantApiService } from '../../../shared/restaurant-api.service';
  */
 @Injectable()
 export class MenuEditStore {
-  private readonly menuApiService = inject(MenuItemApiService);
+  private readonly menuItemApiService = inject(MenuItemApiService);
+  private readonly menuApiService = inject(MenuApiService);
   private readonly restaurantApiService = inject(RestaurantApiService);
   private readonly translocoService = inject(TranslocoService);
 
@@ -27,13 +29,15 @@ export class MenuEditStore {
   readonly errorMessage = signal('');
 
   readonly menuItems = signal<MenuItem[]>([]);
+  readonly allMenuItems = signal<MenuItem[]>([]);
+  readonly menus = signal<MenuDto[]>([]);
 
   /** Selected item in use */
   readonly selectedItem = signal<MenuItem | null>(null);
 
-  /** The restaurantId is needed to create new menu items 
-   * and to know which restaurant's menu items to load. */
+  /** The restaurantId is needed to know which restaurant owns the active menu. */
   readonly restaurantId = signal<number | null>(null);
+  readonly menuId = signal<number | null>(null);
 
   load(): void {
     this.isLoading.set(true);
@@ -45,9 +49,24 @@ export class MenuEditStore {
       switchMap(restaurant => {
         this.restaurantId.set(restaurant.id);
 
-        return this.menuApiService.getMenuItemsByRestaurant(restaurant.id);
+        return forkJoin({
+          menus: this.menuApiService.getByRestaurantId(restaurant.id),
+          items: this.menuItemApiService.getMenuItemsByRestaurant(restaurant.id),
+        });
       }),
+      map(({ menus, items }) => {
+        this.menus.set(menus);
+        this.allMenuItems.set(items.map(item => this.toLocalItem(item)));
 
+        if (menus.length > 0) {
+          this.menuId.set(menus[0].id);
+        } else {
+          this.menuId.set(null);
+        }
+
+        this.syncVisibleMenuItems();
+        return this.menuItems();
+      }),
       catchError((error: { status?: number }) => {
         if (error.status === 404) {
           this.hasNoRestaurant.set(true);
@@ -58,13 +77,48 @@ export class MenuEditStore {
         // empty observable.
         return EMPTY;
       }),
-
       finalize(() => {
         this.isLoading.set(false);
       }),
-    ).subscribe(items => {
-      this.menuItems.set(items);
-    });
+    ).subscribe();
+  }
+
+  selectMenu(menuId: number): void {
+    this.menuId.set(menuId);
+    this.syncVisibleMenuItems();
+    this.errorMessage.set('');
+  }
+
+  createMenu(name: string): Observable<MenuDto> {
+    const restaurantId = this.restaurantId();
+    const cleanName = name.trim();
+
+    if (restaurantId == null) {
+      const message = this.t('error.missingRestaurant');
+      this.errorMessage.set(message);
+      return throwError(() => new Error(message));
+    }
+
+    if (!cleanName) {
+      const message = this.t('error.invalidMenuName');
+      this.errorMessage.set(message);
+      return throwError(() => new Error(message));
+    }
+
+    this.errorMessage.set('');
+
+    return this.menuApiService.create({ restaurantId, name: cleanName }).pipe(
+      map(menu => {
+        this.menus.set([...this.menus(), menu]);
+        this.menuId.set(menu.id);
+        this.syncVisibleMenuItems();
+        return menu;
+      }),
+      catchError(error => {
+        this.errorMessage.set(this.t('error.createMenuFailed'));
+        return throwError(() => error);
+      }),
+    );
   }
 
 selectItem(item: MenuItem): MenuItem | null {
@@ -89,9 +143,15 @@ selectItem(item: MenuItem): MenuItem | null {
   // A menu item can only be created when a restaurant has been loaded.
   startCreateItem(): MenuItem | null {
     const restaurantId = this.restaurantId();
+    const menuId = this.menuId();
 
     if (restaurantId == null) {
       this.errorMessage.set(this.t('error.missingRestaurant'));
+      return null;
+    }
+
+    if (menuId == null || menuId <= 0) {
+      this.errorMessage.set(this.t('error.missingMenu'));
       return null;
     }
 
@@ -100,13 +160,14 @@ selectItem(item: MenuItem): MenuItem | null {
     this.mode.set('create');
 
     return this.createDraftItem({
-      restaurantId,
+      menuId,
       categoryId: null,
     });
   }
 
   saveItem(item: MenuItem): Observable<MenuItem> {
     const restaurantId = this.restaurantId();
+    const menuId = item.menuId || this.menuId();
 
     if (restaurantId == null) {
       const message = this.t('error.missingRestaurant');
@@ -114,16 +175,22 @@ selectItem(item: MenuItem): MenuItem | null {
       return throwError(() => new Error(message));
     }
 
+    if (menuId == null || menuId <= 0) {
+      const message = this.t('error.missingMenu');
+      this.errorMessage.set(message);
+      return throwError(() => new Error(message));
+    }
+
     this.errorMessage.set('');
     this.isSubmitting.set(true);
 
-     // New items are created. Existing items are updated.
+    // New items are created. Existing items are updated.
     const isNewItem = this.mode() === 'create' || item.id === 0;
-    const payload = this.toPayload(item, restaurantId);
+    const payload = this.toPayload(item, menuId);
 
     const request = isNewItem
-      ? this.menuApiService.create(payload)
-      : this.menuApiService.update(item.id, payload);
+      ? this.menuItemApiService.create(payload)
+      : this.menuItemApiService.update(item.id, payload);
 
 
     return request.pipe(
@@ -149,7 +216,7 @@ selectItem(item: MenuItem): MenuItem | null {
 
     this.errorMessage.set('');
 
-    return this.menuApiService.delete(selected.id).pipe(
+    return this.menuItemApiService.delete(selected.id).pipe(
       map(() => {
         this.removeMenuItem(selected.id);
         this.selectedItem.set(null);
@@ -158,6 +225,34 @@ selectItem(item: MenuItem): MenuItem | null {
         return true;
       }),
 
+      catchError(() => {
+        this.errorMessage.set(this.t('error.deleteFailed'));
+        return of(false);
+      }),
+    );
+  }
+
+  deleteMenu(menuId: number): Observable<boolean> {
+    if (menuId == null || menuId <= 0) {
+      return of(false);
+    }
+
+    this.errorMessage.set('');
+
+    return this.menuApiService.delete(menuId).pipe(
+      map(() => {
+        const nextMenus = this.menus().filter(menu => menu.id !== menuId);
+        this.menus.set(nextMenus);
+
+        if (this.menuId() === menuId) {
+          this.menuId.set(nextMenus[0]?.id ?? null);
+        }
+
+        this.selectedItem.set(null);
+        this.mode.set('edit');
+        this.syncVisibleMenuItems();
+        return true;
+      }),
       catchError(() => {
         this.errorMessage.set(this.t('error.deleteFailed'));
         return of(false);
@@ -178,7 +273,7 @@ selectItem(item: MenuItem): MenuItem | null {
   createDraftItem(overrides: Partial<MenuItem> = {}): MenuItem {
     return {
       id: 0,
-      restaurantId: this.restaurantId() ?? 0,
+      menuId: this.menuId() ?? 0,
       categoryId: null,
       name: '',
       description: '',
@@ -212,35 +307,64 @@ selectItem(item: MenuItem): MenuItem | null {
   }
 
   private addMenuItem(item: MenuItem): void {
-    this.menuItems.set([item, ...this.menuItems()]);
+    this.allMenuItems.set([item, ...this.allMenuItems().filter(existingItem => existingItem.id !== item.id)]);
+    this.syncVisibleMenuItems();
   }
 
   private updateMenuItem(item: MenuItem): void {
-    this.menuItems.set(
-      this.menuItems().map(existingItem =>
+    this.allMenuItems.set(
+      this.allMenuItems().map(existingItem =>
         existingItem.id === item.id ? item : existingItem
       )
     );
+    this.syncVisibleMenuItems();
   }
 
   private removeMenuItem(itemId: number): void {
+    this.allMenuItems.set(
+      this.allMenuItems().filter(item => item.id !== itemId)
+    );
+    this.syncVisibleMenuItems();
+  }
+
+  private syncVisibleMenuItems(): void {
+    const activeMenuId = this.menuId();
+
     this.menuItems.set(
-      this.menuItems().filter(item => item.id !== itemId)
+      activeMenuId == null
+        ? []
+        : this.allMenuItems().filter(item => item.menuId === activeMenuId)
     );
   }
 
   private clearRestaurantState(): void {
+    this.allMenuItems.set([]);
     this.menuItems.set([]);
     this.selectedItem.set(null);
     this.restaurantId.set(null);
+    this.menuId.set(null);
+    this.menus.set([]);
+  }
+
+  private toLocalItem(dto: MenuItemDto): MenuItem {
+    return {
+      id: dto.id,
+      menuId: dto.menuId,
+      categoryId: dto.categoryId,
+      name: dto.name,
+      description: dto.description,
+      imageUrl: dto.imageUrl,
+      price: dto.price,
+      isAvailable: dto.isAvailable,
+    };
   }
 
   private toPayload(
     item: MenuItem,
-    restaurantId: number
+    menuId: number
   ): UpdateMenuItemRequest {
     return {
-      restaurantId,
+      menuId,
       categoryId: item.categoryId,
       name: item.name,
       description: item.description,

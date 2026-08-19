@@ -53,6 +53,12 @@
           />
           {{ t('cart.pickup') }}
         </label>
+
+        @if (selectedDeliveryType() === DeliveryType.Delivery) {
+          <p class="checkout-state">
+            {{ t('cart.deliveryAddress') }}: {{ selectedLocation().label }}
+          </p>
+        }
       </div>
 
       <div class="cart-summary">

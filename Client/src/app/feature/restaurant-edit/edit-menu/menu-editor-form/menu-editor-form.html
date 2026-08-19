@@ -1,1 +1,55 @@
-<p>menu-editor-form works!</p>
+<form class="card cc-section-lg" [formRoot]="menuForm" *transloco="let t">
+	<header class="cc-flex-between cc-stack-mobile">
+		<div>
+			<h2 class="cc-title">
+				{{ mode === 'create' ? t('menuEdit.form.addTitle') : t('menuEdit.form.editTitle', { name: itemName }) }}
+			</h2>
+
+			<p class="cc-subtitle">
+				{{ mode === 'create' ? t('menuEdit.form.addSubtitle') : t('menuEdit.form.editSubtitle') }}
+			</p>
+		</div>
+
+		<div class="cc-actions cc-stack-mobile">
+			<button
+				type="submit"
+				class="btn cc-btn-min cc-full-mobile"
+				[disabled]="menuForm().invalid() || isSubmitting"
+			>
+				{{ isSubmitting ? t('menuEdit.saving') : (mode === 'create' ? t('menuEdit.createItem') : t('menuEdit.saveChanges')) }}
+			</button>
+
+			@if (mode !== 'create') {
+				<button
+					type="button"
+					class="btn cc-btn-danger cc-btn-min cc-full-mobile"
+					(click)="onDeleteItem()"
+				>
+					{{ t('menuEdit.deleteItem') }}
+				</button>
+			}
+		</div>
+	</header>
+
+	<div class="cc-form-grid cc-grid-mobile-1">
+		<label class="cc-form-label">
+			{{ t('menuEdit.fields.name') }}
+			<input class="form-control" type="text" [formField]="menuForm.name" />
+		</label>
+
+		<label class="cc-form-label">
+			{{ t('menuEdit.fields.price') }}
+			<input class="form-control" type="number" [formField]="menuForm.price" />
+		</label>
+
+		<label class="cc-form-label">
+			{{ t('menuEdit.fields.description') }}
+			<textarea class="form-control" [formField]="menuForm.description"></textarea>
+		</label>
+
+		<label class="cc-checkbox-field">
+			<input type="checkbox" [formField]="menuForm.isAvailable" />
+			{{ t('menuEdit.fields.inStock') }}
+		</label>
+	</div>
+</form>

@@ -6,11 +6,15 @@
   <h2>{{ t('restaurantInfo.menu') }}</h2>
 
   @if (isLoading()) {
-    <p class="menu-state">{{ t('restaurantInfo.loading') }}</p>
+    <p class="menu-state">
+      {{ t('restaurantInfo.loading') }}
+    </p>
   }
 
   @if (loadError()) {
-    <p class="menu-state menu-state-error">{{ loadError() }}</p>
+    <p class="menu-state menu-state-error">
+      {{ loadError() }}
+    </p>
   }
 
   @if (!isLoading() && !loadError()) {
@@ -21,35 +25,62 @@
     }
 
     @if (addMessage()) {
-      <p class="menu-state menu-state-success">{{ addMessage() }}</p>
+      <p class="menu-state menu-state-success">
+        {{ addMessage() }}
+      </p>
     }
 
-    <div class="menu-grid">
-      @for (item of menuItems(); track item.id) {
-        <div class="menu-card card">
-          <div>
-            <h3>{{ item.name }}</h3>
-            <p class="price">kr. {{ item.price }}</p>
-            <p class="description">{{ item.description }}</p>
-
-            <button
-              class="btn add-btn"
-              type="button"
-              [disabled]="!canAddToCart()"
-              [attr.aria-label]="t('restaurantInfo.addItem')"
-              (click)="addToCart(item)"
-            >
-              {{ t('restaurantInfo.addItem') }}
-            </button>
-          </div>
-
-          <img [src]="item.imageUrl || 'burger-king.png'" [alt]="item.name" />
-        </div>
+    <div class="menu-tabs">
+      @for (menu of menus(); track menu.id) {
+        <button
+          type="button"
+          class="tab-btn"
+          [class.active]="selectedMenuId() === menu.id"
+          (click)="selectMenu(menu.id)"
+        >
+          {{ menu.name }}
+        </button>
       }
     </div>
+
+    @if (selectedMenuId() !== null) {
+      <!-- Uncategorized items -->
+      @if (uncategorizedItems().length) {
+        <div class="menu-grid">
+          @for (item of uncategorizedItems(); track item.id) {
+            <app-menu-item-card
+              [item]="item"
+              [canAddToCart]="canAddToCart()"
+              (add)="addToCart(item)"
+            />
+          }
+        </div>
+      }
+
+      <!-- Categorized items -->
+      @for (category of categories(); track category.id) {
+        @if (itemsByCategory().get(category.id); as categoryItems) {
+          <section class="category-section">
+            <h3>{{ category.name }}</h3>
+
+            <div class="menu-grid">
+              @for (item of categoryItems; track item.id) {
+                <app-menu-item-card
+                  [item]="item"
+                  [canAddToCart]="canAddToCart()"
+                  (add)="addToCart(item)"
+                />
+              }
+            </div>
+          </section>
+        }
+      }
+    }
   }
 
-  @if (!isLoading() && !loadError() && !menuItems().length) {
-    <p class="menu-state">{{ t('restaurantInfo.empty') }}</p>
+  @if (!isLoading() && !loadError() && !menus().length) {
+    <p class="menu-state">
+      {{ t('restaurantInfo.empty') }}
+    </p>
   }
 </div>

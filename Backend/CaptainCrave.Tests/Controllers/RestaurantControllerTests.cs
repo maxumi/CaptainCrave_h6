@@ -18,7 +18,8 @@ public class RestaurantControllerTests
     {
         var mockService = new Mock<IRestaurantService>();
         var mockMenuItemService = new Mock<IMenuItemService>();
-        var controller = new RestaurantsController(mockService.Object, mockMenuItemService.Object);
+        var mockMenuService = new Mock<IMenuService>();
+        var controller = new RestaurantsController(mockService.Object, mockMenuItemService.Object, mockMenuService.Object);
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "Test"));
         controller.ControllerContext = new ControllerContext
@@ -162,8 +163,8 @@ public class RestaurantControllerTests
         var (controller, _, mockMenuItemService) = CreateController();
         var items = new List<MenuItemDto>
         {
-            new() { Id = 1, RestaurantId = 1, Name = "Burger", Price = 9.99m },
-            new() { Id = 2, RestaurantId = 1, Name = "Fries", Price = 3.49m }
+            new() { Id = 1, MenuId = 1, Name = "Burger", Price = 9.99m },
+            new() { Id = 2, MenuId = 1, Name = "Fries", Price = 3.49m }
         };
         mockMenuItemService.Setup(s => s.GetByRestaurantIdAsync(1)).ReturnsAsync(items);
 

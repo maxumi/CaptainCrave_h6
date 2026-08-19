@@ -2,6 +2,14 @@
   <div class="restaurants-header">
     <h1>{{ t('restaurants.title') }}</h1>
     <p>{{ t('restaurants.subtitle') }}</p>
+    <div class="header-actions">
+      <a class="btn" [routerLink]="['/restaurants-search']">
+        {{ t('restaurants.search.openSearchPage') }}
+      </a>
+      <a class="btn" [routerLink]="['/restaurants-map']">
+        {{ t('restaurants.map.openMapPage') }}
+      </a>
+    </div>
   </div>
 
   @if (isLoading()) {
@@ -24,7 +32,7 @@
         >
           <div class="restaurant-card card">
             <img
-              src="captain_crave.png"
+              [src]="restaurant.imageUrl || 'captain_crave.png'"
               [alt]="restaurant.name"
             />
 
