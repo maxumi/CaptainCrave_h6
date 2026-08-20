@@ -8,6 +8,7 @@ ASP.NET Core 10 Web API for the CaptainCrave food ordering platform.
 
 - [Architecture](#architecture)
 - [Code Patterns](#code-patterns)
+- [Soft delete and audit fields](#soft-delete-and-audit-fields)
 - [Real-time notifications (SignalR)](#real-time-notifications-signalr)
 - [API Endpoints](#api-endpoints)
 - [Technology](#technology)
@@ -95,7 +96,7 @@ public interface IRestaurantRepository
 ```
 
 ### Input validation
-Simple rules use data annotations. Cross-field rules (e.g. delivery address required when type is `Delivery`) use `IValidatableObject`:
+Simple rules use data annotations. Cross-field rules (for example, a delivery address is required when the delivery type is `Delivery`) use `IValidatableObject`:
 
 ```csharp
 public IEnumerable<ValidationResult> Validate(ValidationContext ctx)
@@ -114,7 +115,7 @@ Endpoints are protected with `[Authorize(Roles = "...")]`. The role is embedded 
 public async Task<IActionResult> Create(CreateRestaurantDto dto) { ... }
 ```
 
-Ownership is enforced in the service layer on top of the role check. A `Restaurant` user can only manage menus, menu items, and orders that belong to their own restaurant. `Admin` bypasses this check.
+Ownership is enforced in the service layer on top of the role check. A `Restaurant` user can only manage menus, categories, menu items, and orders that belong to their own restaurant. `Admin` bypasses this check.
 
 ### Error handling
 Services throw typed exceptions. Controllers catch them and map to HTTP status codes:
@@ -125,10 +126,34 @@ catch (UnauthorizedAccessException ex)   { return StatusCode(403, new { message 
 catch (InvalidOperationException ex)     { return Conflict(new { message = ex.Message }); } // or BadRequest, depending on the case
 ```
 
-This keeps HTTP status codes out of the service layer, so a service does not need to know it is being called from a web request.
+Permanent (hard) delete endpoints also catch `DbUpdateException`, so trying to permanently delete something that other data still depends on (for example a menu item that appears on a past order) returns a clean 409 Conflict instead of a raw database error.
 
 ### Fluent API configuration
-Each entity has its own `IEntityTypeConfiguration<T>` in `Data/Configurations/` (`RestaurantConfiguration`, `MenuConfiguration`, `CategoryConfiguration`, `MenuItemConfiguration`, `OrderConfiguration`, `OrderItemConfiguration`, `UserConfiguration`), keeping `AppDbContext.OnModelCreating` clean. Tables/columns use snake_case naming.
+Each entity has its own `IEntityTypeConfiguration<T>` in `Data/Configurations/` (`RestaurantConfiguration`, `MenuConfiguration`, `CategoryConfiguration`, `MenuItemConfiguration`, `OrderConfiguration`, `OrderItemConfiguration`, `UserConfiguration`), keeping `AppDbContext.OnModelCreating` clean. Tables and columns use snake_case naming.
+
+---
+
+## Soft delete and audit fields
+
+`Restaurant`, `Menu`, `Category`, and `MenuItem` all support soft delete: deleting one of these just hides it, it does not remove the row. This means a restaurant owner (or an admin) can undo a delete instead of losing data by mistake.
+
+- **`ISoftDeletable`** (`Models/ISoftDeletable.cs`): adds `IsDeleted` and `DeletedAt` to an entity.
+- **`IAuditable`** (`Models/IAuditable.cs`): adds `CreatedAt` and `UpdatedAt`. This is implemented by every entity (`User`, `Restaurant`, `Menu`, `Category`, `MenuItem`, `OrderItem`, and `Order`, which already tracked both fields on its own).
+- **`SoftDeleteHelper`** (`Repositories/SoftDeleteHelper.cs`): a small shared helper (`MarkDeleted`/`MarkRestored`) so every repository sets the same fields the same way, instead of repeating the same three lines per entity.
+- **`EntityConfigurationExtensions`** (`Data/Configurations/EntityConfigurationExtensions.cs`): shared Fluent API setup (`ConfigureAudit()`, `ConfigureSoftDelete()`) so every entity configuration sets up its columns the same way.
+
+A soft-deleted row is hidden automatically from every normal query with an EF Core global query filter, and the filter also cascades down the hierarchy: soft-deleting a `Restaurant` also hides its `Menu`s, `Category`s, and `MenuItem`s, without needing to touch every row by hand. Deleting a `Menu` also marks its own `MenuItem`s as deleted, so a "restaurant's deleted items" list stays meaningful even if the whole menu was removed.
+
+Each of the four entities has the same four operations, following the same route pattern:
+
+| Action | Route | What it does |
+|---|---|---|
+| Soft delete | `DELETE /{id}` | Hides the row. Can be undone. |
+| Restore | `POST /{id}/restore` | Un-hides a previously soft-deleted row. |
+| Hard delete | `DELETE /{id}/permanent` | Permanently removes the row. Cannot be undone. |
+| List trash | `GET .../deleted` | Lists the soft-deleted rows, so they can be reviewed before restoring. |
+
+Order history is not affected by any of this: `OrderRepository` deliberately ignores the menu item and restaurant filters when loading orders, so a past order still shows the correct item name and restaurant even if that item or restaurant is later soft-deleted.
 
 ---
 
@@ -170,6 +195,10 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 | GET | `/api/restaurants/{id}/menus` | Public | All menus for a restaurant |
 | GET | `/api/restaurants/{id}/menu-items` | Public | All menu items for a restaurant, across its menus |
 | POST | `/api/restaurants` | Restaurant, Admin | Create a restaurant (bound to the caller's account) |
+| DELETE | `/api/restaurants/{id}` | Restaurant, Admin | Soft delete the caller's restaurant |
+| POST | `/api/restaurants/{id}/restore` | Restaurant, Admin | Restore a soft-deleted restaurant |
+| DELETE | `/api/restaurants/{id}/permanent` | Restaurant, Admin | Permanently delete a restaurant |
+| GET | `/api/restaurants/deleted` | Admin | List every soft-deleted restaurant |
 
 ### Menus
 | Method | Route | Auth | Description |
@@ -177,7 +206,10 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 | GET | `/api/menus/restaurant/{restaurantId}` | Public | All menus for a restaurant |
 | GET | `/api/menus/{id}` | Public | Get a menu by ID |
 | POST | `/api/menus` | Restaurant, Admin | Create a menu (restaurant users may only target their own restaurant) |
-| DELETE | `/api/menus/{id}` | Restaurant, Admin | Delete a menu (cascades to its categories/menu items) |
+| DELETE | `/api/menus/{id}` | Restaurant, Admin | Soft delete a menu (and its menu items) |
+| POST | `/api/menus/{id}/restore` | Restaurant, Admin | Restore a soft-deleted menu |
+| DELETE | `/api/menus/{id}/permanent` | Restaurant, Admin | Permanently delete a menu |
+| GET | `/api/menus/restaurant/{restaurantId}/deleted` | Restaurant, Admin | List a restaurant's soft-deleted menus |
 
 ### Categories
 | Method | Route | Auth | Description |
@@ -185,6 +217,10 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 | GET | `/api/categories/restaurant/{restaurantId}` | Public | All categories for a restaurant, across all of its menus |
 | GET | `/api/categories/menu/{menuId}` | Public | All categories belonging to one menu |
 | POST | `/api/categories` | Restaurant, Admin | Create a category |
+| DELETE | `/api/categories/{id}` | Restaurant, Admin | Soft delete a category |
+| POST | `/api/categories/{id}/restore` | Restaurant, Admin | Restore a soft-deleted category |
+| DELETE | `/api/categories/{id}/permanent` | Restaurant, Admin | Permanently delete a category |
+| GET | `/api/categories/restaurant/{restaurantId}/deleted` | Restaurant, Admin | List a restaurant's soft-deleted categories |
 
 ### Menu Items
 | Method | Route | Auth | Description |
@@ -193,7 +229,10 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 | GET | `/api/menuitems/menu/{menuId}` | Public | All menu items for one menu |
 | POST | `/api/menuitems` | Restaurant, Admin | Create a menu item (`CategoryId` optional) |
 | PUT | `/api/menuitems/{id}` | Restaurant, Admin | Update a menu item |
-| DELETE | `/api/menuitems/{id}` | Restaurant, Admin | Delete a menu item |
+| DELETE | `/api/menuitems/{id}` | Restaurant, Admin | Soft delete a menu item |
+| POST | `/api/menuitems/{id}/restore` | Restaurant, Admin | Restore a soft-deleted menu item |
+| DELETE | `/api/menuitems/{id}/permanent` | Restaurant, Admin | Permanently delete a menu item |
+| GET | `/api/menuitems/restaurant/{restaurantId}/deleted` | Restaurant, Admin | List a restaurant's soft-deleted menu items |
 
 ### Orders
 | Method | Route | Auth | Description |
@@ -246,8 +285,8 @@ Sensitive values are not stored in source code or `appsettings.json`. They are m
 |---|---|
 | `ConnectionStrings:DefaultConnection` | SQL Server connection string |
 | `Jwt:Secret` | Signing key for JWT tokens (minimum 32 characters) |
-| `Jwt:Issuer` | JWT issuer (e.g. `CaptainCrave.Api`) |
-| `Jwt:Audience` | JWT audience (e.g. `CaptainCrave.Client`) |
+| `Jwt:Issuer` | JWT issuer (for example `CaptainCrave.Api`) |
+| `Jwt:Audience` | JWT audience (for example `CaptainCrave.Client`) |
 
 ```bash
 dotnet user-secrets init
@@ -257,7 +296,7 @@ dotnet user-secrets set "Jwt:Issuer" "CaptainCrave.Api"
 dotnet user-secrets set "Jwt:Audience" "CaptainCrave.Client"
 ```
 
-Adjust the connection string's `Server=` value to match your SQL Server instance (e.g. `(localdb)\MSSQLLocalDB` if you have LocalDB installed instead of a full instance).
+Adjust the connection string's `Server=` value to match your own SQL Server instance (for example `(localdb)\MSSQLLocalDB` if you use LocalDB instead of a full instance).
 
 `appsettings.json` contains non-sensitive defaults only and is safe to commit.
 
@@ -319,4 +358,5 @@ cd ../CaptainCrave.Tests
 dotnet test
 ```
 
+See [Backend/CaptainCrave.Tests/README.md](../CaptainCrave.Tests/README.md) for more detail on the test stack and structure.
 

@@ -9,15 +9,16 @@ using System.Security.Claims;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for CategoriesController.
-// ICategoryService is mocked so no database access occurs.
-public class CategoryControllerTests
+// Unit tests for MenusController.
+// IMenuService and IRestaurantService are mocked so no database access occurs.
+public class MenuControllerTests
 {
-    // Creates a CategoriesController with a mocked ICategoryService and an authenticated HttpContext (user id "1").
-    private static (CategoriesController controller, Mock<ICategoryService> mockService) CreateController()
+    // Creates a MenusController with mocked services and an authenticated HttpContext (user id "1").
+    private static (MenusController controller, Mock<IMenuService> mockService) CreateController()
     {
-        var mockService = new Mock<ICategoryService>();
-        var controller = new CategoriesController(mockService.Object);
+        var mockService = new Mock<IMenuService>();
+        var mockRestaurantService = new Mock<IRestaurantService>();
+        var controller = new MenusController(mockService.Object, mockRestaurantService.Object);
         var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
         var user = new ClaimsPrincipal(new ClaimsIdentity(claims, "Test"));
         controller.ControllerContext = new ControllerContext
@@ -29,7 +30,6 @@ public class CategoryControllerTests
 
     // GetByRestaurant
 
-    // Returns 200 OK for a valid restaurant ID.
     [Fact]
     public async Task GetByRestaurant_ReturnsOk()
     {
@@ -41,74 +41,53 @@ public class CategoryControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Response body contains the full category list.
+    // GetById
+
     [Fact]
-    public async Task GetByRestaurant_ReturnsCategories()
+    public async Task GetById_ExistingId_ReturnsOk()
     {
         var (controller, mockService) = CreateController();
-        var categories = new List<CategoryDto>
-        {
-            new() { Id = 1, MenuId = 1, Name = "Burgers" },
-            new() { Id = 2, MenuId = 1, Name = "Drinks" }
-        };
-        mockService.Setup(s => s.GetByRestaurantIdAsync(1)).ReturnsAsync(categories);
+        var menu = new MenuDto { Id = 1, RestaurantId = 1, Name = "Lunch Menu" };
+        mockService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(menu);
 
-        var result = await controller.GetByRestaurant(1) as OkObjectResult;
+        var result = await controller.GetById(1);
 
-        Assert.Equal(categories, result?.Value);
+        Assert.IsType<OkObjectResult>(result);
     }
 
-    // Returns 200 OK with an empty collection when the restaurant has no categories.
     [Fact]
-    public async Task GetByRestaurant_EmptyList_ReturnsOkWithEmptyCollection()
+    public async Task GetById_NonExistingId_ReturnsNotFound()
     {
         var (controller, mockService) = CreateController();
-        mockService.Setup(s => s.GetByRestaurantIdAsync(99)).ReturnsAsync([]);
+        mockService.Setup(s => s.GetByIdAsync(99)).ReturnsAsync((MenuDto?)null);
 
-        var result = await controller.GetByRestaurant(99) as OkObjectResult;
+        var result = await controller.GetById(99);
 
-        Assert.NotNull(result);
-        Assert.Empty((IEnumerable<CategoryDto>)result.Value!);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     // Create
 
-    // Valid DTO returns 201 Created.
     [Fact]
-    public async Task Create_ValidDto_ReturnsCreated()
+    public async Task Create_ValidDto_ReturnsCreatedAtAction()
     {
         var (controller, mockService) = CreateController();
-        var dto = new CreateCategoryDto { MenuId = 1, Name = "Burgers" };
-        var created = new CategoryDto { Id = 3, MenuId = 1, Name = "Burgers" };
+        var dto = new CreateMenuDto { RestaurantId = 1, Name = "Lunch Menu" };
+        var created = new MenuDto { Id = 5, RestaurantId = 1, Name = "Lunch Menu" };
         mockService.Setup(s => s.CreateAsync(dto)).ReturnsAsync(created);
 
         var result = await controller.Create(dto);
 
-        Assert.IsType<CreatedResult>(result);
+        Assert.IsType<CreatedAtActionResult>(result);
     }
 
-    // Response body contains the newly created category.
-    [Fact]
-    public async Task Create_ValidDto_ReturnsCreatedCategory()
-    {
-        var (controller, mockService) = CreateController();
-        var dto = new CreateCategoryDto { MenuId = 1, Name = "Burgers" };
-        var created = new CategoryDto { Id = 3, MenuId = 1, Name = "Burgers" };
-        mockService.Setup(s => s.CreateAsync(dto)).ReturnsAsync(created);
-
-        var result = await controller.Create(dto) as CreatedResult;
-
-        Assert.Equal(created, result?.Value);
-    }
-
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
     [Fact]
     public async Task Create_InvalidModelState_ReturnsBadRequest()
     {
         var (controller, _) = CreateController();
         controller.ModelState.AddModelError("Name", "Required");
 
-        var result = await controller.Create(new CreateCategoryDto());
+        var result = await controller.Create(new CreateMenuDto());
 
         Assert.IsType<BadRequestObjectResult>(result);
     }
@@ -202,7 +181,7 @@ public class CategoryControllerTests
     public async Task GetDeleted_NotOwner_ReturnsForbidden()
     {
         var (controller, mockService) = CreateController();
-        mockService.Setup(s => s.GetDeletedByRestaurantIdAsync(1, 1, false)).ReturnsAsync((IEnumerable<CategoryDto>?)null);
+        mockService.Setup(s => s.GetDeletedByRestaurantIdAsync(1, 1, false)).ReturnsAsync((IEnumerable<MenuDto>?)null);
 
         var result = await controller.GetDeleted(1) as StatusCodeResult;
 

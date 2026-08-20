@@ -18,6 +18,7 @@ Unit tests for the CaptainCrave backend API controllers.
 Controllers/
   AuthControllerTests.cs
   CategoryControllerTests.cs
+  MenuControllerTests.cs
   MenuItemControllerTests.cs
   OrderControllerTests.cs
   RestaurantControllerTests.cs
@@ -34,6 +35,15 @@ Each file in `Controllers/` mirrors its corresponding controller and follows the
 This keeps controller tests isolated. No database, no HTTP pipeline, no real service logic.
 
 `NotificationIntegrationTests.cs` is different: it starts the real API in memory (using `WebApplicationFactory<Program>` and an EF Core InMemory database) and connects a real SignalR client to check that order events are actually delivered.
+
+### Soft delete tests
+
+`RestaurantControllerTests`, `MenuControllerTests`, `CategoryControllerTests`, and `MenuItemControllerTests` also cover the soft delete endpoints on each of those controllers:
+
+- `Delete` (soft delete) returns 204 No Content when found, 404 when not.
+- `Restore` returns 204 No Content when found, 404 when not.
+- `HardDelete` returns 204 No Content when found, 404 when not, and 409 Conflict when the service throws `DbUpdateException` (for example, permanently deleting a menu item that still appears on a past order).
+- `GetDeleted` returns 200 OK with the trash list, or 403 Forbidden when the caller does not own the restaurant.
 
 ## Why `[Fact]`?
 

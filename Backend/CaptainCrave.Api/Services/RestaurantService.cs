@@ -56,6 +56,55 @@ public class RestaurantService(IRestaurantRepository restaurantRepository) : IRe
         return created.ToDto();
     }
 
+    // Soft deletes a restaurant when the caller owns it or is an admin.
+    public async Task<bool> DeleteAsync(int id, int userId, bool isAdmin)
+    {
+        var restaurant = await _restaurantRepository.GetByIdAsync(id);
+        if (restaurant is null)
+            return false;
+
+        if (!isAdmin && restaurant.UserId != userId)
+            return false;
+
+        await _restaurantRepository.SoftDeleteAsync(restaurant);
+        return true;
+    }
+
+    // Restores a previously soft-deleted restaurant when the caller owns it or is an admin.
+    public async Task<bool> RestoreAsync(int id, int userId, bool isAdmin)
+    {
+        var restaurant = await _restaurantRepository.GetByIdIncludingDeletedAsync(id);
+        if (restaurant is null || !restaurant.IsDeleted)
+            return false;
+
+        if (!isAdmin && restaurant.UserId != userId)
+            return false;
+
+        await _restaurantRepository.RestoreAsync(restaurant);
+        return true;
+    }
+
+    // Permanently deletes a restaurant, soft-deleted or not, when the caller owns it or is an admin.
+    public async Task<bool> HardDeleteAsync(int id, int userId, bool isAdmin)
+    {
+        var restaurant = await _restaurantRepository.GetByIdIncludingDeletedAsync(id);
+        if (restaurant is null)
+            return false;
+
+        if (!isAdmin && restaurant.UserId != userId)
+            return false;
+
+        await _restaurantRepository.HardDeleteAsync(restaurant);
+        return true;
+    }
+
+    // Returns every soft-deleted restaurant, for an admin trash view.
+    public async Task<IEnumerable<RestaurantDto>> GetDeletedAsync()
+    {
+        var restaurants = await _restaurantRepository.GetDeletedAsync();
+        return restaurants.Select(r => r.ToDto());
+    }
+
     // Returns the great-circle distance in kilometres between two lat/lng points (Haversine formula, Earth radius = 6371 km).
     private static double GetDistance(
         double lat1,

@@ -25,6 +25,16 @@ public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurant
         return items.Select(m => m.ToDto());
     }
 
+    // Retrieves the soft-deleted menu items for a restaurant, if the caller is allowed to see them.
+    public async Task<IEnumerable<MenuItemDto>?> GetDeletedByRestaurantIdAsync(int restaurantId, int userId, bool isAdmin)
+    {
+        if (!isAdmin && !await UserOwnsRestaurantAsync(userId, restaurantId))
+            return null;
+
+        var items = await _menuItemRepository.GetDeletedByRestaurantIdAsync(restaurantId);
+        return items.Select(m => m.ToDto());
+    }
+
     // Maps the DTO to a model, saves it, and returns the created menu item as a DTO.
     public async Task<MenuItemDto> CreateAsync(CreateMenuItemDto dto)
     {
@@ -63,7 +73,7 @@ public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurant
         return updated.ToDto();
     }
 
-    // Deletes an existing menu item when authorized.
+    // Soft deletes an existing menu item when authorized. The item can be restored later.
     public async Task<bool> DeleteAsync(int id, int userId, bool isAdmin)
     {
         var existing = await _menuItemRepository.GetByIdAsync(id);
@@ -78,14 +88,53 @@ public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurant
                 return false;
         }
 
-        await _menuItemRepository.DeleteAsync(existing);
+        await _menuItemRepository.SoftDeleteAsync(existing);
+        return true;
+    }
+
+    // Restores a previously soft-deleted menu item when authorized.
+    public async Task<bool> RestoreAsync(int id, int userId, bool isAdmin)
+    {
+        var existing = await _menuItemRepository.GetByIdIncludingDeletedAsync(id);
+
+        if (existing is null || !existing.IsDeleted)
+            return false;
+
+        if (!isAdmin)
+        {
+            var ownsRestaurant = await UserOwnsMenuItemRestaurantAsync(userId, existing.MenuId);
+            if (!ownsRestaurant)
+                return false;
+        }
+
+        await _menuItemRepository.RestoreAsync(existing);
+        return true;
+    }
+
+    // Permanently deletes a menu item, soft-deleted or not, when authorized.
+    public async Task<bool> HardDeleteAsync(int id, int userId, bool isAdmin)
+    {
+        var existing = await _menuItemRepository.GetByIdIncludingDeletedAsync(id);
+
+        if (existing is null)
+            return false;
+
+        if (!isAdmin)
+        {
+            var ownsRestaurant = await UserOwnsMenuItemRestaurantAsync(userId, existing.MenuId);
+            if (!ownsRestaurant)
+                return false;
+        }
+
+        await _menuItemRepository.HardDeleteAsync(existing);
         return true;
     }
 
     // Resolves the restaurant that owns the menu item's menu, then checks the user owns that restaurant.
+    // Uses the "including deleted" lookup so ownership can still be resolved for a soft-deleted menu.
     private async Task<bool> UserOwnsMenuItemRestaurantAsync(int userId, int menuId)
     {
-        var menu = await _menuService.GetByIdAsync(menuId);
+        var menu = await _menuService.GetByIdIncludingDeletedAsync(menuId);
         return menu is not null && await UserOwnsRestaurantAsync(userId, menu.RestaurantId);
     }
 

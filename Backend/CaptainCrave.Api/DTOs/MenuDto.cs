@@ -11,4 +11,11 @@ public class MenuDto
 
     // Display name of the menu.
     public string Name { get; set; } = string.Empty;
+
+    // Whether the menu is soft-deleted (hidden but recoverable).
+    public bool IsDeleted { get; set; }
+    public DateTime? DeletedAt { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

@@ -14,7 +14,11 @@ public static class MenuMapper
     {
         Id = menu.Id,
         RestaurantId = menu.RestaurantId,
-        Name = menu.Name
+        Name = menu.Name,
+        IsDeleted = menu.IsDeleted,
+        DeletedAt = menu.DeletedAt,
+        CreatedAt = menu.CreatedAt,
+        UpdatedAt = menu.UpdatedAt
     };
 
     /// <summary>

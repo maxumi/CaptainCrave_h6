@@ -29,6 +29,12 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.ConfigureAudit();
+        builder.ConfigureSoftDelete();
+
+        // Soft-deleted menus are hidden from every normal query, and so are menus of a soft-deleted restaurant.
+        builder.HasQueryFilter(m => !m.IsDeleted && !m.Restaurant.IsDeleted);
+
         // One restaurant has many menus; deleting the restaurant deletes its menus too.
         builder.HasOne(m => m.Restaurant)
             .WithMany(r => r.Menus)

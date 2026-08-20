@@ -52,11 +52,11 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Restaurant>
             .IsRequired()
             .HasDefaultValue(true);
 
-        builder.Property(r => r.CreatedAt)
-            .HasColumnName("created_at")
-            .IsRequired()
-            .HasDefaultValueSql("GETUTCDATE()")
-            .ValueGeneratedOnAdd();
+        builder.ConfigureAudit();
+        builder.ConfigureSoftDelete();
+
+        // Soft-deleted restaurants are hidden from every normal query.
+        builder.HasQueryFilter(r => !r.IsDeleted);
 
         builder.HasOne(r => r.User)
             .WithMany()

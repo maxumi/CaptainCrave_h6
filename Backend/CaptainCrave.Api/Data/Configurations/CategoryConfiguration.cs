@@ -26,9 +26,15 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.ConfigureAudit();
+        builder.ConfigureSoftDelete();
+
         builder.HasOne(c => c.Menu)
             .WithMany(m => m.Categories)
             .HasForeignKey(c => c.MenuId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Categories are hidden if deleted directly, or if their menu or restaurant is soft-deleted.
+        builder.HasQueryFilter(c => !c.IsDeleted && !c.Menu.IsDeleted && !c.Menu.Restaurant.IsDeleted);
     }
 }

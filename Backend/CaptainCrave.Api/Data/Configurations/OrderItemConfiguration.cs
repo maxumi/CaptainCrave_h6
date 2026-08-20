@@ -33,6 +33,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasPrecision(10, 2)
             .IsRequired();
 
+        builder.ConfigureAudit();
+
         builder.HasOne(oi => oi.MenuItem)
             .WithMany()
             .HasForeignKey(oi => oi.MenuItemId)

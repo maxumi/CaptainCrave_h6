@@ -1,6 +1,6 @@
 namespace Api.Models;
 
-public class OrderItem
+public class OrderItem : IAuditable
 {
     public int Id { get; set; }
 
@@ -15,4 +15,7 @@ public class OrderItem
     public int Quantity { get; set; }
 
     public decimal Price { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

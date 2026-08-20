@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 namespace Api.Models;
 
 // Represents a user stored in the database
-public class User : IdentityUser<int>
+public class User : IdentityUser<int>, IAuditable
 {
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
@@ -12,4 +12,5 @@ public class User : IdentityUser<int>
     public double? Longitude { get; set; }
     public UserRole Role { get; set; } = UserRole.Customer;
     public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }
