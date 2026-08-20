@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { form, FormField, FormRoot, required } from '@angular/forms/signals';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
-import { catchError, firstValueFrom, map, of } from 'rxjs';
+import { catchError, firstValueFrom, map, of, switchMap } from 'rxjs';
 import * as L from 'leaflet';
 
 import {
@@ -38,6 +38,7 @@ export class RestaurantCreate implements OnInit, AfterViewInit {
   readonly user = this.authService.user;
   readonly isSubmitting = signal(false);
   readonly submitError = signal<string | null>(null);
+  readonly selectedRestaurantImage = signal<File | null>(null);
 
   private map!: L.Map;
   private marker!: L.Marker;
@@ -144,10 +145,31 @@ export class RestaurantCreate implements OnInit, AfterViewInit {
       this.restaurantApiService
         .createRestaurant(this.toCreateRestaurantRequest(user.userId))
         .pipe(
-          map(() => {
-            this.finishSubmitting();
-            void this.router.navigateByUrl('/');
-            return null;
+          switchMap((createdRestaurant) => {
+            const selectedImage = this.selectedRestaurantImage();
+
+            if (!selectedImage) {
+              this.finishSubmitting();
+              void this.router.navigateByUrl('/');
+              return of(null);
+            }
+
+            return this.restaurantApiService.uploadImage(createdRestaurant.id, selectedImage).pipe(
+              map(() => {
+                this.finishSubmitting();
+                void this.router.navigateByUrl('/');
+                return null;
+              }),
+              catchError((error: HttpErrorResponse) => {
+                this.finishSubmitting();
+                const message = this.t('restaurantCreate.validation.serverError');
+                this.submitError.set(message);
+                return of({
+                  kind: 'serverError' as const,
+                  message,
+                });
+              })
+            );
           }),
           catchError((error: HttpErrorResponse) => {
             this.finishSubmitting();
@@ -206,6 +228,13 @@ export class RestaurantCreate implements OnInit, AfterViewInit {
       kind: 'serverError' as const,
       message,
     });
+  }
+
+  onRestaurantImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    this.selectedRestaurantImage.set(file);
   }
 
   private finishSubmitting(): void {

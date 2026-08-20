@@ -76,7 +76,9 @@
       [itemName]="menuModel().name"
       [isSubmitting]="store.isSubmitting()"
       [menuForm]="menuForm"
+      [canUpload]="menuModel().id > 0"
       (deleteItem)="confirmDelete()"
+      (imageSelected)="uploadMenuImage($event)"
     />
   }
 </div>

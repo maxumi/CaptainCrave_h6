@@ -1,5 +1,41 @@
 <div class="restaurant-page">
   <main class="menu-content">
+    @if (currentRestaurant(); as restaurant) {
+      <section class="card" style="margin-bottom: 1rem; padding: 1rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <img
+            [src]="restaurant.imageUrl || 'captain_crave.png'"
+            alt="Restaurant cover"
+            style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;"
+          />
+
+          <div style="flex: 1; min-width: 220px;">
+            <h3 style="margin: 0 0 0.5rem;">Restaurant cover</h3>
+            <input
+              id="restaurant-cover-input"
+              type="file"
+              accept="image/*"
+              (change)="onCoverSelected($event)"
+              style="display: block; margin-bottom: 0.75rem;"
+            />
+
+            <button
+              type="button"
+              class="btn"
+              [disabled]="!selectedCover() || isUploading()"
+              (click)="uploadCover()"
+            >
+              {{ isUploading() ? 'Uploading...' : 'Upload cover' }}
+            </button>
+          </div>
+        </div>
+
+        @if (uploadError()) {
+          <p class="error" style="margin-top: 0.75rem;">{{ uploadError() }}</p>
+        }
+      </section>
+    }
+
     <nav class="restaurant-tabs" aria-label="Restaurant tabs">
       <button
         type="button"

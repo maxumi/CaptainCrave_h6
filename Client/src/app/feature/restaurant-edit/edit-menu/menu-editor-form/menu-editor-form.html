@@ -51,5 +51,10 @@
 			<input type="checkbox" [formField]="menuForm.isAvailable" />
 			{{ t('menuEdit.fields.inStock') }}
 		</label>
+
+		<label class="cc-form-label" *ngIf="canUpload">
+			{{ t('menuEdit.fields.image') || 'Image' }}
+			<input class="form-control" type="file" accept="image/*" (change)="onImageSelected($event)" />
+		</label>
 	</div>
 </form>

@@ -52,6 +52,13 @@ export class MenuItemApiService {
     return this.http.put<MenuItemDto>(`${this.menuItemsUrl}/${itemId}`, payload);
   }
 
+  uploadImage(itemId: number, file: File): Observable<MenuItemDto> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.http.post<MenuItemDto>(`${this.menuItemsUrl}/${itemId}/image`, formData);
+  }
+
   delete(itemId: number): Observable<void> {
     return this.http.delete<void>(`${this.menuItemsUrl}/${itemId}`);
   }
