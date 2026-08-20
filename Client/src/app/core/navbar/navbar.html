@@ -11,13 +11,6 @@
   </form>
   -->
 
-  <!-- Notifications disabled for now
-  <div class="navbar-actions">
-    <button class="notification-btn" type="button" aria-label="Notifications">
-      <mat-icon class="notification-icon">notifications</mat-icon>
-    </button>
-  </div>
-  -->
 
   <div class="nav-links">
     <a class="nav-link" routerLink="/restaurants">{{ t('navbar.restaurants') }}</a>
@@ -26,6 +19,7 @@
 
     @if (isCustomer()) {
       <a class="nav-link" routerLink="/order-status">{{ t('navbar.orderStatus') }}</a>
+      <a class="nav-link" routerLink="/order-history">{{ t('navbar.orderHistory') }}</a>
     }
 
     @if (isRestaurantOrAdmin()) {
@@ -35,6 +29,7 @@
 
   <div class="auth-buttons">
     @if (user()) {
+        <app-notification />
       @if (isCustomer()) {
         <button class="cart-btn" type="button" routerLink="/cart" aria-label="Cart">
           <mat-icon>shopping_cart</mat-icon>

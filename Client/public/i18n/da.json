@@ -11,6 +11,7 @@
     "searchPage": "Søg",
     "map": "Kort",
     "orderStatus": "Ordrestatus",
+    "orderHistory": "Ordrehistorik",
     "manageRestaurant": "Administrer restaurant",
     "cart": "Kurv",
     "signIn": "Log ind",
@@ -84,13 +85,13 @@
       "title": "Restauranter",
       "subtitle": " ",
       "search": {
-        "openSearchPage": "Aabn soegning"
+        "openSearchPage": "Åben søgning"
       },
       "map": {
-        "openMapPage": "Aabn naerkort",
-        "title": "Kort over naerliggende restauranter",
-        "subtitle": "Brug din valgte placering til at udforske restauranter paa kortet.",
-        "nearbyListTitle": "Restauranter i dette omraade"
+        "openMapPage": "Åben nærkort",
+        "title": "Kort over nærliggende restauranter",
+        "subtitle": "Brug din valgte placering til at udforske restauranter på kortet.",
+        "nearbyListTitle": "Restauranter i dette område"
       },
       "location": {
         "title": "Leveringsadresse",
@@ -118,21 +119,21 @@
       }
   },
 "restaurantsSearch": {
-  "title": "Soeg restauranter",
-  "subtitle": "Soeg paa restaurantnavn.",
-  "queryLabel": "Soegeord",
-  "placeholder": "Skriv din soegning",
-  "searchButton": "Soeg",
+  "title": "Søg restauranter",
+  "subtitle": "Søg på restaurantnavn.",
+  "queryLabel": "Søgeord",
+  "placeholder": "Skriv din søgning",
+  "searchButton": "Søg",
   "clearButton": "Ryd",
-  "loading": "Indlaeser restauranter...",
-  "empty": "Ingen restauranter matcher din soegning.",
+  "loading": "Indlæser restauranter...",
+  "empty": "Ingen restauranter matcher din søgning.",
   "pagination": {
     "previous": "Forrige",
-    "next": "Naeste",
+    "next": "Næste",
     "page": "Side {{current}} af {{total}}"
   },
   "error": {
-    "loadFailed": "Kunne ikke indlaese restauranter lige nu."
+    "loadFailed": "Kunne ikke indlæse restauranter lige nu."
   }
 },
 "restaurantInfo": {
@@ -358,6 +359,14 @@
     "quantity": "Antal",
     "total": "Total"
   }
+},
+"orderHistory": {
+  "title": "Ordrehistorik",
+  "loading": "Indlæser ordrehistorik...",
+  "empty": "Du har ikke afgivet nogen ordrer endnu.",
+  "fallbackMessage": "Historik-endepunktet er endnu ikke tilgængeligt i backend, så der er ingen gemte ordrer at vise lige nu.",
+  "orderNumber": "Ordre #CCID{{id}}",
+  "loadError": "Kunne ikke indlæse ordrehistorikken lige nu."
 },
 "orderManage": {
   "title": "Administrer ordrer",

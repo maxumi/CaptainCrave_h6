@@ -12,6 +12,7 @@ import { NotFound } from './core/not-found/not-found';
 import { roleGuard } from './core/auth/role-guard';
 import { RestaurantCreate } from './feature/restaurant-create/restaurant-create';
 import { OrderStatusView } from './feature/order-status-view/order-status-view';
+import { OrderHistory } from './feature/order-history/order-history';
 import { NearbyRestaurantsMap } from './feature/nearby-restaurants-map/nearby-restaurants-map';
 import { RestaurantsSearch } from './feature/restaurants-search/restaurants-search';
 
@@ -22,6 +23,7 @@ export const routes: Routes = [
   { path: 'profile', component: Profile, canActivate: [authGuard] },
   { path: 'cart', component: Cart, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
   { path: 'order-status', component: OrderStatusView, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
+  { path: 'order-history', component: OrderHistory, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
   { path: "order-status/:id", component: OrderStatusView, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
   { path: 'restaurant-create', component: RestaurantCreate, canActivate: [authGuard, roleGuard], data: { roles: ['Restaurant'] } },
   { path: 'restaurant-edit', component: RestaurantEdit, canActivate: [authGuard, roleGuard], data: { roles: ['Restaurant', 'Admin'] } },

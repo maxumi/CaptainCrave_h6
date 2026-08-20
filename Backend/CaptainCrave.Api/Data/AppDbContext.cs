@@ -1,14 +1,14 @@
 using Api.Models;
 using Api.Data.Configurations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace Api.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options) 
+    : IdentityDbContext<User, IdentityRole<int>, int>(options)
 {
-
-    public DbSet<User> Users { get; set; }
-
     public DbSet<Restaurant> Restaurants { get; set; }
 
     public DbSet<Menu> Menus { get; set; }

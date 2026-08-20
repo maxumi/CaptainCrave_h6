@@ -1,5 +1,6 @@
 using Api.Models;
 using Api.Models.Enums;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Data;
@@ -10,22 +11,26 @@ namespace Api.Data;
 public static class DbSeeder
 {
     // Kald denne fra Program.cs efter migrations er kørt.
-    public static async Task SeedAsync(AppDbContext db)
+    public static async Task SeedAsync(
+        AppDbContext db,
+        UserManager<User> userManager)
     {
         if (await db.Restaurants.AnyAsync())
             return;
 
         db.Restaurants.AddRange(
-            BuildBurgerKing(),
-            BuildMcDonalds(),
-            BuildKfc(),
-            BuildSubway(),
-            BuildDominos(),
-            BuildPizzaHut());
+            await BuildBurgerKing(userManager),
+            await BuildMcDonalds(userManager),
+            await BuildKfc(userManager),
+            await BuildSubway(userManager),
+            await BuildDominos(userManager),
+            await BuildPizzaHut(userManager)
+        );
+
         await db.SaveChangesAsync();
     }
 
-    private static Restaurant BuildBurgerKing()
+    private static async Task<Restaurant> BuildBurgerKing(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
 
@@ -44,7 +49,7 @@ public static class DbSeeder
 
         return new Restaurant
         {
-            User = NewOwner("Burger King Ejer", "burgerking@captaincrave.dk"),
+            User = await CreateOwnerAsync(userManager, "Burger King Ejer", "burgerking@captaincrave.dk"),
             Name = "Burger King",
             Description = "Hjemsted for Whopper'en — flamegrillede burgere",
             Address = "Vesterbrogade 3, 1620 København V",
@@ -58,7 +63,7 @@ public static class DbSeeder
         };
     }
 
-    private static Restaurant BuildMcDonalds()
+    private static async Task<Restaurant> BuildMcDonalds(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
 
@@ -77,7 +82,7 @@ public static class DbSeeder
 
         return new Restaurant
         {
-            User = NewOwner("McDonald's Ejer", "mcdonalds@captaincrave.dk"),
+            User = await CreateOwnerAsync(userManager, "McDonald's Ejer", "mcdonalds@captaincrave.dk"),
             Name = "McDonald's",
             Description = "I'm lovin' it — hurtig mad til hele familien",
             Address = "Strøget 12, 1160 København K",
@@ -91,7 +96,7 @@ public static class DbSeeder
         };
     }
 
-    private static Restaurant BuildKfc()
+    private static async Task<Restaurant> BuildKfc(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
 
@@ -110,7 +115,7 @@ public static class DbSeeder
 
         return new Restaurant
         {
-            User = NewOwner("KFC Ejer", "kfc@captaincrave.dk"),
+            User = await CreateOwnerAsync(userManager, "KFC Ejer", "kfc@captaincrave.dk"),
             Name = "KFC",
             Description = "Finger Lickin' Good — verdens bedste sprødstegte kylling",
             Address = "Nørrebrogade 45, 2200 København N",
@@ -124,7 +129,7 @@ public static class DbSeeder
         };
     }
 
-    private static Restaurant BuildSubway()
+    private static async Task<Restaurant> BuildSubway(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
 
@@ -143,7 +148,7 @@ public static class DbSeeder
 
         return new Restaurant
         {
-            User = NewOwner("Subway Ejer", "subway@captaincrave.dk"),
+            User = await CreateOwnerAsync(userManager, "Subway Ejer", "subway@captaincrave.dk"),
             Name = "Subway",
             Description = "Eat Fresh — friske sandwich bygget efter dit ønske",
             Address = "Frederiksberg Allé 20, 1820 Frederiksberg",
@@ -157,7 +162,7 @@ public static class DbSeeder
         };
     }
 
-    private static Restaurant BuildDominos()
+    private static async Task<Restaurant> BuildDominos(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
 
@@ -176,7 +181,7 @@ public static class DbSeeder
 
         return new Restaurant
         {
-            User = NewOwner("Domino's Ejer", "dominos@captaincrave.dk"),
+            User = await CreateOwnerAsync(userManager, "Domino's Ejer", "dominos@captaincrave.dk"),
             Name = "Domino's Pizza",
             Description = "Frisk pizza leveret hurtigt til døren",
             Address = "Amagerbrogade 100, 2300 København S",
@@ -190,7 +195,7 @@ public static class DbSeeder
         };
     }
 
-    private static Restaurant BuildPizzaHut()
+    private static async Task<Restaurant> BuildPizzaHut(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
 
@@ -209,7 +214,7 @@ public static class DbSeeder
 
         return new Restaurant
         {
-            User = NewOwner("Pizza Hut Ejer", "pizzahut@captaincrave.dk"),
+            User = await CreateOwnerAsync(userManager, "Pizza Hut Ejer", "pizzahut@captaincrave.dk"),
             Name = "Pizza Hut",
             Description = "No one out-pizzas the Hut",
             Address = "Roskildevej 50, 2000 Frederiksberg",
@@ -224,13 +229,43 @@ public static class DbSeeder
     }
 
     // Opretter en restaurant-ejer med et fast standardkodeord til lokal test/login.
-    private static User NewOwner(string name, string email) => new()
+private static async Task<User> CreateOwnerAsync(
+    UserManager<User> userManager,
+    string name,
+    string email)
+{
+    var existingUser = await userManager.FindByEmailAsync(email);
+
+    if (existingUser is not null)
+        return existingUser;
+
+    var user = new User
     {
-        Name = name,
+        UserName = email,
         Email = email,
+        Name = name,
         Address = "Danmark",
-        PasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!"),
         Role = UserRole.Restaurant,
         CreatedAt = DateTime.UtcNow
     };
+
+    var result = await userManager.CreateAsync(
+        user,
+        "Password123!"
+    );
+
+    if (!result.Succeeded)
+    {
+        var errors = string.Join(
+            ", ",
+            result.Errors.Select(error => error.Description)
+        );
+
+        throw new InvalidOperationException(
+            $"Could not create seeded user {email}: {errors}"
+        );
+    }
+
+    return user;
+}
 }

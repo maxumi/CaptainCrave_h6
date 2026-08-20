@@ -4,10 +4,11 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../auth/auth.service';
 import { Role } from '../../shared/models/user';
+import { Notification } from './notification/notification';
 
 @Component({
   selector: 'app-navbar',
-  imports: [MatIconModule, TranslocoModule, RouterLink],
+  imports: [MatIconModule, TranslocoModule, RouterLink, Notification],
   templateUrl: './navbar.html',
   styleUrl: './navbar.css',
 })

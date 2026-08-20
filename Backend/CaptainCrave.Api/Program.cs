@@ -2,10 +2,12 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Api.Data;
+using Api.Models;
 using Api.Hubs;
 using Api.Repositories;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -61,6 +63,12 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials()); // SignalR kræver credentials sammen med en specifik origin
 });
+
+builder.Services
+    .AddIdentityCore<User>()
+    .AddRoles<IdentityRole<int>>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
 // DI — Auth
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -135,8 +143,10 @@ if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DbSeeder.SeedAsync(db);
-}
+    var userManager =
+        scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+
+    await DbSeeder.SeedAsync(db, userManager);}
 
 // Swagger
 if (app.Environment.IsDevelopment())
