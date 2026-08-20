@@ -26,6 +26,9 @@ public interface IRestaurantRepository
     // Saves a new restaurant and returns it with the generated ID.
     Task<Restaurant> CreateAsync(Restaurant restaurant);
 
+    // Updates an existing restaurant row and returns the updated entity.
+    Task<Restaurant> UpdateAsync(Restaurant restaurant);
+
     // Marks a restaurant (and its menus and menu items) as deleted without removing the rows, so it can be restored later.
     Task SoftDeleteAsync(Restaurant restaurant);
 

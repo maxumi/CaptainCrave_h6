@@ -86,6 +86,9 @@ builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IMenuItemService, MenuItemService>();
 
+// DI — Image uploads (stored on local disk under wwwroot/uploads)
+builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
+
 // DI — Orders
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -156,6 +159,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Serves uploaded images from wwwroot/uploads at /uploads/*
+app.UseStaticFiles();
 
 app.UseCors("AllowClient");
 

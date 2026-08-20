@@ -14,19 +14,21 @@ public class MenuItemServiceTests
         MenuItemService service,
         Mock<IMenuItemRepository> mockMenuItemRepository,
         Mock<IRestaurantRepository> mockRestaurantRepository,
-        Mock<IMenuService> mockMenuService) CreateService()
+        Mock<IMenuService> mockMenuService,
+        Mock<IImageStorageService> mockImageStorageService) CreateService()
     {
         var mockMenuItemRepository = new Mock<IMenuItemRepository>();
         var mockRestaurantRepository = new Mock<IRestaurantRepository>();
         var mockMenuService = new Mock<IMenuService>();
-        var service = new MenuItemService(mockMenuItemRepository.Object, mockRestaurantRepository.Object, mockMenuService.Object);
-        return (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService);
+        var mockImageStorageService = new Mock<IImageStorageService>();
+        var service = new MenuItemService(mockMenuItemRepository.Object, mockRestaurantRepository.Object, mockMenuService.Object, mockImageStorageService.Object);
+        return (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, mockImageStorageService);
     }
 
     [Fact]
     public async Task CreateAsync_ValidDto_ReturnsCreatedMenuItem()
     {
-        var (service, mockMenuItemRepository, _, _) = CreateService();
+        var (service, mockMenuItemRepository, _, _, _) = CreateService();
         mockMenuItemRepository.Setup(r => r.CreateAsync(It.IsAny<MenuItem>())).ReturnsAsync((MenuItem m) => { m.Id = 10; return m; });
 
         var result = await service.CreateAsync(new CreateMenuItemDto { MenuId = 1, Name = "Burger", Price = 50m });
@@ -37,7 +39,7 @@ public class MenuItemServiceTests
     [Fact]
     public async Task UpdateAsync_ItemNotFound_ReturnsNull()
     {
-        var (service, mockMenuItemRepository, _, _) = CreateService();
+        var (service, mockMenuItemRepository, _, _, _) = CreateService();
         mockMenuItemRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((MenuItem?)null);
 
         var result = await service.UpdateAsync(99, new CreateMenuItemDto { MenuId = 1, Name = "Burger", Price = 50m }, 1, false);
@@ -48,7 +50,7 @@ public class MenuItemServiceTests
     [Fact]
     public async Task UpdateAsync_Owner_UpdatesFieldsAndReturnsDto()
     {
-        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService) = CreateService();
+        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, _) = CreateService();
         var existing = new MenuItem { Id = 1, MenuId = 20, Name = "Old Name", Price = 10m };
         mockMenuItemRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
         mockMenuService.Setup(s => s.GetByIdIncludingDeletedAsync(20)).ReturnsAsync(new MenuDto { Id = 20, RestaurantId = 30 });
@@ -66,7 +68,7 @@ public class MenuItemServiceTests
     [Fact]
     public async Task UpdateAsync_NotOwner_ReturnsNullAndDoesNotUpdate()
     {
-        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService) = CreateService();
+        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, _) = CreateService();
         var existing = new MenuItem { Id = 1, MenuId = 20, Name = "Old Name" };
         mockMenuItemRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
         mockMenuService.Setup(s => s.GetByIdIncludingDeletedAsync(20)).ReturnsAsync(new MenuDto { Id = 20, RestaurantId = 30 });
@@ -81,7 +83,7 @@ public class MenuItemServiceTests
     [Fact]
     public async Task UpdateAsync_Admin_CanReassignMenuId()
     {
-        var (service, mockMenuItemRepository, _, _) = CreateService();
+        var (service, mockMenuItemRepository, _, _, _) = CreateService();
         var existing = new MenuItem { Id = 1, MenuId = 20, Name = "Item" };
         mockMenuItemRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
         mockMenuItemRepository.Setup(r => r.UpdateAsync(existing)).ReturnsAsync(existing);
@@ -95,7 +97,7 @@ public class MenuItemServiceTests
     [Fact]
     public async Task DeleteAsync_Owner_ReturnsTrue()
     {
-        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService) = CreateService();
+        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, _) = CreateService();
         var existing = new MenuItem { Id = 1, MenuId = 20 };
         mockMenuItemRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
         mockMenuService.Setup(s => s.GetByIdIncludingDeletedAsync(20)).ReturnsAsync(new MenuDto { Id = 20, RestaurantId = 30 });
@@ -110,7 +112,7 @@ public class MenuItemServiceTests
     [Fact]
     public async Task RestoreAsync_NotDeleted_ReturnsFalse()
     {
-        var (service, mockMenuItemRepository, _, _) = CreateService();
+        var (service, mockMenuItemRepository, _, _, _) = CreateService();
         mockMenuItemRepository.Setup(r => r.GetByIdIncludingDeletedAsync(1)).ReturnsAsync(new MenuItem { Id = 1, MenuId = 20, IsDeleted = false });
 
         var result = await service.RestoreAsync(1, 5, false);
@@ -121,7 +123,7 @@ public class MenuItemServiceTests
     [Fact]
     public async Task HardDeleteAsync_NotOwner_ReturnsFalse()
     {
-        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService) = CreateService();
+        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, _) = CreateService();
         var existing = new MenuItem { Id = 1, MenuId = 20 };
         mockMenuItemRepository.Setup(r => r.GetByIdIncludingDeletedAsync(1)).ReturnsAsync(existing);
         mockMenuService.Setup(s => s.GetByIdIncludingDeletedAsync(20)).ReturnsAsync(new MenuDto { Id = 20, RestaurantId = 30 });
@@ -131,5 +133,63 @@ public class MenuItemServiceTests
 
         Assert.False(result);
         mockMenuItemRepository.Verify(r => r.HardDeleteAsync(It.IsAny<MenuItem>()), Times.Never);
+    }
+
+    // UpdateImageUrlAsync
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_ItemNotFound_ReturnsNull()
+    {
+        var (service, mockMenuItemRepository, _, _, mockImageStorageService) = CreateService();
+        mockMenuItemRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((MenuItem?)null);
+
+        var result = await service.UpdateImageUrlAsync(99, "/uploads/menu-items/new.jpg", 1, false);
+
+        Assert.Null(result);
+        mockImageStorageService.Verify(s => s.Delete(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_NotOwner_ReturnsNullAndDoesNotUpdate()
+    {
+        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, _) = CreateService();
+        var existing = new MenuItem { Id = 1, MenuId = 20, ImageUrl = "/uploads/menu-items/old.jpg" };
+        mockMenuItemRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        mockMenuService.Setup(s => s.GetByIdIncludingDeletedAsync(20)).ReturnsAsync(new MenuDto { Id = 20, RestaurantId = 30 });
+        mockRestaurantRepository.Setup(r => r.GetByUserIdAsync(5)).ReturnsAsync([]);
+
+        var result = await service.UpdateImageUrlAsync(1, "/uploads/menu-items/new.jpg", 5, false);
+
+        Assert.Null(result);
+        mockMenuItemRepository.Verify(r => r.UpdateAsync(It.IsAny<MenuItem>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_Owner_UpdatesImageAndDeletesPreviousFile()
+    {
+        var (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, mockImageStorageService) = CreateService();
+        var existing = new MenuItem { Id = 1, MenuId = 20, ImageUrl = "/uploads/menu-items/old.jpg" };
+        mockMenuItemRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        mockMenuService.Setup(s => s.GetByIdIncludingDeletedAsync(20)).ReturnsAsync(new MenuDto { Id = 20, RestaurantId = 30 });
+        mockRestaurantRepository.Setup(r => r.GetByUserIdAsync(5)).ReturnsAsync([new Restaurant { Id = 30, UserId = 5 }]);
+        mockMenuItemRepository.Setup(r => r.UpdateAsync(existing)).ReturnsAsync(existing);
+
+        var result = await service.UpdateImageUrlAsync(1, "/uploads/menu-items/new.jpg", 5, false);
+
+        Assert.Equal("/uploads/menu-items/new.jpg", result?.ImageUrl);
+        mockImageStorageService.Verify(s => s.Delete("/uploads/menu-items/old.jpg"), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_Admin_BypassesOwnershipCheck()
+    {
+        var (service, mockMenuItemRepository, _, _, _) = CreateService();
+        var existing = new MenuItem { Id = 1, MenuId = 20, ImageUrl = "/uploads/menu-items/old.jpg" };
+        mockMenuItemRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existing);
+        mockMenuItemRepository.Setup(r => r.UpdateAsync(existing)).ReturnsAsync(existing);
+
+        var result = await service.UpdateImageUrlAsync(1, "/uploads/menu-items/new.jpg", 999, true);
+
+        Assert.Equal("/uploads/menu-items/new.jpg", result?.ImageUrl);
     }
 }

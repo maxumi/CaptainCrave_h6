@@ -9,17 +9,18 @@ namespace Api.Tests.Services;
 // Unit tests for RestaurantService business logic (creation, nearby search, soft delete, ownership).
 public class RestaurantServiceTests
 {
-    private static (RestaurantService service, Mock<IRestaurantRepository> mockRepository) CreateService()
+    private static (RestaurantService service, Mock<IRestaurantRepository> mockRepository, Mock<IImageStorageService> mockImageStorageService) CreateService()
     {
         var mockRepository = new Mock<IRestaurantRepository>();
-        var service = new RestaurantService(mockRepository.Object);
-        return (service, mockRepository);
+        var mockImageStorageService = new Mock<IImageStorageService>();
+        var service = new RestaurantService(mockRepository.Object, mockImageStorageService.Object);
+        return (service, mockRepository, mockImageStorageService);
     }
 
     [Fact]
     public async Task CreateAsync_ValidDto_ReturnsCreatedRestaurant()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         mockRepository.Setup(r => r.CreateAsync(It.IsAny<Restaurant>())).ReturnsAsync((Restaurant r) => { r.Id = 7; return r; });
 
         var result = await service.CreateAsync(new CreateRestaurantDto { UserId = 1, Name = "Burger Place", Address = "Main St" });
@@ -30,7 +31,7 @@ public class RestaurantServiceTests
     [Fact]
     public async Task GetNearbyRestaurantsAsync_OnlyReturnsRestaurantsWithinRadius()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         mockRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(
         [
             new Restaurant { Id = 1, Name = "Close By", Latitude = 55.6761, Longitude = 12.5683 }, // Copenhagen
@@ -47,7 +48,7 @@ public class RestaurantServiceTests
     [Fact]
     public async Task DeleteAsync_RestaurantNotFound_ReturnsFalse()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         mockRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Restaurant?)null);
 
         var result = await service.DeleteAsync(99, 1, false);
@@ -58,7 +59,7 @@ public class RestaurantServiceTests
     [Fact]
     public async Task DeleteAsync_Owner_ReturnsTrue()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         var restaurant = new Restaurant { Id = 1, UserId = 5 };
         mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(restaurant);
 
@@ -71,7 +72,7 @@ public class RestaurantServiceTests
     [Fact]
     public async Task DeleteAsync_NotOwner_ReturnsFalse()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         var restaurant = new Restaurant { Id = 1, UserId = 5 };
         mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(restaurant);
 
@@ -84,7 +85,7 @@ public class RestaurantServiceTests
     [Fact]
     public async Task RestoreAsync_NotDeleted_ReturnsFalse()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         mockRepository.Setup(r => r.GetByIdIncludingDeletedAsync(1)).ReturnsAsync(new Restaurant { Id = 1, UserId = 5, IsDeleted = false });
 
         var result = await service.RestoreAsync(1, 5, false);
@@ -95,7 +96,7 @@ public class RestaurantServiceTests
     [Fact]
     public async Task HardDeleteAsync_Admin_BypassesOwnershipCheck()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         var restaurant = new Restaurant { Id = 1, UserId = 5 };
         mockRepository.Setup(r => r.GetByIdIncludingDeletedAsync(1)).ReturnsAsync(restaurant);
 
@@ -108,7 +109,7 @@ public class RestaurantServiceTests
     [Fact]
     public async Task GetDeletedAsync_ReturnsAllSoftDeletedRestaurants()
     {
-        var (service, mockRepository) = CreateService();
+        var (service, mockRepository, _) = CreateService();
         mockRepository.Setup(r => r.GetDeletedAsync()).ReturnsAsync(
         [
             new Restaurant { Id = 1, IsDeleted = true },
@@ -118,5 +119,59 @@ public class RestaurantServiceTests
         var result = await service.GetDeletedAsync();
 
         Assert.Equal(2, result.Count());
+    }
+
+    // UpdateImageUrlAsync
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_RestaurantNotFound_ReturnsNull()
+    {
+        var (service, mockRepository, mockImageStorageService) = CreateService();
+        mockRepository.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Restaurant?)null);
+
+        var result = await service.UpdateImageUrlAsync(99, "/uploads/restaurants/new.jpg", 1, false);
+
+        Assert.Null(result);
+        mockImageStorageService.Verify(s => s.Delete(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_NotOwner_ReturnsNullAndDoesNotUpdate()
+    {
+        var (service, mockRepository, _) = CreateService();
+        var restaurant = new Restaurant { Id = 1, UserId = 5, ImageUrl = "/uploads/restaurants/old.jpg" };
+        mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(restaurant);
+
+        var result = await service.UpdateImageUrlAsync(1, "/uploads/restaurants/new.jpg", 999, false);
+
+        Assert.Null(result);
+        mockRepository.Verify(r => r.UpdateAsync(It.IsAny<Restaurant>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_Owner_UpdatesImageAndDeletesPreviousFile()
+    {
+        var (service, mockRepository, mockImageStorageService) = CreateService();
+        var restaurant = new Restaurant { Id = 1, UserId = 5, ImageUrl = "/uploads/restaurants/old.jpg" };
+        mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(restaurant);
+        mockRepository.Setup(r => r.UpdateAsync(restaurant)).ReturnsAsync(restaurant);
+
+        var result = await service.UpdateImageUrlAsync(1, "/uploads/restaurants/new.jpg", 5, false);
+
+        Assert.Equal("/uploads/restaurants/new.jpg", result?.ImageUrl);
+        mockImageStorageService.Verify(s => s.Delete("/uploads/restaurants/old.jpg"), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateImageUrlAsync_Admin_BypassesOwnershipCheck()
+    {
+        var (service, mockRepository, _) = CreateService();
+        var restaurant = new Restaurant { Id = 1, UserId = 5, ImageUrl = "/uploads/restaurants/old.jpg" };
+        mockRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(restaurant);
+        mockRepository.Setup(r => r.UpdateAsync(restaurant)).ReturnsAsync(restaurant);
+
+        var result = await service.UpdateImageUrlAsync(1, "/uploads/restaurants/new.jpg", 999, true);
+
+        Assert.Equal("/uploads/restaurants/new.jpg", result?.ImageUrl);
     }
 }

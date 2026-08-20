@@ -195,6 +195,7 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 | GET | `/api/restaurants/{id}/menus` | Public | All menus for a restaurant |
 | GET | `/api/restaurants/{id}/menu-items` | Public | All menu items for a restaurant, across its menus |
 | POST | `/api/restaurants` | Restaurant, Admin | Create a restaurant (bound to the caller's account) |
+| POST | `/api/restaurants/{id}/image` | Restaurant, Admin | Upload/replace the restaurant's image (`multipart/form-data`, field `file`) |
 | DELETE | `/api/restaurants/{id}` | Restaurant, Admin | Soft delete the caller's restaurant |
 | POST | `/api/restaurants/{id}/restore` | Restaurant, Admin | Restore a soft-deleted restaurant |
 | DELETE | `/api/restaurants/{id}/permanent` | Restaurant, Admin | Permanently delete a restaurant |
@@ -229,6 +230,7 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 | GET | `/api/menuitems/menu/{menuId}` | Public | All menu items for one menu |
 | POST | `/api/menuitems` | Restaurant, Admin | Create a menu item (`CategoryId` optional) |
 | PUT | `/api/menuitems/{id}` | Restaurant, Admin | Update a menu item |
+| POST | `/api/menuitems/{id}/image` | Restaurant, Admin | Upload/replace the menu item's image (`multipart/form-data`, field `file`) |
 | DELETE | `/api/menuitems/{id}` | Restaurant, Admin | Soft delete a menu item |
 | POST | `/api/menuitems/{id}/restore` | Restaurant, Admin | Restore a soft-deleted menu item |
 | DELETE | `/api/menuitems/{id}/permanent` | Restaurant, Admin | Permanently delete a menu item |
@@ -246,6 +248,17 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 | PATCH | `/api/orders/{id}/status` | Restaurant, Admin | Update order status (`Preparing`, `OnTheWay`, `ReadyForPickup`, `Delivered`, `Cancelled`, ...). Triggers an `OrderStatusChanged` SignalR event to the customer |
 
 Most write endpoints require `Authorize(Roles = ...)` and a `Bearer` token obtained from `/api/auth/login`. Read (`GET`) endpoints for restaurants/menus/categories/menu items are public so the storefront can be browsed without logging in.
+
+### Image uploads
+
+Restaurants and menu items can have their `ImageUrl` set by uploading a file instead of pasting a URL:
+
+- `POST /api/restaurants/{id}/image` and `POST /api/menuitems/{id}/image` accept a `multipart/form-data` body with a `file` field.
+- `LocalImageStorageService` (`IImageStorageService`) validates the file (max 5 MB, `.jpg`/`.jpeg`/`.png`/`.webp` only), saves it under `wwwroot/uploads/restaurants` or `wwwroot/uploads/menu-items` with a generated GUID file name, and returns a relative URL such as `/uploads/restaurants/{guid}.jpg`.
+- The file name is never taken from client input, which avoids path traversal and overwrite attacks.
+- `Program.cs` calls `app.UseStaticFiles()` so files under `wwwroot` are served directly at `/uploads/...`.
+- Uploading a new image deletes the previously stored local file (external URLs, like the seeded Wikimedia logos, are left alone).
+- Only the restaurant owner or an Admin may upload an image for a given restaurant/menu item.
 
 ---
 

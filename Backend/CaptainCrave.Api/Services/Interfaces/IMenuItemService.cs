@@ -20,6 +20,9 @@ public interface IMenuItemService
     // Updates a menu item if found and authorized, then returns it as a DTO.
     Task<MenuItemDto?> UpdateAsync(int id, CreateMenuItemDto dto, int userId, bool isAdmin);
 
+    // Updates a menu item's image URL if found and authorized, then returns it as a DTO.
+    Task<MenuItemDto?> UpdateImageUrlAsync(int id, string imageUrl, int userId, bool isAdmin);
+
     // Soft deletes a menu item if found and authorized. The item can be restored later.
     Task<bool> DeleteAsync(int id, int userId, bool isAdmin);
 
