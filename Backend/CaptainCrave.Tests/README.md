@@ -1,6 +1,6 @@
 # CaptainCrave.Tests
 
-Unit tests for the CaptainCrave backend API controllers.
+Unit and integration tests for the CaptainCrave backend API.
 
 ## Tech Stack
 
@@ -22,7 +22,15 @@ Controllers/
   MenuItemControllerTests.cs
   OrderControllerTests.cs
   RestaurantControllerTests.cs
+  UsersControllerTests.cs
+Services/
+  OrderServiceTests.cs
+  MenuServiceTests.cs
+  CategoryServiceTests.cs
+  MenuItemServiceTests.cs
+  RestaurantServiceTests.cs
 NotificationIntegrationTests.cs
+SoftDeleteIntegrationTests.cs
 ```
 
 Each file in `Controllers/` mirrors its corresponding controller and follows the same pattern:
@@ -34,7 +42,19 @@ Each file in `Controllers/` mirrors its corresponding controller and follows the
 
 This keeps controller tests isolated. No database, no HTTP pipeline, no real service logic.
 
-`NotificationIntegrationTests.cs` is different: it starts the real API in memory (using `WebApplicationFactory<Program>` and an EF Core InMemory database) and connects a real SignalR client to check that order events are actually delivered.
+Each file in `Services/` tests a service class directly, with its repositories (and any other
+services it depends on, such as `IMenuService` for ownership checks) mocked. This catches
+business logic bugs (status transition rules, ownership checks, total price calculation) closer
+to the source than a controller test can, since the controller test only proves the controller
+called the service correctly, not that the service itself behaves correctly.
+
+`NotificationIntegrationTests.cs` and `SoftDeleteIntegrationTests.cs` are different: they start the
+real API in memory (using `WebApplicationFactory<Program>` and an EF Core InMemory database) and
+make real HTTP calls through the full pipeline (real auth, real EF Core query filters, real
+SignalR hub). `SoftDeleteIntegrationTests.cs` in particular proves that EF Core's global query
+filters actually hide soft-deleted rows (and cascade correctly, for example a soft-deleted menu
+also hiding its categories and menu items) against a real database, something a mocked repository
+can't verify.
 
 ### Soft delete tests
 
