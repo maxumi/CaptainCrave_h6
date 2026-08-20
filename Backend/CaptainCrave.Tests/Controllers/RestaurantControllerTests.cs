@@ -3,6 +3,7 @@ using Api.DTOs;
 using Api.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Security.Claims;
 
@@ -184,5 +185,90 @@ public class RestaurantControllerTests
 
         Assert.NotNull(result);
         Assert.Empty((IEnumerable<MenuItemDto>)result.Value!);
+    }
+
+    // Delete (soft delete)
+
+    [Fact]
+    public async Task Delete_ExistingId_ReturnsNoContent()
+    {
+        var (controller, mockService, _) = CreateController();
+        mockService.Setup(s => s.DeleteAsync(1, 1, false)).ReturnsAsync(true);
+
+        var result = await controller.Delete(1);
+
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task Delete_NonExistingId_ReturnsNotFound()
+    {
+        var (controller, mockService, _) = CreateController();
+        mockService.Setup(s => s.DeleteAsync(99, 1, false)).ReturnsAsync(false);
+
+        var result = await controller.Delete(99);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    // Restore
+
+    [Fact]
+    public async Task Restore_ExistingId_ReturnsNoContent()
+    {
+        var (controller, mockService, _) = CreateController();
+        mockService.Setup(s => s.RestoreAsync(1, 1, false)).ReturnsAsync(true);
+
+        var result = await controller.Restore(1);
+
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task Restore_NonExistingId_ReturnsNotFound()
+    {
+        var (controller, mockService, _) = CreateController();
+        mockService.Setup(s => s.RestoreAsync(99, 1, false)).ReturnsAsync(false);
+
+        var result = await controller.Restore(99);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    // HardDelete (permanent delete)
+
+    [Fact]
+    public async Task HardDelete_ExistingId_ReturnsNoContent()
+    {
+        var (controller, mockService, _) = CreateController();
+        mockService.Setup(s => s.HardDeleteAsync(1, 1, false)).ReturnsAsync(true);
+
+        var result = await controller.HardDelete(1);
+
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task HardDelete_WhenDbUpdateExceptionThrown_ReturnsConflict()
+    {
+        var (controller, mockService, _) = CreateController();
+        mockService.Setup(s => s.HardDeleteAsync(1, 1, false)).ThrowsAsync(new DbUpdateException());
+
+        var result = await controller.HardDelete(1);
+
+        Assert.IsType<ConflictObjectResult>(result);
+    }
+
+    // GetDeleted (admin trash view)
+
+    [Fact]
+    public async Task GetDeleted_ReturnsOk()
+    {
+        var (controller, mockService, _) = CreateController();
+        mockService.Setup(s => s.GetDeletedAsync()).ReturnsAsync([]);
+
+        var result = await controller.GetDeleted();
+
+        Assert.IsType<OkObjectResult>(result);
     }
 }
