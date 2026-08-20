@@ -13,6 +13,12 @@ module.exports = {
     changeOrigin: true
   },
 
+"/uploads": {
+    target,
+    secure: false,
+    changeOrigin: true
+},
+
   "/hubs/**": {
     target,
     secure: false,

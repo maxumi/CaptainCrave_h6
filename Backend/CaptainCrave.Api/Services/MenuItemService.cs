@@ -5,11 +5,12 @@ using Api.Repositories;
 namespace Api.Services;
 
 // Handles business logic for menu item operations.
-public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurantRepository restaurantRepository, IMenuService menuService) : IMenuItemService
+public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurantRepository restaurantRepository, IMenuService menuService, IImageStorageService imageStorageService) : IMenuItemService
 {
     private readonly IMenuItemRepository _menuItemRepository = menuItemRepository;
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
     private readonly IMenuService _menuService = menuService;
+    private readonly IImageStorageService _imageStorageService = imageStorageService;
 
     // Retrieves all menu items for a restaurant and maps them to DTOs.
     public async Task<IEnumerable<MenuItemDto>> GetByRestaurantIdAsync(int restaurantId)
@@ -70,6 +71,28 @@ public class MenuItemService(IMenuItemRepository menuItemRepository, IRestaurant
             existing.MenuId = dto.MenuId;
 
         var updated = await _menuItemRepository.UpdateAsync(existing);
+        return updated.ToDto();
+    }
+
+    // Updates a menu item's image URL when authorized and returns its DTO.
+    public async Task<MenuItemDto?> UpdateImageUrlAsync(int id, string imageUrl, int userId, bool isAdmin)
+    {
+        var existing = await _menuItemRepository.GetByIdAsync(id);
+
+        if (existing is null)
+            return null;
+
+        if (!isAdmin)
+        {
+            var ownsRestaurant = await UserOwnsMenuItemRestaurantAsync(userId, existing.MenuId);
+            if (!ownsRestaurant)
+                return null;
+        }
+
+        var previousImageUrl = existing.ImageUrl;
+        existing.ImageUrl = imageUrl;
+        var updated = await _menuItemRepository.UpdateAsync(existing);
+        _imageStorageService.Delete(previousImageUrl);
         return updated.ToDto();
     }
 

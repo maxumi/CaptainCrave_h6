@@ -11,11 +11,12 @@ namespace Api.Controllers;
 // Handles HTTP requests for menu item resources.
 [ApiController]
 [Route("api/[controller]")]
-public class MenuItemsController(IMenuItemService menuItemService, IRestaurantService restaurantService, IMenuService menuService) : ControllerBase
+public class MenuItemsController(IMenuItemService menuItemService, IRestaurantService restaurantService, IMenuService menuService, IImageStorageService imageStorageService) : ControllerBase
 {
     private readonly IMenuItemService _menuItemService = menuItemService;
     private readonly IRestaurantService _restaurantService = restaurantService;
     private readonly IMenuService _menuService = menuService;
+    private readonly IImageStorageService _imageStorageService = imageStorageService;
 
     // Returns all menu items for the specified restaurant.
     [HttpGet("restaurant/{restaurantId:int}")]
@@ -89,6 +90,36 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         var updated = await _menuItemService.UpdateAsync(id, dto, userId.Value, User.IsInRole("Admin"));
         if (updated is null)
             return NotFound();
+
+        return Ok(updated);
+    }
+
+    // Uploads (or replaces) a menu item's image and stores it on local disk under wwwroot/uploads.
+    [HttpPost("{id}/image")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    [RequestSizeLimit(5_000_000)]
+    public async Task<IActionResult> UploadImage(int id, IFormFile file)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        string relativeUrl;
+        try
+        {
+            relativeUrl = await _imageStorageService.SaveAsync(file, "menu-items");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        var updated = await _menuItemService.UpdateImageUrlAsync(id, relativeUrl, userId.Value, User.IsInRole("Admin"));
+        if (updated is null)
+        {
+            _imageStorageService.Delete(relativeUrl);
+            return NotFound();
+        }
 
         return Ok(updated);
     }

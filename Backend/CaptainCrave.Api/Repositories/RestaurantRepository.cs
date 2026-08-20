@@ -41,6 +41,15 @@ public class RestaurantRepository(AppDbContext db) : IRestaurantRepository
         return restaurant;
     }
 
+    // Updates an existing restaurant row and returns the updated entity.
+    public async Task<Restaurant> UpdateAsync(Restaurant restaurant)
+    {
+        restaurant.UpdatedAt = DateTime.UtcNow;
+        _db.Restaurants.Update(restaurant);
+        await _db.SaveChangesAsync();
+        return restaurant;
+    }
+
     // Marks the restaurant, its menus, and its menu items as deleted instead of removing the rows.
     public async Task SoftDeleteAsync(Restaurant restaurant)
     {

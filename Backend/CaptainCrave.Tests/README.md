@@ -29,6 +29,7 @@ Services/
   CategoryServiceTests.cs
   MenuItemServiceTests.cs
   RestaurantServiceTests.cs
+  LocalImageStorageServiceTests.cs
 NotificationIntegrationTests.cs
 SoftDeleteIntegrationTests.cs
 ```
@@ -64,6 +65,14 @@ can't verify.
 - `Restore` returns 204 No Content when found, 404 when not.
 - `HardDelete` returns 204 No Content when found, 404 when not, and 409 Conflict when the service throws `DbUpdateException` (for example, permanently deleting a menu item that still appears on a past order).
 - `GetDeleted` returns 200 OK with the trash list, or 403 Forbidden when the caller does not own the restaurant.
+
+### Image upload tests
+
+`RestaurantControllerTests` and `MenuItemControllerTests` cover the `POST {id}/image` upload endpoints: unauthenticated callers get 401, non-owners get 403/404, a storage validation failure (`InvalidOperationException`) becomes 400, a successful upload returns 200 with the updated DTO, and a failed authorization check after upload deletes the just-saved file.
+
+`RestaurantServiceTests` and `MenuItemServiceTests` cover `UpdateImageUrlAsync`'s ownership checks and confirm the previous image is deleted via `IImageStorageService` when replaced.
+
+`LocalImageStorageServiceTests.cs` exercises the real file system against a temporary web root: valid uploads are written under `wwwroot/uploads/{subfolder}` with a generated name (proving the client-supplied file name is never used, which prevents path traversal), oversized/empty files and disallowed extensions throw, and `Delete` only removes files under `/uploads/` while leaving external URLs untouched.
 
 ## Why `[Fact]`?
 

@@ -31,6 +31,11 @@ artifacts/
 # ASP.NET Scaffolding
 ScaffoldingReadMe.txt
 
+# Locally uploaded restaurant/menu item images (keep folder structure via .gitkeep)
+Backend/CaptainCrave.Api/wwwroot/uploads/**
+!Backend/CaptainCrave.Api/wwwroot/uploads/**/
+!Backend/CaptainCrave.Api/wwwroot/uploads/**/.gitkeep
+
 # NuGet Packages
 *.nupkg
 # NuGet Symbol Packages

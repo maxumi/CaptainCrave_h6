@@ -1,6 +1,12 @@
 <div class="restaurant-info-page" *transloco="let t">
   <div class="restaurant-banner">
-    <img src="captain_crave_banner.png" alt="Captain Crave" />
+    <img
+      [src]="restaurant()?.imageUrl || 'captain_crave_banner.png'"
+      [alt]="restaurant()?.name || 'Restaurant banner'"
+    />
+    <div class="restaurant-banner-overlay">
+      <h1>{{ restaurant()?.name || 'Captain Crave' }}</h1>
+    </div>
   </div>
 
   <h2>{{ t('restaurantInfo.menu') }}</h2>

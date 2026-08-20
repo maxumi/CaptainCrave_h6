@@ -17,6 +17,7 @@ import { MenuEditStore } from './menu-edit-store';
 import { MenuItem } from './edit-menu.models';
 import { MenuItemList } from './menu-item-list/menu-item-list';
 import { MenuEditorForm } from './menu-editor-form/menu-editor-form';
+import { MenuItemApiService } from '../../../shared/menu-item-api.service';
 
 @Component({
   selector: 'app-edit-menu',
@@ -35,6 +36,7 @@ export class EditMenu implements OnInit {
 
   private readonly dialog = inject(MatDialog);
   private readonly transloco = inject(TranslocoService);
+  private readonly menuItemApiService = inject(MenuItemApiService);
 
   readonly store = inject(MenuEditStore);
 
@@ -147,6 +149,35 @@ export class EditMenu implements OnInit {
         })),
       ),
     );
+  }
+
+  uploadMenuImage(file: File): void {
+    const itemId = this.menuModel().id;
+
+    if (!itemId || itemId <= 0) {
+      this.store.errorMessage.set(this.transloco.translate('menuEdit.error.saveItemFirst'));
+      return;
+    }
+
+    this.menuItemApiService.uploadImage(itemId, file).pipe(
+      tap((updated) => {
+        const nextItem = { ...this.menuModel(), imageUrl: updated.imageUrl };
+        this.menuModel.set(nextItem);
+        this.store.selectedItem.update((current) =>
+          current && current.id === updated.id ? { ...current, imageUrl: updated.imageUrl } : current
+        );
+        this.store.allMenuItems.update((items) =>
+          items.map((item) => item.id === updated.id ? { ...item, imageUrl: updated.imageUrl } : item)
+        );
+        this.store.menuItems.update((items) =>
+          items.map((item) => item.id === updated.id ? { ...item, imageUrl: updated.imageUrl } : item)
+        );
+      }),
+      catchError(() => {
+        this.store.errorMessage.set(this.transloco.translate('menuEdit.error.uploadFailed'));
+        return of(null);
+      }),
+    ).subscribe();
   }
 
   confirmDelete(): void {

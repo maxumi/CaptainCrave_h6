@@ -70,6 +70,15 @@
       </p>
     </div>
 
+    <label for="restaurantImage">{{ t('restaurantCreate.label.image') || 'Restaurant image' }}</label>
+    <input
+      id="restaurantImage"
+      class="form-control"
+      type="file"
+      accept="image/*"
+      (change)="onRestaurantImageSelected($event)"
+    />
+
     @if (submitError()) {
       <p class="error">{{ submitError() }}</p>
     }

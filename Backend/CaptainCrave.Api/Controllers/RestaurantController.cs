@@ -11,11 +11,12 @@ namespace Api.Controllers;
 // Handles requests related to restaurants. 
 [ApiController]
 [Route("api/[controller]")]
-public class RestaurantsController(IRestaurantService restaurantService, IMenuItemService menuItemService, IMenuService menuService) : ControllerBase
+public class RestaurantsController(IRestaurantService restaurantService, IMenuItemService menuItemService, IMenuService menuService, IImageStorageService imageStorageService) : ControllerBase
 {
     private readonly IRestaurantService _restaurantService = restaurantService;
     private readonly IMenuItemService _menuItemService = menuItemService;
     private readonly IMenuService _menuService = menuService;
+    private readonly IImageStorageService _imageStorageService = imageStorageService;
 
     // Retrieves the logged-in user's ID from the JWT token.
     private int? GetCurrentUserId()
@@ -115,6 +116,43 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
 
         var created = await _restaurantService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
+
+    // Uploads (or replaces) a restaurant's image and stores it on local disk under wwwroot/uploads.
+    [HttpPost("{id}/image")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    [RequestSizeLimit(5_000_000)]
+    public async Task<IActionResult> UploadImage(int id, IFormFile file)
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var restaurant = await _restaurantService.GetByIdAsync(id);
+        if (restaurant is null)
+            return NotFound();
+
+        if (!User.IsInRole("Admin") && restaurant.UserId != userId)
+            return Forbid();
+
+        string relativeUrl;
+        try
+        {
+            relativeUrl = await _imageStorageService.SaveAsync(file, "restaurants");
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+
+        var updated = await _restaurantService.UpdateImageUrlAsync(id, relativeUrl, userId.Value, User.IsInRole("Admin"));
+        if (updated is null)
+        {
+            _imageStorageService.Delete(relativeUrl);
+            return NotFound();
+        }
+
+        return Ok(updated);
     }
 
     // Deletes the caller's restaurant if authorized. This is a soft delete: the restaurant

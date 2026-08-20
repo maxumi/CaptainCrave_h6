@@ -8,6 +8,7 @@ import { CategoryApiService, CategoryDto } from '../../shared/category-api.servi
 import { CartService } from '../../shared/cart.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { Role } from '../../shared/models/user';
+import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api.service';
 import { finalize, forkJoin } from 'rxjs';
 
 @Component({
@@ -24,7 +25,9 @@ export class RestaurantInfo implements OnInit {
   private readonly cartService = inject(CartService);
   private readonly authService = inject(AuthService);
   private readonly transloco = inject(TranslocoService);
+  private readonly restaurantApiService = inject(RestaurantApiService);
 
+  readonly restaurant = signal<RestaurantDto | null>(null);
   readonly menus = signal<MenuDto[]>([]);
   readonly categories = signal<CategoryDto[]>([]);
   readonly menuItems = signal<MenuItemDto[]>([]);
@@ -81,7 +84,15 @@ export class RestaurantInfo implements OnInit {
     }
 
     this.restaurantId = restaurantId;
+    this.loadRestaurant(restaurantId);
     this.loadMenus(restaurantId);
+  }
+
+  private loadRestaurant(restaurantId: number): void {
+    this.restaurantApiService.getById(restaurantId).subscribe({
+      next: (restaurant) => this.restaurant.set(restaurant),
+      error: () => this.restaurant.set(null),
+    });
   }
 
   private loadMenus(restaurantId: number): void {

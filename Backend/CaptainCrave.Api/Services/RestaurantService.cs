@@ -5,9 +5,10 @@ using Api.Repositories;
 namespace Api.Services;
 
 // Handles business logic for restaurant operations.
-public class RestaurantService(IRestaurantRepository restaurantRepository) : IRestaurantService
+public class RestaurantService(IRestaurantRepository restaurantRepository, IImageStorageService imageStorageService) : IRestaurantService
 {
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
+    private readonly IImageStorageService _imageStorageService = imageStorageService;
 
     // Retrieves all restaurants and maps them to DTOs.
     public async Task<IEnumerable<RestaurantDto>> GetAllAsync()
@@ -54,6 +55,23 @@ public class RestaurantService(IRestaurantRepository restaurantRepository) : IRe
         var restaurant = dto.ToRestaurant();
         var created = await _restaurantRepository.CreateAsync(restaurant);
         return created.ToDto();
+    }
+
+    // Updates a restaurant's image URL when the caller owns it or is an admin, returning the updated DTO.
+    public async Task<RestaurantDto?> UpdateImageUrlAsync(int id, string imageUrl, int userId, bool isAdmin)
+    {
+        var restaurant = await _restaurantRepository.GetByIdAsync(id);
+        if (restaurant is null)
+            return null;
+
+        if (!isAdmin && restaurant.UserId != userId)
+            return null;
+
+        var previousImageUrl = restaurant.ImageUrl;
+        restaurant.ImageUrl = imageUrl;
+        var updated = await _restaurantRepository.UpdateAsync(restaurant);
+        _imageStorageService.Delete(previousImageUrl);
+        return updated.ToDto();
     }
 
     // Soft deletes a restaurant when the caller owns it or is an admin.

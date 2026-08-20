@@ -46,6 +46,10 @@ export class RestaurantApiService {
     return this.http.get<RestaurantDto>(`${this.restaurantsUrl}/me`);
   }
 
+  getById(restaurantId: number): Observable<RestaurantDto> {
+    return this.http.get<RestaurantDto>(`${this.restaurantsUrl}/${restaurantId}`);
+  }
+
   getNearbyRestaurants(
     latitude: number,
     longitude: number,
@@ -58,5 +62,12 @@ export class RestaurantApiService {
         radiusKm,
       },
     });
+  }
+
+  uploadImage(restaurantId: number, file: File): Observable<RestaurantDto> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.http.post<RestaurantDto>(`${this.restaurantsUrl}/${restaurantId}/image`, formData);
   }
 }
