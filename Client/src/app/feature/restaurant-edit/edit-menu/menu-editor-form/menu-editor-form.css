@@ -1,2 +1,72 @@
 @import '../menu-shared.css';
 
+.image-section {
+  grid-column: 1 / -1;
+
+  display: flex;
+  align-items: center;
+  gap: 16px;
+
+  padding-top: 8px;
+}
+
+.image-preview {
+  width: 120px;
+  height: 120px;
+
+  object-fit: cover;
+  border-radius: 12px;
+
+  flex-shrink: 0;
+}
+
+.image-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+
+  flex: 1;
+  min-width: 220px;
+}
+
+.image-actions h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.image-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.image-input {
+  display: none;
+}
+
+.image-select-btn {
+  display: inline-block;
+}
+
+.image-file-name {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .image-section {
+    align-items: flex-start;
+  }
+
+  .image-preview {
+    width: 100px;
+    height: 100px;
+  }
+}
