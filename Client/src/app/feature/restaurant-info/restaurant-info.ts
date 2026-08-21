@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MenuItemCard } from './menu-item-card/menu-item-card';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { MenuItemApiService, MenuItemDto } from '../../shared/menu-item-api.service';
 import { MenuApiService, MenuDto } from '../../shared/menu-api.service';
@@ -13,7 +13,7 @@ import { finalize, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-restaurant-info',
-  imports: [TranslocoModule, MenuItemCard],
+  imports: [TranslocoModule, MenuItemCard, RouterLink],
   templateUrl: './restaurant-info.html',
   styleUrl: './restaurant-info.css',
 })
@@ -39,6 +39,9 @@ export class RestaurantInfo implements OnInit {
   readonly canAddToCart = computed(
     () => this.authService.user()?.role === Role.Customer
   );
+  readonly isAdmin = computed(
+    () => this.authService.user()?.role === Role.Admin
+  )
 
   readonly uncategorizedItems = computed(() => {
     // Get all valid category IDs. Set is for unique values.
