@@ -221,8 +221,12 @@
     "name": "Navn",
     "price": "Pris",
     "description": "Beskrivelse",
-    "inStock": "På lager"
+    "inStock": "På lager",
+    "image": "Billede"
   },
+  "chooseImage": "Vælg billede",
+  "uploadImage": "Upload billede",
+  "uploadingImage": "Uploader...",
   "form": {
     "addTitle": "Tilføj ny menuvare",
     "editTitle": "Rediger {{name}}",
@@ -240,7 +244,9 @@
     "createMenuFailed": "Kunne ikke oprette menuen.",
     "loadFailed": "Kunne ikke indlæse menuvarer. Prøv igen.",
     "saveFailed": "Kunne ikke gemme menuvaren.",
-    "deleteFailed": "Kunne ikke slette menuvaren."
+    "deleteFailed": "Kunne ikke slette menuvaren.",
+    "saveItemFirst": "Gem menuvaren, før du uploader et billede.",
+    "uploadFailed": "Kunne ikke uploade billedet til menuvaren."
   }
 },
 "cart": {

@@ -17,7 +17,8 @@ export class MenuEditorForm {
   @Input() isSubmitting = false;
   @Input() menuForm: any;
   @Input() canUpload = false;
-
+  @Input() isUploading = false;
+  @Input() imageUrl: string | null = null;
   @Output() deleteItem = new EventEmitter<void>();
   @Output() imageSelected = new EventEmitter<File>();
 
@@ -29,13 +30,14 @@ export class MenuEditorForm {
 
   onImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+    this.selectedFile = input.files?.[0] ?? null;
+  }
 
-    if (!file) {
+  uploadImage(): void {
+    if (!this.selectedFile) {
       return;
     }
 
-    this.selectedFile = file;
-    this.imageSelected.emit(file);
+    this.imageSelected.emit(this.selectedFile);
   }
 }

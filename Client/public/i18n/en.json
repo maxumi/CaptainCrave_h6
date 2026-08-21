@@ -221,8 +221,12 @@
       "name": "Name",
       "price": "Price",
       "description": "Description",
-      "inStock": "In Stock"
+      "inStock": "In Stock",
+      "image": "Image"
     },
+    "chooseImage": "Choose image",
+    "uploadImage": "Upload image",
+    "uploadingImage": "Uploading...",
     "form": {
       "addTitle": "Add New Menu Item",
       "editTitle": "Edit {{name}}",
@@ -240,7 +244,9 @@
       "createMenuFailed": "Could not create the menu.",
       "loadFailed": "Failed to load menu items. Please try again.",
       "saveFailed": "Could not save this menu item.",
-      "deleteFailed": "Could not delete this menu item."
+      "deleteFailed": "Could not delete this menu item.",
+      "saveItemFirst": "Save the menu item before uploading an image.",
+      "uploadFailed": "Could not upload the menu item image."
     }
   },
 "cart": {

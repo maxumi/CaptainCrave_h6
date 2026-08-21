@@ -1,60 +1,133 @@
 <form class="card cc-section-lg" [formRoot]="menuForm" *transloco="let t">
-	<header class="cc-flex-between cc-stack-mobile">
-		<div>
-			<h2 class="cc-title">
-				{{ mode === 'create' ? t('menuEdit.form.addTitle') : t('menuEdit.form.editTitle', { name: itemName }) }}
-			</h2>
+  <header class="cc-flex-between cc-stack-mobile">
+    <div>
+      <h2 class="cc-title">
+        {{
+          mode === 'create'
+            ? t('menuEdit.form.addTitle')
+            : t('menuEdit.form.editTitle', { name: itemName })
+        }}
+      </h2>
 
-			<p class="cc-subtitle">
-				{{ mode === 'create' ? t('menuEdit.form.addSubtitle') : t('menuEdit.form.editSubtitle') }}
-			</p>
-		</div>
+      <p class="cc-subtitle">
+        {{
+          mode === 'create'
+            ? t('menuEdit.form.addSubtitle')
+            : t('menuEdit.form.editSubtitle')
+        }}
+      </p>
+    </div>
 
-		<div class="cc-actions cc-stack-mobile">
-			<button
-				type="submit"
-				class="btn cc-btn-min cc-full-mobile"
-				[disabled]="menuForm().invalid() || isSubmitting"
+    <div class="cc-actions cc-stack-mobile">
+      <button
+        type="submit"
+        class="btn cc-btn-min cc-full-mobile"
+        [disabled]="menuForm().invalid() || isSubmitting"
+      >
+        {{
+          isSubmitting
+            ? t('menuEdit.saving')
+            : mode === 'create'
+              ? t('menuEdit.createItem')
+              : t('menuEdit.saveChanges')
+        }}
+      </button>
+
+      @if (mode !== 'create') {
+        <button
+          type="button"
+          class="btn cc-btn-danger cc-btn-min cc-full-mobile"
+          (click)="onDeleteItem()"
+        >
+          {{ t('menuEdit.deleteItem') }}
+        </button>
+      }
+    </div>
+  </header>
+
+  <div class="cc-form-grid cc-grid-mobile-1">
+    <label class="cc-form-label">
+      {{ t('menuEdit.fields.name') }}
+      <input
+        class="form-control"
+        type="text"
+        [formField]="menuForm.name"
+      />
+    </label>
+
+    <label class="cc-form-label">
+      {{ t('menuEdit.fields.price') }}
+      <input
+        class="form-control"
+        type="number"
+        [formField]="menuForm.price"
+      />
+    </label>
+
+    <label class="cc-form-label">
+      {{ t('menuEdit.fields.description') }}
+      <textarea
+        class="form-control"
+        [formField]="menuForm.description"
+      ></textarea>
+    </label>
+
+    <label class="cc-checkbox-field">
+      <input
+        type="checkbox"
+        [formField]="menuForm.isAvailable"
+      />
+      {{ t('menuEdit.fields.inStock') }}
+    </label>
+
+	@if (canUpload) {
+	<div class="image-section">
+		<img
+		[src]="imageUrl || 'captain_crave.png'"
+		alt="Menu item"
+		class="image-preview"
+		/>
+
+		<div class="image-actions">
+		<h3>{{ t('menuEdit.fields.image') }}</h3>
+
+		<div class="image-upload">
+			<input
+			id="menu-item-image-input"
+			class="image-input"
+			type="file"
+			accept="image/*"
+			(change)="onImageSelected($event)"
+			/>
+
+			<label
+			for="menu-item-image-input"
+			class="btn btn-secondary image-select-btn"
 			>
-				{{ isSubmitting ? t('menuEdit.saving') : (mode === 'create' ? t('menuEdit.createItem') : t('menuEdit.saveChanges')) }}
-			</button>
+			 {{ t('menuEdit.chooseImage') }}
+			</label>
 
-			@if (mode !== 'create') {
-				<button
-					type="button"
-					class="btn cc-btn-danger cc-btn-min cc-full-mobile"
-					(click)="onDeleteItem()"
-				>
-					{{ t('menuEdit.deleteItem') }}
-				</button>
+			@if (selectedFile) {
+			<span class="image-file-name">
+				{{ selectedFile.name }}
+			</span>
 			}
 		</div>
-	</header>
 
-	<div class="cc-form-grid cc-grid-mobile-1">
-		<label class="cc-form-label">
-			{{ t('menuEdit.fields.name') }}
-			<input class="form-control" type="text" [formField]="menuForm.name" />
-		</label>
-
-		<label class="cc-form-label">
-			{{ t('menuEdit.fields.price') }}
-			<input class="form-control" type="number" [formField]="menuForm.price" />
-		</label>
-
-		<label class="cc-form-label">
-			{{ t('menuEdit.fields.description') }}
-			<textarea class="form-control" [formField]="menuForm.description"></textarea>
-		</label>
-
-		<label class="cc-checkbox-field">
-			<input type="checkbox" [formField]="menuForm.isAvailable" />
-			{{ t('menuEdit.fields.inStock') }}
-		</label>
-
-		<label class="cc-form-label" *ngIf="canUpload">
-			{{ t('menuEdit.fields.image') || 'Image' }}
-			<input class="form-control" type="file" accept="image/*" (change)="onImageSelected($event)" />
-		</label>
+		<button
+		type="button"
+		class="btn"
+		[disabled]="!selectedFile || isUploading"
+		(click)="uploadImage()"
+		>
+		{{
+			isUploading
+			? t('menuEdit.uploadingImage')
+			: t('menuEdit.uploadImage')
+		}}
+		</button>
+		</div>
 	</div>
+	}
+  </div>
 </form>
