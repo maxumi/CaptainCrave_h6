@@ -39,14 +39,18 @@ export class MenuEditStore {
   readonly restaurantId = signal<number | null>(null);
   readonly menuId = signal<number | null>(null);
 
-  load(): void {
+  load(restaurantId?: number | null): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
     this.hasNoRestaurant.set(false);
     this.clearRestaurantState();
 
-    this.restaurantApiService.getMyRestaurant().pipe(
-      switchMap(restaurant => {
+    const restaurantRequest = restaurantId
+      ? this.restaurantApiService.getById(restaurantId)
+      : this.restaurantApiService.getMyRestaurant();
+
+    restaurantRequest.pipe(
+      switchMap((restaurant) => {
         this.restaurantId.set(restaurant.id);
 
         return forkJoin({
@@ -56,15 +60,14 @@ export class MenuEditStore {
       }),
       map(({ menus, items }) => {
         this.menus.set(menus);
-        this.allMenuItems.set(items.map(item => this.toLocalItem(item)));
+        this.allMenuItems.set(
+          items.map((item) => this.toLocalItem(item))
+        );
 
-        if (menus.length > 0) {
-          this.menuId.set(menus[0].id);
-        } else {
-          this.menuId.set(null);
-        }
+        this.menuId.set(menus[0]?.id ?? null);
 
         this.syncVisibleMenuItems();
+
         return this.menuItems();
       }),
       catchError((error: { status?: number }) => {
@@ -74,7 +77,7 @@ export class MenuEditStore {
         } else {
           this.errorMessage.set(this.t('error.loadFailed'));
         }
-        // empty observable.
+
         return EMPTY;
       }),
       finalize(() => {

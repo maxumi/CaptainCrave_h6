@@ -67,6 +67,7 @@ export class OrderApiService {
   createOrder(payload: CreateOrderRequest): Observable<OrderResponse> {
     return this.http.post<OrderResponse>(this.ordersUrl, payload);
   }
+  
 
   getRestaurantActiveOrders(): Observable<OrderDto[]> {
     return this.http.get<OrderDto[]>(`${this.ordersUrl}/restaurant/active`);
@@ -116,4 +117,21 @@ export class OrderApiService {
       })
     );
   }
+  
+  getRestaurantActiveOrdersByRestaurantId(
+    restaurantId: number
+  ): Observable<OrderDto[]> {
+    return this.http.get<OrderDto[]>(
+      `${this.ordersUrl}/restaurant/${restaurantId}/active`
+    );
+  }
+
+  getRestaurantHistoricOrdersByRestaurantId(
+    restaurantId: number
+  ): Observable<OrderDto[]> {
+    return this.http.get<OrderDto[]>(
+      `${this.ordersUrl}/restaurant/${restaurantId}/history`
+    );
+  }
+
 }

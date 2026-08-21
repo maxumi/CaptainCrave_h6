@@ -185,4 +185,24 @@ public class OrderService(
             _ => false
         };
     }
+
+    public async Task<IEnumerable<OrderDto>> GetRestaurantActiveOrdersByRestaurantIdAsync(int restaurantId)
+    {
+        var restaurant = await _restaurantRepository.GetByIdAsync(restaurantId)
+            ?? throw new KeyNotFoundException($"Restaurant {restaurantId} not found.");
+
+        var orders = await _orderRepository.GetActiveByRestaurantAsync(restaurant.Id);
+
+        return orders.Select(order => order.ToDto());
+    }
+
+    public async Task<IEnumerable<OrderDto>> GetRestaurantHistoricOrdersByRestaurantIdAsync(int restaurantId)
+    {
+        var restaurant = await _restaurantRepository.GetByIdAsync(restaurantId)
+            ?? throw new KeyNotFoundException($"Restaurant {restaurantId} not found.");
+
+        var orders = await _orderRepository.GetHistoryByRestaurantAsync(restaurant.Id);
+
+        return orders.Select(order => order.ToDto());
+    }
 }

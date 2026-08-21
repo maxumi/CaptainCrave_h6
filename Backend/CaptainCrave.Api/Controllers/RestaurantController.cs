@@ -118,6 +118,25 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
+    // Updates the editable restaurant profile fields.
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> Update(int id, UpdateRestaurantDto dto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userId = GetCurrentUserId();
+        if (userId is null)
+            return Unauthorized();
+
+        var updated = await _restaurantService.UpdateAsync(id, dto, userId.Value, User.IsInRole("Admin"));
+        if (updated is null)
+            return NotFound();
+
+        return Ok(updated);
+    }
+
     // Uploads (or replaces) a restaurant's image and stores it on local disk under wwwroot/uploads.
     [HttpPost("{id}/image")]
     [Authorize(Roles = "Restaurant,Admin")]

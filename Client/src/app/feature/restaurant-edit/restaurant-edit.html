@@ -1,22 +1,25 @@
 <div class="restaurant-page">
   <main class="menu-content">
+    @if (loadError()) {
+      <p class="error banner">{{ loadError() }}</p>
+    }
+
     @if (currentRestaurant(); as restaurant) {
-      <section class="card" style="margin-bottom: 1rem; padding: 1rem;">
-        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+      <section class="card editor-card">
+        <div class="cover-row">
           <img
             [src]="restaurant.imageUrl || 'captain_crave.png'"
             alt="Restaurant cover"
-            style="width: 120px; height: 120px; object-fit: cover; border-radius: 12px;"
+            class="cover-image"
           />
 
-          <div style="flex: 1; min-width: 220px;">
-            <h3 style="margin: 0 0 0.5rem;">Restaurant cover</h3>
+          <div class="cover-actions">
+            <h3>Restaurant cover</h3>
             <input
               id="restaurant-cover-input"
               type="file"
               accept="image/*"
               (change)="onCoverSelected($event)"
-              style="display: block; margin-bottom: 0.75rem;"
             />
 
             <button
@@ -30,36 +33,85 @@
           </div>
         </div>
 
-        @if (uploadError()) {
-          <p class="error" style="margin-top: 0.75rem;">{{ uploadError() }}</p>
-        }
+        <div class="edit-form">
+          <label for="restaurant-name">Name</label>
+          <input id="restaurant-name" class="form-control" type="text" [(ngModel)]="restaurantDraft.name" />
+
+          <label for="restaurant-description">Description</label>
+          <textarea
+            id="restaurant-description"
+            class="form-control"
+            rows="4"
+            [(ngModel)]="restaurantDraft.description"
+          ></textarea>
+
+          <label for="restaurant-address">Address</label>
+          <input id="restaurant-address" class="form-control" type="text" [(ngModel)]="restaurantDraft.address" />
+
+          <div class="location-grid">
+            <div>
+              <label for="restaurant-latitude">Latitude</label>
+              <input id="restaurant-latitude" class="form-control" type="number" step="0.000001" [(ngModel)]="restaurantDraft.latitude" />
+            </div>
+
+            <div>
+              <label for="restaurant-longitude">Longitude</label>
+              <input id="restaurant-longitude" class="form-control" type="number" step="0.000001" [(ngModel)]="restaurantDraft.longitude" />
+            </div>
+          </div>
+
+          <label class="active-toggle">
+            <input type="checkbox" [(ngModel)]="restaurantDraft.isActive" />
+            Active
+          </label>
+
+          <div class="actions-row">
+            <button type="button" class="btn" [disabled]="isSaving()" (click)="saveRestaurant()">
+              {{ isSaving() ? 'Saving...' : 'Save restaurant' }}
+            </button>
+          </div>
+
+          @if (saveError()) {
+            <p class="error">{{ saveError() }}</p>
+          }
+
+          @if (saveSuccess()) {
+            <p class="success">{{ saveSuccess() }}</p>
+          }
+
+          @if (uploadError()) {
+            <p class="error">{{ uploadError() }}</p>
+          }
+        </div>
       </section>
     }
 
-    <nav class="restaurant-tabs" aria-label="Restaurant tabs">
-      <button
-        type="button"
-        [class.active]="activeTab === 'orders'"
-        (click)="activeTab = 'orders'"
-      >
-        Orders
-      </button>
+<nav class="restaurant-tabs" aria-label="Restaurant tabs">
+  <button
+    type="button"
+    [class.active]="activeTab === 'orders'"
+    (click)="activeTab = 'orders'"
+  >
+    Orders
+  </button>
 
-      <button
-        type="button"
-        [class.active]="activeTab === 'menu'"
-        (click)="activeTab = 'menu'"
-      >
-        Menu
-      </button>
-    </nav>
+  <button
+    type="button"
+    [class.active]="activeTab === 'menu'"
+    (click)="activeTab = 'menu'"
+  >
+    Menu
+  </button>
+</nav>
 
-    @if (activeTab === 'orders') {
-      <app-edit-order />
-    }
+@if (activeTab === 'orders') {
+  @if (currentRestaurant(); as restaurant) {
+    <app-edit-order [restaurantId]="restaurant.id" />
+  }
+}
 
-    @if (activeTab === 'menu') {
-      <app-edit-menu />
-    }
+@if (currentRestaurant(); as restaurant) {
+  <app-edit-menu [restaurantId]="restaurant.id" />
+}
   </main>
 </div>

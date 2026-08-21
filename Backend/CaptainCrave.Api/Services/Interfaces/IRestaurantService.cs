@@ -17,6 +17,9 @@ public interface IRestaurantService
     // Validates, creates, and returns the new restaurant as a DTO.
     Task<RestaurantDto> CreateAsync(CreateRestaurantDto dto);
 
+    // Updates a restaurant's profile when the caller owns it or is an admin.
+    Task<RestaurantDto?> UpdateAsync(int id, UpdateRestaurantDto dto, int userId, bool isAdmin);
+
     // Updates a restaurant's image URL when the caller owns it or is an admin, returning the updated DTO.
     Task<RestaurantDto?> UpdateImageUrlAsync(int id, string imageUrl, int userId, bool isAdmin);
 

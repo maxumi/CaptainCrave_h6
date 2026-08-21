@@ -14,6 +14,15 @@ export interface CreateRestaurantRequest {
   isActive: boolean;
 }
 
+export interface UpdateRestaurantRequest {
+  name: string;
+  description: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  isActive: boolean;
+}
+
 export interface RestaurantDto {
   id: number;
   userId: number;
@@ -48,6 +57,10 @@ export class RestaurantApiService {
 
   getById(restaurantId: number): Observable<RestaurantDto> {
     return this.http.get<RestaurantDto>(`${this.restaurantsUrl}/${restaurantId}`);
+  }
+
+  updateRestaurant(restaurantId: number, payload: UpdateRestaurantRequest): Observable<RestaurantDto> {
+    return this.http.put<RestaurantDto>(`${this.restaurantsUrl}/${restaurantId}`, payload);
   }
 
   getNearbyRestaurants(

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, input } from '@angular/core';
 import { form, min } from '@angular/forms/signals';
 import { MatDialog } from '@angular/material/dialog';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
@@ -38,6 +38,8 @@ export class EditMenu implements OnInit {
   private readonly transloco = inject(TranslocoService);
   private readonly menuItemApiService = inject(MenuItemApiService);
 
+  readonly restaurantId = input<number | null>(null);
+
   readonly store = inject(MenuEditStore);
 
   readonly menuModel = signal<MenuItem>(this.store.createDraftItem());
@@ -58,7 +60,7 @@ export class EditMenu implements OnInit {
   );
 
   ngOnInit(): void {
-    this.store.load();
+    this.store.load(this.restaurantId());
   }
 
   selectMenu(menuId: number): void {

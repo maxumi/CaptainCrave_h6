@@ -22,7 +22,7 @@
       <a class="nav-link" routerLink="/order-history">{{ t('navbar.orderHistory') }}</a>
     }
 
-    @if (isRestaurantOrAdmin()) {
+    @if (isRestaurant()) {
       <a class="nav-link" routerLink="/restaurant-edit">{{ t('navbar.manageRestaurant') }}</a>
     }
   </div>

@@ -27,6 +27,7 @@ export const routes: Routes = [
   { path: "order-status/:id", component: OrderStatusView, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
   { path: 'restaurant-create', component: RestaurantCreate, canActivate: [authGuard, roleGuard], data: { roles: ['Restaurant'] } },
   { path: 'restaurant-edit', component: RestaurantEdit, canActivate: [authGuard, roleGuard], data: { roles: ['Restaurant', 'Admin'] } },
+  { path: 'restaurant-edit/:id', component: RestaurantEdit, canActivate: [authGuard, roleGuard], data: { roles: ['Restaurant', 'Admin'] } },
   { path: 'restaurants', component: Restaurants },
   { path: 'restaurants-search', component: RestaurantsSearch },
   { path: 'restaurants-map', component: NearbyRestaurantsMap },

@@ -57,6 +57,27 @@ public class RestaurantService(IRestaurantRepository restaurantRepository, IImag
         return created.ToDto();
     }
 
+    // Updates the editable restaurant fields when the caller owns it or is an admin.
+    public async Task<RestaurantDto?> UpdateAsync(int id, UpdateRestaurantDto dto, int userId, bool isAdmin)
+    {
+        var restaurant = await _restaurantRepository.GetByIdAsync(id);
+        if (restaurant is null)
+            return null;
+
+        if (!isAdmin && restaurant.UserId != userId)
+            return null;
+
+        restaurant.Name = dto.Name;
+        restaurant.Description = dto.Description;
+        restaurant.Address = dto.Address;
+        restaurant.Latitude = dto.Latitude;
+        restaurant.Longitude = dto.Longitude;
+        restaurant.IsActive = dto.IsActive;
+
+        var updated = await _restaurantRepository.UpdateAsync(restaurant);
+        return updated.ToDto();
+    }
+
     // Updates a restaurant's image URL when the caller owns it or is an admin, returning the updated DTO.
     public async Task<RestaurantDto?> UpdateImageUrlAsync(int id, string imageUrl, int userId, bool isAdmin)
     {

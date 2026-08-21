@@ -21,6 +21,11 @@ public interface IOrderService
     // Returns delivered/cancelled orders for the restaurant linked to the current user.
     Task<IEnumerable<OrderDto>> GetRestaurantHistoricOrdersAsync(int currentUserId, UserRole currentUserRole);
 
+    Task<IEnumerable<OrderDto>> GetRestaurantActiveOrdersByRestaurantIdAsync(int restaurantId);
+
+    Task<IEnumerable<OrderDto>> GetRestaurantHistoricOrdersByRestaurantIdAsync(int restaurantId);
+
+
     // Returns the active order for a user, or null if none exists.
     Task<OrderDto?> GetActiveOrderForUserAsync(int userId);
 
