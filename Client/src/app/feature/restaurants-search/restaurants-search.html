@@ -40,38 +40,22 @@
     @if (!isLoading() && !loadError() && pagedRestaurants().length) {
       <div class="result-list">
         @for (restaurant of pagedRestaurants(); track restaurant.id) {
-          @if (isAdmin()) {
-            <a
-              class="result-item card"
-              [routerLink]="['/restaurant-edit', restaurant.id]"
-            >
-              <h2>{{ restaurant.name }}</h2>
-              <p>{{ restaurant.description || restaurant.address }}</p>
-              <span class="status" [class.out]="!restaurant.isActive">
-                {{
-                  restaurant.isActive
-                    ? t('restaurants.status.open')
-                    : t('restaurants.status.closed')
-                }}
-              </span>
-            </a>
-          } @else {
-            <a
-              class="result-item card"
-              [routerLink]="['/restaurantInfo']"
-              [queryParams]="{ restaurantId: restaurant.id }"
-            >
-              <h2>{{ restaurant.name }}</h2>
-              <p>{{ restaurant.description || restaurant.address }}</p>
-              <span class="status" [class.out]="!restaurant.isActive">
-                {{
-                  restaurant.isActive
-                    ? t('restaurants.status.open')
-                    : t('restaurants.status.closed')
-                }}
-              </span>
-            </a>
-          }
+          <a
+            class="result-item card"
+            [routerLink]="['/restaurantInfo']"
+            [queryParams]="{ restaurantId: restaurant.id }"
+          >
+            <h2>{{ restaurant.name }}</h2>
+            <p>{{ restaurant.description || restaurant.address }}</p>
+
+            <span class="status" [class.out]="!restaurant.isActive">
+              {{
+                restaurant.isActive
+                  ? t('restaurants.status.open')
+                  : t('restaurants.status.closed')
+              }}
+            </span>
+          </a>
         }
       </div>
 
@@ -107,7 +91,7 @@
       }
     }
 
-    @if (!isLoading() && !loadError() && !nameFilteredRestaurants().length) {
+    @if (!isLoading() && !loadError() && !filteredRestaurants().length) {
       <p class="search-state">{{ t('restaurantsSearch.empty') }}</p>
     }
   </section>

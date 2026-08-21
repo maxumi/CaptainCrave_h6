@@ -9,8 +9,18 @@
     </div>
   </div>
 
-  <h2>{{ t('restaurantInfo.menu') }}</h2>
+<h2>{{ t('restaurantInfo.menu') }}</h2>
 
+  @if (isAdmin()) {
+    <button
+      type="button"
+      class="btn"
+       [routerLink]="['/restaurant-edit', restaurant()?.id]"
+    >
+      Edit restaurant
+    </button>
+  }
+  
   @if (isLoading()) {
     <p class="menu-state">
       {{ t('restaurantInfo.loading') }}

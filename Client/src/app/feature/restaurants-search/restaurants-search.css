@@ -4,7 +4,7 @@
 
 .restaurants-search-card {
   max-width: 780px;
-  margin: 40px auto;
+  margin: 0 auto;
   padding: 24px;
 }
 
@@ -50,9 +50,9 @@
 
 .result-item {
   display: block;
-  text-decoration: none;
-  color: inherit;
   padding: 16px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .result-item h2 {
@@ -78,11 +78,10 @@
 
 @media (max-width: 780px) {
   .restaurants-search-page {
-    padding: 20px;
+    padding: 20px 16px;
   }
 
   .restaurants-search-card {
-    margin: 20px auto;
     padding: 18px;
   }
 
