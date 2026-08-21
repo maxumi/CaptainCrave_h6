@@ -15,12 +15,29 @@
 
           <div class="cover-actions">
             <h3>Restaurant cover</h3>
-            <input
-              id="restaurant-cover-input"
-              type="file"
-              accept="image/*"
-              (change)="onCoverSelected($event)"
-            />
+
+            <div class="cover-upload">
+              <input
+                id="restaurant-cover-input"
+                class="cover-input"
+                type="file"
+                accept="image/*"
+                (change)="onCoverSelected($event)"
+              />
+
+              <label
+                for="restaurant-cover-input"
+                class="btn btn-secondary cover-select-btn"
+              >
+                Choose image
+              </label>
+
+              @if (selectedCover()) {
+                <span class="cover-file-name">
+                  {{ selectedCover()?.name }}
+                </span>
+              }
+            </div>
 
             <button
               type="button"
