@@ -108,8 +108,8 @@
   <app-edit-order />
 }
 
-@if (activeTab === 'menu') {
-  <app-edit-menu />
+@if (currentRestaurant(); as restaurant) {
+  <app-edit-menu [restaurantId]="restaurant.id" />
 }
   </main>
 </div>
