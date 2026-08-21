@@ -3,6 +3,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api.service';
 import { FormsModule } from '@angular/forms';
+import { AuthService } from '../../core/auth/auth.service';
+import { Role } from '../../shared/models/user';
 
 @Component({
   selector: 'app-restaurants-search',
@@ -17,12 +19,14 @@ export class RestaurantsSearch implements OnInit {
   private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   readonly restaurants = signal<RestaurantDto[]>([]);
   readonly query = signal('');
   readonly page = signal(1);
   readonly isLoading = signal(true);
   readonly loadError = signal<string | null>(null);
+  readonly isAdmin = computed(() => this.authService.user()?.role === Role.Admin);
 
   readonly nameFilteredRestaurants = computed(() => {
     const query = this.normalize(this.query());

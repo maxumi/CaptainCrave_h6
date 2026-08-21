@@ -17,9 +17,9 @@ export class Navbar {
   readonly authService = inject(AuthService);
   readonly user = this.authService.user;
   readonly isCustomer = computed(() => this.user()?.role === Role.Customer);
-  readonly isRestaurantOrAdmin = computed(() => {
+  readonly isRestaurant = computed(() => {
     const role = this.user()?.role;
-    return role === Role.Restaurant || role === Role.Admin;
+    return role === Role.Restaurant;
   });
   readonly profileRoute = computed(() =>
     this.user()?.role === Role.Restaurant ? '/restaurant-edit' : '/profile'
