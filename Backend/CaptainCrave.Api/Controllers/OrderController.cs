@@ -178,4 +178,26 @@ public class OrdersController(IOrderService orderService) : ControllerBase
 
         return Ok(order);
     }
+
+    [HttpGet("restaurant/{restaurantId}/active")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> GetRestaurantActiveOrdersById(
+        int restaurantId)
+    {
+        var orders = await _orderService
+            .GetRestaurantActiveOrdersByRestaurantIdAsync(restaurantId);
+
+        return Ok(orders);
+    }
+    
+    [HttpGet("restaurant/{restaurantId}/history")]
+    [Authorize(Roles = "Restaurant,Admin")]
+    public async Task<IActionResult> GetRestaurantHistoricOrdersById(
+        int restaurantId)
+    {
+        var orders = await _orderService
+            .GetRestaurantHistoricOrdersByRestaurantIdAsync(restaurantId);
+
+        return Ok(orders);
+    }
 }

@@ -105,7 +105,9 @@
 </nav>
 
 @if (activeTab === 'orders') {
-  <app-edit-order />
+  @if (currentRestaurant(); as restaurant) {
+    <app-edit-order [restaurantId]="restaurant.id" />
+  }
 }
 
 @if (currentRestaurant(); as restaurant) {

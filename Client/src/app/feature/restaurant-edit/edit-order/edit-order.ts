@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { form, FormField, FormRoot } from '@angular/forms/signals';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { catchError, EMPTY, finalize, firstValueFrom, map, of, tap } from 'rxjs';
@@ -25,11 +25,14 @@ type OrderMode = 'active' | 'history';
   templateUrl: './edit-order.html',
   styleUrl: './edit-order.css',
 })
-export class EditOrder implements OnInit {
+export class EditOrder {
   private readonly orderApiService = inject(OrderApiService);
   private readonly transloco = inject(TranslocoService);
 
   readonly OrderStatus = OrderStatus;
+
+  // get the restaurantId from the parent component to use in the API calls
+  readonly restaurantId = input<number | null>(null);
 
   readonly isLoading = signal(true);
   readonly loadError = signal<string | null>(null);
@@ -73,8 +76,16 @@ export class EditOrder implements OnInit {
     },
   });
 
-  ngOnInit() {
-    this.loadOrders('active');
+  ngOnInit(): void {
+    const restaurantId = this.restaurantId();
+
+    if (restaurantId == null) {
+      this.loadError.set('Missing restaurant id.');
+      this.isLoading.set(false);
+      return;
+    }
+
+    this.loadOrders('active', restaurantId);
   }
 
   setMode(mode: OrderMode): void {
@@ -93,7 +104,11 @@ export class EditOrder implements OnInit {
       : this.historicOrders().length > 0;
 
     if (!hasData) {
-      this.loadOrders(mode);
+      const restaurantId = this.restaurantId();
+
+      if (restaurantId != null) {
+        this.loadOrders(mode, restaurantId);
+      }
     }
   }
 
@@ -179,57 +194,56 @@ export class EditOrder implements OnInit {
     this.saveSuccess.set(null);
   }
 
-  private loadOrders(mode: OrderMode): void {
-    this.isLoading.set(true);
-    this.loadError.set(null);
-    this.saveError.set(null);
-    this.saveSuccess.set(null);
+private loadOrders(mode: OrderMode, restaurantId: number): void {
+  this.isLoading.set(true);
+  this.loadError.set(null);
+  this.saveError.set(null);
+  this.saveSuccess.set(null);
 
-    const request$ = mode === 'active'
-      ? this.orderApiService.getRestaurantActiveOrders()
-      : this.orderApiService.getRestaurantHistoricOrders();
+  const request$ = mode === 'active'
+    ? this.orderApiService.getRestaurantActiveOrdersByRestaurantId(restaurantId)
+    : this.orderApiService.getRestaurantHistoricOrdersByRestaurantId(restaurantId);
 
-    request$.pipe(
-      catchError((error: { status?: number }) => {
-        if (error.status === 401 || error.status === 403) {
-          this.loadError.set(this.t('orderManage.error.notAllowed'));
-        } else if (error.status === 404) {
-          this.loadError.set(this.t('orderManage.error.notFound'));
-        } else {
-          this.loadError.set(this.t('orderManage.error.loadFailed'));
-        }
+  request$.pipe(
+    catchError((error: { status?: number }) => {
+      if (error.status === 401 || error.status === 403) {
+        this.loadError.set(this.t('orderManage.error.notAllowed'));
+      } else if (error.status === 404) {
+        this.loadError.set(this.t('orderManage.error.notFound'));
+      } else {
+        this.loadError.set(this.t('orderManage.error.loadFailed'));
+      }
 
-        if (mode === 'active') {
-          this.activeOrders.set([]);
-        } else {
-          this.historicOrders.set([]);
-        }
-
-        this.selectedOrder.set(null);
-
-        return EMPTY;
-      }),
-
-      finalize(() => {
-        this.isLoading.set(false);
-      }),
-    ).subscribe(orders => {
       if (mode === 'active') {
-        this.activeOrders.set(orders);
+        this.activeOrders.set([]);
       } else {
-        this.historicOrders.set(orders);
+        this.historicOrders.set([]);
       }
 
-      if (orders.length > 0) {
-        this.selectOrder(orders[0]);
-      } else {
-        this.selectedOrder.set(null);
-        this.orderModel.set({
-          status: OrderStatus.Pending,
-        });
-      }
-    });
-  }
+      this.selectedOrder.set(null);
+
+      return EMPTY;
+    }),
+    finalize(() => {
+      this.isLoading.set(false);
+    }),
+  ).subscribe((orders) => {
+    if (mode === 'active') {
+      this.activeOrders.set(orders);
+    } else {
+      this.historicOrders.set(orders);
+    }
+
+    if (orders.length > 0) {
+      this.selectOrder(orders[0]);
+    } else {
+      this.selectedOrder.set(null);
+      this.orderModel.set({
+        status: OrderStatus.Pending,
+      });
+    }
+  });
+}
 
   private getNextAllowedStatuses(order: OrderDto): OrderStatus[] {
     if (order.status === OrderStatus.Delivered || order.status === OrderStatus.Cancelled) {
