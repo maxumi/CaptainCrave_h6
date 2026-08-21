@@ -1,0 +1,126 @@
+<section class="card editor-card">
+  <div class="cover-row">
+    <img
+      [src]="restaurant().imageUrl || 'captain_crave.png'"
+      alt="Restaurant cover"
+      class="cover-image"
+    />
+
+    <div class="cover-actions">
+      <h3>Restaurant cover</h3>
+
+      <div class="cover-upload">
+        <input
+          id="restaurant-cover-input"
+          class="cover-input"
+          type="file"
+          accept="image/*"
+          (change)="onCoverSelected($event)"
+        />
+
+        <label
+          for="restaurant-cover-input"
+          class="btn btn-secondary cover-select-btn"
+        >
+          Choose image
+        </label>
+
+        @if (selectedCover()) {
+          <span class="cover-file-name">
+            {{ selectedCover()?.name }}
+          </span>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="btn"
+        [disabled]="!selectedCover() || isUploading()"
+        (click)="uploadCover()"
+      >
+        {{ isUploading() ? 'Uploading...' : 'Upload cover' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="edit-form">
+    <label for="restaurant-name">Name</label>
+    <input
+      id="restaurant-name"
+      class="form-control"
+      type="text"
+      [(ngModel)]="restaurantDraft.name"
+    />
+
+    <label for="restaurant-description">Description</label>
+    <textarea
+      id="restaurant-description"
+      class="form-control"
+      rows="4"
+      [(ngModel)]="restaurantDraft.description"
+    ></textarea>
+
+    <label for="restaurant-address">Address</label>
+    <input
+      id="restaurant-address"
+      class="form-control"
+      type="text"
+      [(ngModel)]="restaurantDraft.address"
+    />
+
+    <div class="location-grid">
+      <div>
+        <label for="restaurant-latitude">Latitude</label>
+        <input
+          id="restaurant-latitude"
+          class="form-control"
+          type="number"
+          step="0.000001"
+          [(ngModel)]="restaurantDraft.latitude"
+        />
+      </div>
+
+      <div>
+        <label for="restaurant-longitude">Longitude</label>
+        <input
+          id="restaurant-longitude"
+          class="form-control"
+          type="number"
+          step="0.000001"
+          [(ngModel)]="restaurantDraft.longitude"
+        />
+      </div>
+    </div>
+
+    <label class="active-toggle">
+      <input
+        type="checkbox"
+        [(ngModel)]="restaurantDraft.isActive"
+      />
+      Active
+    </label>
+
+    <div class="actions-row">
+      <button
+        type="button"
+        class="btn"
+        [disabled]="isSaving()"
+        (click)="saveRestaurant()"
+      >
+        {{ isSaving() ? 'Saving...' : 'Save restaurant' }}
+      </button>
+    </div>
+
+    @if (saveError()) {
+      <p class="error">{{ saveError() }}</p>
+    }
+
+    @if (saveSuccess()) {
+      <p class="success">{{ saveSuccess() }}</p>
+    }
+
+    @if (uploadError()) {
+      <p class="error">{{ uploadError() }}</p>
+    }
+  </div>
+</section>
