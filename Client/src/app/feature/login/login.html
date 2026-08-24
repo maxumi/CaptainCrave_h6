@@ -2,8 +2,9 @@
   <h2>{{ t("login.title") }}</h2>
 
   <form [formRoot]="loginForm">
-    <label>{{ t("login.label.email") }}</label>
+    <label for="email">{{ t("login.label.email") }}</label>
     <input
+      id="email"
       class="form-input"
       type="email"
       [formField]="loginForm.email"
@@ -16,8 +17,9 @@
       }
     }
 
-    <label>{{ t("login.label.password") }}</label>
+    <label for="password">{{ t("login.label.password") }}</label>
     <input
+      id="password"
       class="form-input"
       type="password"
       [formField]="loginForm.password"
