@@ -3,15 +3,16 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "analytics": false
+    "analytics": false,
+    "schematicCollections": ["@schematics/angular", "playwright-ng-schematics"]
   },
   "newProjectRoot": "projects",
   "projects": {
     "Client": {
       "projectType": "application",
       "schematics": {
-      "@schematics/angular:component": {
-        "skipTests": true
+        "@schematics/angular:component": {
+          "skipTests": true
         }
       },
       "root": "",
@@ -62,7 +63,7 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-              "proxyConfig": "src/proxy.conf.js"
+            "proxyConfig": "src/proxy.conf.js"
           },
           "configurations": {
             "production": {
@@ -76,6 +77,17 @@
         },
         "test": {
           "builder": "@angular/build:unit-test"
+        },
+        "e2e": {
+          "builder": "playwright-ng-schematics:playwright",
+          "options": {
+            "devServerTarget": "Client:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "Client:serve:production"
+            }
+          }
         }
       }
     }
