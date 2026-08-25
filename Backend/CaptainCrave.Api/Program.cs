@@ -58,7 +58,7 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowClient", policy =>
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins("https://localhost:4200")
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials()); // SignalR kræver credentials sammen med en specifik origin
@@ -158,6 +158,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Redirect HTTP to HTTPS
 app.UseHttpsRedirection();
 
 // Serves uploaded images from wwwroot/uploads at /uploads/*
