@@ -44,6 +44,7 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
     }
 
     // Fetches all non-terminal orders (not Delivered/Cancelled) for a restaurant, newest first.
+    // Excludes AwaitingPayment orders too, so restaurants only see orders that are actually paid.
     public async Task<IEnumerable<Order>> GetActiveByRestaurantAsync(int restaurantId) =>
         await _db.Orders
             .IgnoreQueryFilters()
@@ -54,7 +55,8 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
             .AsNoTracking()
             .Where(o => o.RestaurantId == restaurantId)
             .Where(o => o.Status != OrderStatus.Delivered
-                && o.Status != OrderStatus.Cancelled)
+                && o.Status != OrderStatus.Cancelled
+                && o.Status != OrderStatus.AwaitingPayment)
             .OrderByDescending(o => o.UpdatedAt)
             .ToListAsync();
 

@@ -28,4 +28,8 @@ public class Order
 
     public ICollection<OrderItem> OrderItems { get; set; }
         = new List<OrderItem>();
+
+    // Alle betalingsforsøg for denne ordre (typisk kun ét, men flere hvis et forsøg fejler og gentages).
+    public ICollection<Payment> Payments { get; set; }
+        = new List<Payment>();
 }
