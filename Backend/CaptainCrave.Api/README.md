@@ -22,6 +22,7 @@ ASP.NET Core 10 Web API for the CaptainCrave food ordering platform.
   - [Soft delete and audit fields](#soft-delete-and-audit-fields)
   - [Real-time notifications (SignalR)](#real-time-notifications-signalr)
   - [Mock payment system](#mock-payment-system)
+  - [Logging and error handling](#logging-and-error-handling)
   - [API Endpoints](#api-endpoints)
     - [Auth (public)](#auth-public)
     - [Users](#users)
@@ -139,7 +140,7 @@ public async Task<IActionResult> Create(CreateRestaurantDto dto) { ... }
 Ownership is enforced in the service layer on top of the role check. A `Restaurant` user can only manage menus, categories, menu items, and orders that belong to their own restaurant. `Admin` bypasses this check.
 
 ### Error handling
-Services throw typed exceptions. Controllers catch them and map to HTTP status codes:
+Services throw typed exceptions. Controllers catch the ones they have a specific response for and map them to HTTP status codes:
 
 ```csharp
 catch (KeyNotFoundException ex)          { return BadRequest(new { message = ex.Message }); }
@@ -148,6 +149,8 @@ catch (InvalidOperationException ex)     { return Conflict(new { message = ex.Me
 ```
 
 Permanent (hard) delete endpoints also catch `DbUpdateException`, so trying to permanently delete something that other data still depends on (for example a menu item that appears on a past order) returns a clean 409 Conflict instead of a raw database error.
+
+Anything a controller doesn't catch itself falls through to a global exception handler (see [Logging and error handling](#logging-and-error-handling)), so no unexpected error ever reaches the client as a raw stack trace.
 
 ### Fluent API configuration
 Each entity has its own `IEntityTypeConfiguration<T>` in `Data/Configurations/` (`RestaurantConfiguration`, `MenuConfiguration`, `CategoryConfiguration`, `MenuItemConfiguration`, `OrderConfiguration`, `OrderItemConfiguration`, `UserConfiguration`), keeping `AppDbContext.OnModelCreating` clean. Tables and columns use snake_case naming.
@@ -235,6 +238,31 @@ An `Order` can have many `Payment`s (one per attempt). `Payment.Status` (`Pendin
 | GET | `/api/payments/order/{orderId}` | Authenticated | Get the most recent payment attempt for an order |
 
 **Note:** `AwaitingPayment` is declared last in the `OrderStatus` enum, not first. `OrderConfiguration` sets `.HasDefaultValue(OrderStatus.Pending)`, and EF Core treats ordinal `0` as an "unset" sentinel for defaulted properties - if `AwaitingPayment` were ordinal `0`, EF would silently save every new order as `Pending` instead.
+
+---
+
+## Logging and error handling
+
+### Structured logging (Serilog)
+
+The default .NET logger is replaced with [Serilog](https://serilog.net/), configured entirely from the `Serilog` section in `appsettings.json`/`appsettings.Development.json`:
+
+- Writes to the **console** and to a **rolling daily JSON file** under `logs/` (kept 14 days, ignored by git).
+- Every HTTP request is logged automatically (`app.UseSerilogRequestLogging()`) with method, path, status code, and elapsed time.
+- Log level defaults to `Information` (`Debug` in Development), with EF Core and ASP.NET Core framework noise turned down separately.
+
+### Global exception handling
+
+`Middleware/GlobalExceptionHandler.cs` is a safety net for any exception a controller doesn't already catch itself (see [Error handling](#error-handling)). It logs the exception via Serilog and returns a consistent `ProblemDetails` JSON body instead of a raw stack trace, using the same exception-to-status-code mapping controllers already use by hand:
+
+| Exception | Status |
+|---|---|
+| `KeyNotFoundException` | 400 Bad Request |
+| `UnauthorizedAccessException` | 403 Forbidden |
+| `DbUpdateException` | 409 Conflict |
+| `InvalidOperationException` | 400 Bad Request |
+| `ArgumentException` | 400 Bad Request |
+| anything else | 500 Internal Server Error (message hidden from the response, full detail logged server-side) |
 
 ---
 
@@ -347,6 +375,8 @@ Restaurants and menu items can have their `ImageUrl` set by uploading a file ins
 | BCrypt.Net-Next | 4.2.0 | Password hashing |
 | Swashbuckle.AspNetCore / SwaggerUI | 10.2.3 | API documentation at `/swagger` |
 | Microsoft.OpenApi | 2.7.5 | OpenAPI types used for the Swagger JWT security scheme |
+| Serilog.AspNetCore | 10.0.0 | Structured logging (console + rolling JSON file, request logging) |
+| Serilog.Sinks.File / Serilog.Formatting.Compact | 7.0.0 / 3.0.0 | Rolling daily JSON log files under `logs/` |
 | .NET Aspire (`CaptainCrave.AppHost`) | n/a | Local orchestration of the API and the Angular client |
 
 ---
