@@ -23,6 +23,8 @@ ASP.NET Core 10 Web API for the CaptainCrave food ordering platform.
   - [Real-time notifications (SignalR)](#real-time-notifications-signalr)
   - [Mock payment system](#mock-payment-system)
   - [Logging and error handling](#logging-and-error-handling)
+    - [Structured logging (Serilog)](#structured-logging-serilog)
+    - [Global exception handling](#global-exception-handling)
   - [API Endpoints](#api-endpoints)
     - [Auth (public)](#auth-public)
     - [Users](#users)
