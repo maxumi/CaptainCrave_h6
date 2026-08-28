@@ -15,6 +15,7 @@ import { OrderStatusView } from './feature/order-status-view/order-status-view';
 import { OrderHistory } from './feature/order-history/order-history';
 import { NearbyRestaurantsMap } from './feature/nearby-restaurants-map/nearby-restaurants-map';
 import { RestaurantsSearch } from './feature/restaurants-search/restaurants-search';
+import { Payment } from './feature/cart/payment/payment';
 
 export const routes: Routes = [
   { path: '', component: Home },
@@ -22,6 +23,7 @@ export const routes: Routes = [
   { path: 'register', component: Register, canActivate: [guestGuard] },
   { path: 'profile', component: Profile, canActivate: [authGuard] },
   { path: 'cart', component: Cart, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
+  { path: 'payment/:orderId', component: Payment, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
   { path: 'order-status', component: OrderStatusView, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
   { path: 'order-history', component: OrderHistory, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },
   { path: "order-status/:id", component: OrderStatusView, canActivate: [authGuard, roleGuard], data: { roles: ['Customer'] } },

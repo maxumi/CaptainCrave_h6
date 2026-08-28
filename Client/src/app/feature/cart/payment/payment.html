@@ -1,0 +1,51 @@
+<div class="payment-page" *transloco="let t">
+  <section class="payment-card card">
+    <header class="payment-header">
+      <h1>{{ t('payment.title') }}</h1>
+
+      <span class="status">
+        {{ t('payment.orderNumber', { id: orderId }) }}
+      </span>
+    </header>
+
+    <p>
+      {{ t('payment.description') }}
+    </p>
+
+    <div class="form-group">
+      <label for="cardNumber">
+        {{ t('payment.cardNumber') }}
+      </label>
+
+      <input
+        id="cardNumber"
+        class="form-control"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        [placeholder]="t('payment.cardPlaceholder')"
+        [value]="cardNumber()"
+        (input)="onCardNumberInput($event)"
+      />
+    </div>
+
+    @if (paymentError()) {
+      <p class="payment-error">
+        {{ paymentError() }}
+      </p>
+    }
+
+    <button
+      class="btn payment-button"
+      type="button"
+      [disabled]="isPaying()"
+      (click)="pay()"
+    >
+      {{
+        isPaying()
+          ? t('payment.processing')
+          : t('payment.pay')
+      }}
+    </button>
+  </section>
+</div>

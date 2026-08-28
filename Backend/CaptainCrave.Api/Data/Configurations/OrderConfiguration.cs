@@ -72,5 +72,11 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .WithOne(oi => oi.Order)
             .HasForeignKey(oi => oi.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // En ordre kan have flere betalingsforsøg (fx et fejlet forsøg efterfulgt af et der lykkes).
+        builder.HasMany(o => o.Payments)
+            .WithOne(p => p.Order)
+            .HasForeignKey(p => p.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

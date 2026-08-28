@@ -73,8 +73,11 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
             newOrderReceived.TrySetResult(orderId);
         });
 
-        // 4. Kunden afgiver en ordre — dette bør udløse "NewOrder" til restauranten.
+        // 4. Kunden afgiver en ordre — den oprettes med status AwaitingPayment.
         var orderId = await CreateOrderAsync(client, customerToken, customerUserId, restaurantId, menuItemId);
+
+        // 4b. Kunden gennemfører den falske betaling — dette bør udløse "NewOrder" til restauranten.
+        await CompletePaymentAsync(client, customerToken, orderId);
 
         var receivedNewOrderId = await WaitWithTimeoutAsync(newOrderReceived.Task);
         Assert.Equal(orderId, receivedNewOrderId);
@@ -203,6 +206,14 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.SendAsync(request);
+        await EnsureSuccessAsync(response);
+    }
+
+    // Gennemfører en falsk betaling for den givne ordre som kunden (kortnummer der ikke slutter på "0000" godkendes altid).
+    private static async Task CompletePaymentAsync(HttpClient client, string token, int orderId)
+    {
+        var dto = new CreatePaymentDto { OrderId = orderId, CardNumber = "4111111111111111" };
+        var response = await PostAsJsonWithAuthAsync(client, "/api/payments", dto, token);
         await EnsureSuccessAsync(response);
     }
 

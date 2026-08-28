@@ -19,5 +19,9 @@ public enum OrderStatus
     Delivered,
 
     // The order has been cancelled and will not be completed.
-    Cancelled
+    Cancelled,
+
+    // Ordren er oprettet, men den falske betaling er endnu ikke gennemført (se PaymentsController).
+    // Ligger sidst i enummet (ikke 0), så den ikke bliver forvekslet med CLR-standardværdien af EF Core.
+    AwaitingPayment
 }

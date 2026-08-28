@@ -271,6 +271,20 @@
     "checkoutFailed": "Unable to place order right now."
   }
 },
+"payment": {
+  "title": "Payment",
+  "orderNumber": "Order #CCID{{id}}",
+  "description": "Enter a test card number to complete the payment.",
+  "cardNumber": "Card number",
+  "cardPlaceholder": "1234 5678 9012 3456",
+  "pay": "Pay",
+  "processing": "Processing payment...",
+  "error": {
+    "invalidOrder": "The order is invalid.",
+    "cardNumberTooShort": "The card number must be at least 4 digits.",
+    "failed": "The payment could not be completed."
+  }
+},
 "restaurantCreate": {
   "title": "Create restaurant",
   "label": {

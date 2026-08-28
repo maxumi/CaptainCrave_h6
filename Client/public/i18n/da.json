@@ -271,6 +271,20 @@
     "checkoutFailed": "Kunne ikke oprette ordren lige nu."
   }
 },
+"payment": {
+  "title": "Betaling",
+  "orderNumber": "Ordre #CCID{{id}}",
+  "description": "Indtast et testkortnummer for at gennemføre betalingen.",
+  "cardNumber": "Kortnummer",
+  "cardPlaceholder": "1234 5678 9012 3456",
+  "pay": "Betal",
+  "processing": "Behandler betaling...",
+  "error": {
+    "invalidOrder": "Ordren er ugyldig.",
+    "cardNumberTooShort": "Kortnummeret skal være mindst 4 cifre.",
+    "failed": "Betalingen kunne ikke gennemføres."
+  }
+},
 "restaurantCreate": {
   "title": "Opret restaurant",
   "label": {
