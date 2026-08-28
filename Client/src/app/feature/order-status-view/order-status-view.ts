@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { DeliveryType, OrderApiService, OrderDto } from '../../shared/order-api.service';
 import { OrderStatus } from '../../shared/models/status';
+import { Router } from '@angular/router';
 
 interface OrderDetails extends OrderDto {}
 
@@ -23,7 +24,7 @@ interface OrderStep {
 export class OrderStatusView implements OnInit {
   private readonly orderApiService = inject(OrderApiService);
   private readonly transloco = inject(TranslocoService);
-
+  private readonly router = inject(Router);
   readonly OrderStatus = OrderStatus;
   readonly DeliveryType = DeliveryType;
 
@@ -32,19 +33,30 @@ export class OrderStatusView implements OnInit {
   readonly order = signal<OrderDetails | null>(null);
   readonly noActiveOrder = signal(false);
 
-  ngOnInit(): void {
-    this.orderApiService.getCustomerActiveOrder().subscribe({
-      next: (activeOrder) => {
-        this.order.set(activeOrder);
-        this.noActiveOrder.set(activeOrder === null);
+ngOnInit(): void {
+  this.orderApiService.getCustomerActiveOrder().subscribe({
+    next: (activeOrder) => {
+      if (!activeOrder) {
+        this.noActiveOrder.set(true);
         this.isLoading.set(false);
-      },
-      error: () => {
-        this.loadError.set(this.t('orderStatus.error.loadFailed'));
-        this.isLoading.set(false);
-      },
-    });
-  }
+        return;
+      }
+
+      if (activeOrder.status === OrderStatus.AwaitingPayment) {
+        this.router.navigate(['/payment', activeOrder.id]);
+        return;
+      }
+
+      this.order.set(activeOrder);
+      this.noActiveOrder.set(false);
+      this.isLoading.set(false);
+    },
+    error: () => {
+      this.loadError.set(this.t('orderStatus.error.loadFailed'));
+      this.isLoading.set(false);
+    },
+  });
+}
 
   get steps(): OrderStep[] {
     const isPickup = this.order()?.deliveryType === DeliveryType.Pickup;

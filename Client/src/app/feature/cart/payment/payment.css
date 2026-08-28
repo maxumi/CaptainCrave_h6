@@ -1,0 +1,52 @@
+.payment-page {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.payment-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.payment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.payment-header h1 {
+  margin: 0;
+}
+
+.payment-description {
+  color: var(--color-muted);
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: bold;
+}
+
+.payment-button {
+  width: 100%;
+}
+
+.payment-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.payment-error {
+  color: var(--color-danger);
+  margin: 0 0 16px;
+}

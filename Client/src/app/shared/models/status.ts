@@ -5,6 +5,7 @@ export enum OrderStatus {
   ReadyForPickup = 'readyForPickup',
   Delivered = 'delivered',
   Cancelled = 'cancelled',
+  AwaitingPayment = 'awaitingPayment'
 }
 
 export enum DeliveryType{
