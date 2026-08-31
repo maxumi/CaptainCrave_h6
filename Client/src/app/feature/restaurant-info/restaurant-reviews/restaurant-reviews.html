@@ -1,0 +1,47 @@
+<section class="reviews-section">
+  <h2>Reviews</h2>
+
+  @if (reviewSummary(); as summary) {
+    <div class="review-summary">
+      <strong>{{ summary.averageRating }} / 5</strong>
+      <span>
+        {{ summary.reviewCount }}
+        {{ summary.reviewCount === 1 ? 'review' : 'reviews' }}
+      </span>
+    </div>
+  }
+
+  <div class="review-form">
+    <p>
+      {{ currentUserReview() ? 'Your rating' : 'Rate this restaurant' }}
+    </p>
+
+    <div class="rating-buttons">
+      @for (rating of [1, 2, 3, 4, 5]; track rating) {
+        <button
+          type="button"
+          class="rating-btn"
+          [class.selected]="reviewRating() >= rating"
+          (click)="setRating(rating)"
+        >
+          ★
+        </button>
+      }
+    </div>
+
+    <button
+      type="button"
+      class="btn"
+      [disabled]="reviewRating() === 0"
+      (click)="saveReview()"
+    >
+      {{ currentUserReview() ? 'Update review' : 'Submit review' }}
+    </button>
+
+    @if (reviewMessage()) {
+      <p class="review-message">
+        {{ reviewMessage() }}
+      </p>
+    }
+  </div>
+</section>
