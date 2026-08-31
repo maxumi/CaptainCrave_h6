@@ -1,6 +1,12 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { AuthService } from '../../../core/auth/auth.service';
-import { RestaurantReviewSummaryDto, ReviewApiService, ReviewDto } from '../../../shared/review-api.service';
+import {
+  RestaurantReviewSummaryDto,
+  ReviewApiService,
+  ReviewDto,
+} from '../../../shared/review-api.service';
+import { OrderApiService } from '../../../shared/order-api.service';
+import { Role } from '../../../shared/models/user';
 
 @Component({
   selector: 'app-restaurant-reviews',
@@ -8,40 +14,49 @@ import { RestaurantReviewSummaryDto, ReviewApiService, ReviewDto } from '../../.
   templateUrl: './restaurant-reviews.html',
   styleUrl: './restaurant-reviews.css',
 })
-export class RestaurantReviews {
-  readonly restaurantId = input.required<number>();
-
+export class RestaurantReviews implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly reviewApiService = inject(ReviewApiService);
+  private readonly orderApiService = inject(OrderApiService);
 
-  readonly reviewSummary =
-    signal<RestaurantReviewSummaryDto | null>(null);
+  // Give id to use of Api call.
+  readonly restaurantId = input.required<number>();
+
+  readonly reviewSummary = signal<RestaurantReviewSummaryDto | null>(null);
+  readonly currentUserReview = signal<ReviewDto | null>(null);
 
   readonly reviewRating = signal(0);
   readonly reviewMessage = signal<string | null>(null);
+  readonly hasOrdered = signal(false);
 
-  readonly currentUserReview = computed<ReviewDto | null>(() => {
-    const userId = this.authService.user()?.userId;
-    const summary = this.reviewSummary();
-
-    if (!userId || !summary) {
-      return null;
-    }
-
-    return summary.reviews.find(
-      review => review.userId === userId
-    ) ?? null;
-  });
+  readonly canReview = computed(
+    () =>
+      this.authService.user()?.role === Role.Customer &&
+      this.hasOrdered()
+  );
 
   ngOnInit(): void {
     this.loadReviews();
+
+    if (this.authService.user()?.role === Role.Customer) {
+      this.loadHasOrdered();
+      this.loadCurrentUserReview();
+    }
   }
 
   setRating(rating: number): void {
     this.reviewRating.set(rating);
+    this.reviewMessage.set(null);
   }
 
   saveReview(): void {
+    if (!this.canReview()) {
+      this.reviewMessage.set(
+        'You can only review restaurants you have ordered from.'
+      );
+      return;
+    }
+
     const rating = this.reviewRating();
 
     if (rating < 1 || rating > 5) {
@@ -64,17 +79,37 @@ export class RestaurantReviews {
       .subscribe({
         next: summary => {
           this.reviewSummary.set(summary);
-
-          const userId = this.authService.user()?.userId;
-
-          const existingReview = summary.reviews.find(
-            review => review.userId === userId
-          );
-
-          this.reviewRating.set(existingReview?.rating ?? 0);
         },
         error: () => {
           this.reviewSummary.set(null);
+        },
+      });
+  }
+
+  private loadHasOrdered(): void {
+    this.orderApiService
+      .hasOrderedFromRestaurant(this.restaurantId())
+      .subscribe({
+        next: result => {
+          this.hasOrdered.set(result.hasOrdered);
+        },
+        error: () => {
+          this.hasOrdered.set(false);
+        },
+      });
+  }
+
+  private loadCurrentUserReview(): void {
+    this.reviewApiService
+      .getMyReviewByRestaurant(this.restaurantId())
+      .subscribe({
+        next: review => {
+          this.currentUserReview.set(review);
+          this.reviewRating.set(review?.rating ?? 0);
+        },
+        error: () => {
+          this.currentUserReview.set(null);
+          this.reviewRating.set(0);
         },
       });
   }
@@ -86,9 +121,8 @@ export class RestaurantReviews {
         rating,
       })
       .subscribe({
-        next: () => {
-          this.reviewMessage.set('Review added.');
-          this.loadReviews();
+        next: review => {
+          this.handleSavedReview(review, 'Review added.');
         },
         error: () => {
           this.reviewMessage.set('Could not add review.');
@@ -100,13 +134,22 @@ export class RestaurantReviews {
     this.reviewApiService
       .update(reviewId, { rating })
       .subscribe({
-        next: () => {
-          this.reviewMessage.set('Review updated.');
-          this.loadReviews();
+        next: review => {
+          this.handleSavedReview(review, 'Review updated.');
         },
         error: () => {
           this.reviewMessage.set('Could not update review.');
         },
       });
+  }
+
+  private handleSavedReview(
+    review: ReviewDto,
+    message: string
+  ): void {
+    this.currentUserReview.set(review);
+    this.reviewRating.set(review.rating);
+    this.reviewMessage.set(message);
+    this.loadReviews();
   }
 }

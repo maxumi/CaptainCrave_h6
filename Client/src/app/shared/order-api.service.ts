@@ -90,6 +90,14 @@ export class OrderApiService {
     return this.http.get<OrderDto>(`${this.ordersUrl}/${orderId}`);
   }
 
+  hasOrderedFromRestaurant(
+    restaurantId: number
+  ): Observable<{ hasOrdered: boolean }> {
+    return this.http.get<{ hasOrdered: boolean }>(
+      `${this.ordersUrl}/customer/has-ordered/${restaurantId}`
+    );
+  }
+
   getCustomerActiveOrder(): Observable<OrderDto | null> {
     return this.http.get<OrderDto>(`${this.ordersUrl}/customer/active`).pipe(
       catchError((error: HttpErrorResponse) => {

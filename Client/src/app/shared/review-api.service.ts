@@ -27,7 +27,6 @@ export interface RestaurantReviewSummaryDto {
   restaurantId: number;
   averageRating: number;
   reviewCount: number;
-  reviews: ReviewDto[];
 }
 
 @Service()
@@ -38,6 +37,14 @@ export class ReviewApiService {
 getByRestaurant(restaurantId: number): Observable<RestaurantReviewSummaryDto> {
   return this.http.get<RestaurantReviewSummaryDto>(
     `${this.reviewsUrl}/restaurant/${restaurantId}`
+  );
+}
+
+getMyReviewByRestaurant(
+  restaurantId: number
+): Observable<ReviewDto | null> {
+  return this.http.get<ReviewDto | null>(
+    `${this.reviewsUrl}/restaurant/${restaurantId}/mine`
   );
 }
 
