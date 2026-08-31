@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api.service';
+import { ReviewApiService } from '../../shared/review-api.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
 @Component({
@@ -12,7 +13,7 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 export class Restaurants implements OnInit {
   private readonly restaurantApiService = inject(RestaurantApiService);
   private readonly translocoService = inject(TranslocoService);
-
+  private readonly reviewApiService = inject(ReviewApiService);
   readonly restaurants = signal<RestaurantDto[]>([]);
   readonly isLoading = signal(true);
   readonly loadError = signal<string | null>(null);

@@ -137,6 +137,10 @@ public class OrderService(
         return orders.Select(order => order.ToDto());
     }
 
+    // Used to gate review eligibility: only customers who actually received an order can review a restaurant.
+    public Task<bool> HasCustomerOrderedFromRestaurantAsync(int userId, int restaurantId) =>
+        _orderRepository.HasUserOrderedFromRestaurantAsync(userId, restaurantId);
+
     // Looks up the restaurant owned by the current user and returns its ID.
     // Throws if the user is Admin (wrong method) or has no restaurant profile.
     private async Task<int> ResolveRestaurantIdForUserAsync(int currentUserId, UserRole currentUserRole)

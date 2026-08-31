@@ -22,4 +22,6 @@ public class Restaurant : ISoftDeletable, IAuditable
     // Navigation properties
     public User User { get; set; } = null!;
     public ICollection<Menu> Menus { get; set; } = new List<Menu>();
+
+    public ICollection<Review> Reviews { get; set; } = [];
 }

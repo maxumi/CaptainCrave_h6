@@ -9,6 +9,10 @@
     </div>
   </div>
 
+<app-restaurant-reviews
+  [restaurantId]="restaurantId()"
+/>
+
 <h2>{{ t('restaurantInfo.menu') }}</h2>
 
   @if (isAdmin()) {

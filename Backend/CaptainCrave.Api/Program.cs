@@ -100,6 +100,10 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 // DI — Notifikationer (SignalR)
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
+// DI — Reviews
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
 // JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Jwt:Secret is not configured.");

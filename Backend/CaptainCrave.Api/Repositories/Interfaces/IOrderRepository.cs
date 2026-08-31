@@ -26,4 +26,7 @@ public interface IOrderRepository
 
     // Returns delivered/cancelled orders for a user.
     Task<IEnumerable<Order>> GetHistoryForUserAsync(int userId);
+
+    // Checks whether a user has a delivered order from a restaurant (used to gate review eligibility).
+    Task<bool> HasUserOrderedFromRestaurantAsync(int userId, int restaurantId);
 }

@@ -1,0 +1,52 @@
+
+.reviews-section {
+  margin-top: 28px;
+}
+
+.review-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.review-summary strong {
+  font-size: 22px;
+}
+
+.review-summary span {
+  color: var(--color-muted);
+}
+
+.review-form {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.review-form p {
+  margin-top: 0;
+}
+
+.rating-buttons {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.rating-btn {
+  border: 0;
+  background: transparent;
+  font-size: 30px;
+  cursor: pointer;
+  opacity: 0.3;
+}
+
+.rating-btn.selected {
+  opacity: 1;
+}
+
+.review-message {
+  margin: 10px 0 0;
+  font-size: 14px;
+}
