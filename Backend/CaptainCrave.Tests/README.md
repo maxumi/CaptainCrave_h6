@@ -23,6 +23,7 @@ Controllers/
   OrderControllerTests.cs
   PaymentsControllerTests.cs
   RestaurantControllerTests.cs
+  ReviewControllerTests.cs
   UsersControllerTests.cs
 Services/
   OrderServiceTests.cs
@@ -31,6 +32,7 @@ Services/
   CategoryServiceTests.cs
   MenuItemServiceTests.cs
   RestaurantServiceTests.cs
+  ReviewServiceTests.cs
   LocalImageStorageServiceTests.cs
 NotificationIntegrationTests.cs
 SoftDeleteIntegrationTests.cs

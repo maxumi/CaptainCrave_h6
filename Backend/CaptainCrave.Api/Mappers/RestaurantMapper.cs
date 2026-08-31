@@ -7,7 +7,8 @@ namespace Api.Mappers;
 public static class RestaurantMapper
 {
     // Maps a Restaurant entity to a RestaurantDto for API responses.
-    public static RestaurantDto ToDto(this Restaurant restaurant) => new()
+    // averageRating/reviewCount are computed separately (aggregate query) since Restaurant has no in-memory Reviews load.
+    public static RestaurantDto ToDto(this Restaurant restaurant, double averageRating = 0, int reviewCount = 0) => new()
     {
         Id = restaurant.Id,
         UserId = restaurant.UserId,
@@ -21,7 +22,9 @@ public static class RestaurantMapper
         CreatedAt = restaurant.CreatedAt,
         UpdatedAt = restaurant.UpdatedAt,
         IsDeleted = restaurant.IsDeleted,
-        DeletedAt = restaurant.DeletedAt
+        DeletedAt = restaurant.DeletedAt,
+        AverageRating = averageRating,
+        ReviewCount = reviewCount
     };
 
     // Maps a CreateRestaurantDto to a Restaurant entity ready to be persisted.

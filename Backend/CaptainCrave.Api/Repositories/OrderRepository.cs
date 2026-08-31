@@ -103,4 +103,12 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
                 || o.Status == OrderStatus.Cancelled)
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
+
+    // Only Delivered orders count, so a review requires an order that was actually fulfilled.
+    public async Task<bool> HasUserOrderedFromRestaurantAsync(int userId, int restaurantId) =>
+        await _db.Orders
+            .IgnoreQueryFilters()
+            .AnyAsync(o => o.UserId == userId
+                && o.RestaurantId == restaurantId
+                && o.Status == OrderStatus.Delivered);
 }

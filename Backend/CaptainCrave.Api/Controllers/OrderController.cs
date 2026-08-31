@@ -68,6 +68,17 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetActiveOrder() => await GetActiveOrderForCustomer();
 
+    // GET: api/orders/customer/has-ordered/{restaurantId} — checks whether the current customer
+    // has a delivered order from the restaurant, so the client can decide if they may leave a review.
+    [HttpGet("customer/has-ordered/{restaurantId:int}")]
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> HasOrderedFromRestaurant(int restaurantId)
+    {
+        var userId = User.GetId();
+        var hasOrdered = await _orderService.HasCustomerOrderedFromRestaurantAsync(userId, restaurantId);
+        return Ok(new { hasOrdered });
+    }
+
     // Returns all completed or historical orders for a customer.
     [HttpGet("customer/history")]
     [Authorize(Roles = "Customer")]

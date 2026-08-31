@@ -250,4 +250,15 @@ public class OrderServiceTests
 
         Assert.Equal(5, result?.Id);
     }
+
+    [Fact]
+    public async Task HasCustomerOrderedFromRestaurantAsync_DelegatesToRepository()
+    {
+        var (service, mockOrderRepository, _, _, _, _) = CreateService();
+        mockOrderRepository.Setup(r => r.HasUserOrderedFromRestaurantAsync(1, 2)).ReturnsAsync(true);
+
+        var result = await service.HasCustomerOrderedFromRestaurantAsync(1, 2);
+
+        Assert.True(result);
+    }
 }

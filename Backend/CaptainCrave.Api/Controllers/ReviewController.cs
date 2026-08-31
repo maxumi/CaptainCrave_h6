@@ -29,6 +29,25 @@ public class ReviewsController : ControllerBase
         return Ok(result);
     }
 
+    // Returns the logged-in user's own review for a restaurant, if any.
+    // GET: api/reviews/restaurant/5/mine
+    [HttpGet("restaurant/{restaurantId:int}/mine")]
+    [Authorize]
+    public async Task<ActionResult<ReviewDto>> GetMine(int restaurantId)
+    {
+        var userId = User.GetId();
+
+        var review =
+            await _reviewService.GetMyReviewAsync(userId, restaurantId);
+
+        if (review == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(review);
+    }
+
     // Creates a review for a restaurant.
     // POST: api/reviews
     [HttpPost]
@@ -38,19 +57,26 @@ public class ReviewsController : ControllerBase
     {
         var userId = User.GetId();
 
-        var review =
-            await _reviewService.CreateAsync(userId, dto);
-
-        if (review == null)
+        try
         {
-            return BadRequest(
-                "Review could not be created. Make sure the rating is between 1 and 5 and that you have not already reviewed this restaurant.");
-        }
+            var review =
+                await _reviewService.CreateAsync(userId, dto);
 
-        return CreatedAtAction(
-            nameof(GetByRestaurant),
-            new { restaurantId = review.RestaurantId },
-            review);
+            if (review == null)
+            {
+                return BadRequest(
+                    "Review could not be created. Make sure the rating is between 1 and 5 and that you have not already reviewed this restaurant.");
+            }
+
+            return CreatedAtAction(
+                nameof(GetByRestaurant),
+                new { restaurantId = review.RestaurantId },
+                review);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
+        }
     }
 
     // Updates one of the logged-in user's existing reviews.

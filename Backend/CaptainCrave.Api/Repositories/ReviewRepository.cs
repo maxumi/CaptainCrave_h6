@@ -13,12 +13,37 @@ public class ReviewRepository : IReviewRepository
         _context = context;
     }
 
-    public async Task<List<Review>> GetByRestaurantIdAsync(int restaurantId)
+    public async Task<(double AverageRating, int ReviewCount)> GetSummaryAsync(int restaurantId)
     {
-        return await _context.Reviews
+        var summary = await _context.Reviews
             .Where(r => r.RestaurantId == restaurantId)
-            .OrderByDescending(r => r.CreatedAt)
+            .GroupBy(r => 1)
+            .Select(g => new { Count = g.Count(), Average = g.Average(r => r.Rating) })
+            .FirstOrDefaultAsync();
+
+        return summary is null
+            ? (0, 0)
+            : (Math.Round(summary.Average, 2), summary.Count);
+    }
+
+    public async Task<Dictionary<int, (double AverageRating, int ReviewCount)>> GetSummariesByRestaurantIdsAsync(
+        IEnumerable<int> restaurantIds)
+    {
+        var ids = restaurantIds.ToList();
+        if (ids.Count == 0)
+        {
+            return [];
+        }
+
+        var summaries = await _context.Reviews
+            .Where(r => ids.Contains(r.RestaurantId))
+            .GroupBy(r => r.RestaurantId)
+            .Select(g => new { RestaurantId = g.Key, Count = g.Count(), Average = g.Average(r => r.Rating) })
             .ToListAsync();
+
+        return summaries.ToDictionary(
+            s => s.RestaurantId,
+            s => (Math.Round(s.Average, 2), s.Count));
     }
 
     public async Task<Review?> GetByIdAsync(int id)

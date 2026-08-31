@@ -16,4 +16,7 @@ public class RestaurantDto
 
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
+
+    public double AverageRating { get; set; }
+    public int ReviewCount { get; set; }
 }

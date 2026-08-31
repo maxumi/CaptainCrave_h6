@@ -7,27 +7,30 @@ namespace Api.Services;
 public class ReviewService : IReviewService
 {
     private readonly IReviewRepository _reviewRepository;
+    private readonly IOrderRepository _orderRepository;
 
-    public ReviewService(IReviewRepository reviewRepository)
+    public ReviewService(IReviewRepository reviewRepository, IOrderRepository orderRepository)
     {
         _reviewRepository = reviewRepository;
+        _orderRepository = orderRepository;
     }
 
     public async Task<RestaurantReviewSummaryDto> GetByRestaurantIdAsync(int restaurantId)
     {
-        var reviews = await _reviewRepository.GetByRestaurantIdAsync(restaurantId);
+        var (average, count) = await _reviewRepository.GetSummaryAsync(restaurantId);
 
         return new RestaurantReviewSummaryDto
         {
             RestaurantId = restaurantId,
-            AverageRating = reviews.Count == 0
-                ? 0
-                : Math.Round(reviews.Average(r => r.Rating), 2),
-            ReviewCount = reviews.Count,
-            Reviews = reviews
-                .Select(MapToDto)
-                .ToList()
+            AverageRating = average,
+            ReviewCount = count
         };
+    }
+
+    public async Task<ReviewDto?> GetMyReviewAsync(int userId, int restaurantId)
+    {
+        var review = await _reviewRepository.GetByUserAndRestaurantAsync(userId, restaurantId);
+        return review is null ? null : MapToDto(review);
     }
 
     public async Task<ReviewDto?> CreateAsync(int userId, CreateReviewDto dto)
@@ -45,6 +48,15 @@ public class ReviewService : IReviewService
         if (existingReview != null)
         {
             return null;
+        }
+
+        var hasOrdered =
+            await _orderRepository.HasUserOrderedFromRestaurantAsync(userId, dto.RestaurantId);
+
+        if (!hasOrdered)
+        {
+            throw new UnauthorizedAccessException(
+                "You can only review a restaurant after a delivered order from it.");
         }
 
         var review = new Review
