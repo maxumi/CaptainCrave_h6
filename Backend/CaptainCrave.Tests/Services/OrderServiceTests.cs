@@ -103,8 +103,9 @@ public class OrderServiceTests
     }
 
     [Fact]
-    public async Task CreateAsync_ValidDto_SendsNewOrderNotification()
+    public async Task CreateAsync_ValidDto_DoesNotSendNewOrderNotification()
     {
+        // Restauranten skal først have besked, når betalingen er gennemført (se PaymentService), ikke ved oprettelse.
         var (service, mockOrderRepository, mockUserRepository, mockRestaurantRepository, mockMenuItemRepository, mockNotificationService) = CreateService();
         mockUserRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new User { Id = 1, Name = "Alice", Email = "alice@test.dk" });
         mockRestaurantRepository.Setup(r => r.GetByIdAsync(2)).ReturnsAsync(new Restaurant { Id = 2, Name = "Burger Place", UserId = 5 });
@@ -113,9 +114,10 @@ public class OrderServiceTests
 
         var dto = new CreateOrderDto { UserId = 1, RestaurantId = 2, DeliveryType = DeliveryType.Pickup, Items = [new CreateOrderItemDto { MenuItemId = 10, Quantity = 1 }] };
 
-        await service.CreateAsync(dto);
+        var result = await service.CreateAsync(dto);
 
-        mockNotificationService.Verify(n => n.NotifyNewOrderAsync(2, 100), Times.Once);
+        Assert.Equal(OrderStatus.AwaitingPayment, result.Status);
+        mockNotificationService.Verify(n => n.NotifyNewOrderAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
     // UpdateStatusAsync

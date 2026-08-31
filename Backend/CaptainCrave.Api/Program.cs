@@ -93,6 +93,10 @@ builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
+// DI — Payments (falsk/mock betalingssystem)
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
 // DI — Notifikationer (SignalR)
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 

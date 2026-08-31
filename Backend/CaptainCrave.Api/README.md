@@ -6,18 +6,39 @@ ASP.NET Core 10 Web API for the CaptainCrave food ordering platform.
 
 ## Table of Contents
 
-- [Architecture](#architecture)
-- [Code Patterns](#code-patterns)
-- [Soft delete and audit fields](#soft-delete-and-audit-fields)
-- [Real-time notifications (SignalR)](#real-time-notifications-signalr)
-- [API Endpoints](#api-endpoints)
-- [Technology](#technology)
-- [Authentication](#authentication)
-- [Secrets](#secrets)
-- [Database](#database)
-- [Seed data](#seed-data)
-- [Running the Project](#running-the-project)
-- [Tests](#tests)
+- [CaptainCrave Backend](#captaincrave-backend)
+  - [Table of Contents](#table-of-contents)
+  - [Architecture](#architecture)
+    - [Domain model](#domain-model)
+    - [Orchestration (.NET Aspire)](#orchestration-net-aspire)
+  - [Code Patterns](#code-patterns)
+    - [Dependency injection](#dependency-injection)
+    - [DTOs at the boundary](#dtos-at-the-boundary)
+    - [Repository pattern](#repository-pattern)
+    - [Input validation](#input-validation)
+    - [Role-based authorization](#role-based-authorization)
+    - [Error handling](#error-handling)
+    - [Fluent API configuration](#fluent-api-configuration)
+  - [Soft delete and audit fields](#soft-delete-and-audit-fields)
+  - [Real-time notifications (SignalR)](#real-time-notifications-signalr)
+  - [Mock payment system](#mock-payment-system)
+  - [API Endpoints](#api-endpoints)
+    - [Auth (public)](#auth-public)
+    - [Users](#users)
+    - [Restaurants](#restaurants)
+    - [Menus](#menus)
+    - [Categories](#categories)
+    - [Menu Items](#menu-items)
+    - [Orders](#orders)
+    - [Payments](#payments)
+    - [Image uploads](#image-uploads)
+  - [Technology](#technology)
+  - [Authentication](#authentication)
+  - [Secrets](#secrets)
+  - [Database](#database)
+  - [Seed data](#seed-data)
+  - [Running the Project](#running-the-project)
+  - [Tests](#tests)
 
 ---
 
@@ -171,6 +192,52 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 
 ---
 
+## Mock payment system
+
+No real payment provider is integrated. `PaymentService` fakes a card charge: cards ending in `"0000"` decline, everything else succeeds with a generated `ProviderReference`.
+
+```mermaid
+flowchart LR
+    A[Order created<br/>AwaitingPayment] --> B{Pay with card}
+    B -->|OK| C[Pending<br/>restaurant notified]
+    B -->|ends in 0000| A
+```
+
+```mermaid
+sequenceDiagram
+    participant C as Customer
+    participant O as POST /api/orders
+    participant P as POST /api/payments
+    participant R as Restaurant (SignalR)
+
+    C->>O: Place order
+    O-->>C: Order created (Status = AwaitingPayment)
+    C->>P: Pay with card { OrderId, CardNumber }
+    alt card OK
+        P-->>C: Payment Succeeded
+        P->>O: Order.Status = Pending
+        P->>R: NewOrder notification
+    else card ends in "0000"
+        P-->>C: Payment Failed
+        Note over O: Order.Status stays AwaitingPayment (customer can retry)
+    end
+```
+
+1. `POST /api/orders` creates the order as `Status = AwaitingPayment`. The restaurant doesn't see it yet.
+2. `POST /api/payments` (`{ OrderId, CardNumber }`) charges the order's `TotalPrice` (never a client-supplied amount) and saves a `Payment` row (`Succeeded`/`Failed`).
+3. On success, the order flips to `Pending` and the restaurant gets the `NewOrder` SignalR notification. On failure, the order stays `AwaitingPayment` so the customer can retry.
+
+An `Order` can have many `Payment`s (one per attempt). `Payment.Status` (`Pending`/`Succeeded`/`Failed`/`Cancelled`/`Refunded`) is stored as a string, same as `Order.Status`.
+
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| POST | `/api/payments` | Customer, Admin | Submit a fake card charge for an order awaiting payment |
+| GET | `/api/payments/order/{orderId}` | Authenticated | Get the most recent payment attempt for an order |
+
+**Note:** `AwaitingPayment` is declared last in the `OrderStatus` enum, not first. `OrderConfiguration` sets `.HasDefaultValue(OrderStatus.Pending)`, and EF Core treats ordinal `0` as an "unset" sentinel for defaulted properties - if `AwaitingPayment` were ordinal `0`, EF would silently save every new order as `Pending` instead.
+
+---
+
 ## API Endpoints
 
 ### Auth (public)
@@ -239,13 +306,19 @@ Browsers cannot attach an `Authorization` header to a SignalR/WebSocket connecti
 ### Orders
 | Method | Route | Auth | Description |
 |---|---|---|---|
-| POST | `/api/orders` | Customer, Admin | Place an order |
+| POST | `/api/orders` | Customer, Admin | Place an order (created with `Status = AwaitingPayment`; see [Mock payment system](#mock-payment-system)) |
 | GET | `/api/orders/{id}` | Authenticated | Get order details |
 | GET | `/api/orders/customer/active` (alias: `/api/orders/active`) | Customer | The caller's current active order |
 | GET | `/api/orders/customer/history` | Customer | The caller's past orders |
 | GET | `/api/orders/restaurant/active` | Restaurant, Admin | Active orders for the caller's restaurant |
 | GET | `/api/orders/restaurant/history` | Restaurant, Admin | Completed orders for the caller's restaurant |
 | PATCH | `/api/orders/{id}/status` | Restaurant, Admin | Update order status (`Preparing`, `OnTheWay`, `ReadyForPickup`, `Delivered`, `Cancelled`, ...). Triggers an `OrderStatusChanged` SignalR event to the customer |
+
+### Payments
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| POST | `/api/payments` | Customer, Admin | Submit a fake card charge for an order awaiting payment (see [Mock payment system](#mock-payment-system)) |
+| GET | `/api/payments/order/{orderId}` | Authenticated | Get the most recent payment attempt for an order |
 
 Most write endpoints require `Authorize(Roles = ...)` and a `Bearer` token obtained from `/api/auth/login`. Read (`GET`) endpoints for restaurants/menus/categories/menu items are public so the storefront can be browsed without logging in.
 

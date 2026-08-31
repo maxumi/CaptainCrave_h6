@@ -21,10 +21,12 @@ Controllers/
   MenuControllerTests.cs
   MenuItemControllerTests.cs
   OrderControllerTests.cs
+  PaymentsControllerTests.cs
   RestaurantControllerTests.cs
   UsersControllerTests.cs
 Services/
   OrderServiceTests.cs
+  PaymentServiceTests.cs
   MenuServiceTests.cs
   CategoryServiceTests.cs
   MenuItemServiceTests.cs
@@ -71,6 +73,10 @@ can't verify.
 `RestaurantControllerTests` and `MenuItemControllerTests` cover the `POST {id}/image` upload endpoints: unauthenticated callers get 401, non-owners get 403/404, a storage validation failure (`InvalidOperationException`) becomes 400, a successful upload returns 200 with the updated DTO, and a failed authorization check after upload deletes the just-saved file.
 
 `RestaurantServiceTests` and `MenuItemServiceTests` cover `UpdateImageUrlAsync`'s ownership checks and confirm the previous image is deleted via `IImageStorageService` when replaced.
+
+### Mock payment tests
+
+`PaymentServiceTests` covers the fake gateway end to end: unknown/not-awaiting-payment orders throw, a card number ending in `"0000"` fails while others succeed, the charged amount always comes from `Order.TotalPrice` (never the DTO), a successful charge updates the order to `Pending` and sends the `NewOrder` notification, and a failed charge does neither. `PaymentsControllerTests` covers the HTTP mapping (`201 Created`, `400` for invalid state/unknown order, `404` when no payment exists yet for `GetByOrderId`). `NotificationIntegrationTests` also exercises the real flow: an order stays hidden from the restaurant until `POST /api/payments` succeeds, only then does the `NewOrder` SignalR event fire.
 
 `LocalImageStorageServiceTests.cs` exercises the real file system against a temporary web root: valid uploads are written under `wwwroot/uploads/{subfolder}` with a generated name (proving the client-supplied file name is never used, which prevents path traversal), oversized/empty files and disallowed extensions throw, and `Delete` only removes files under `/uploads/` while leaving external URLs untouched.
 

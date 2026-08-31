@@ -42,6 +42,8 @@ public class OrderService(
             RestaurantId = restaurant.Id,
             DeliveryType = dto.DeliveryType,
             DeliveryAddress = dto.DeliveryAddress,
+            // Ordren afventer betaling, indtil POST /api/payments gennemfører den falske betaling.
+            Status = OrderStatus.AwaitingPayment,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -66,8 +68,7 @@ public class OrderService(
         created.User = user;
         created.Restaurant = restaurant;
 
-        // Giv restauranten live besked om den nye ordre (SignalR).
-        await _notificationService.NotifyNewOrderAsync(restaurant.Id, created.Id);
+        // Restauranten får først besked om ordren, når betalingen er gennemført (se PaymentService).
 
         return created.ToDto();
     }
@@ -103,6 +104,9 @@ public class OrderService(
             if (order.RestaurantId != restaurant.Id)
                 throw new UnauthorizedAccessException("You can only update orders for your own restaurant.");
         }
+
+        if (order.Status == OrderStatus.AwaitingPayment)
+            throw new InvalidOperationException("Order is awaiting payment and cannot be updated yet.");
 
         if (IsTerminal(order.Status))
             throw new InvalidOperationException("Historic orders cannot be updated.");

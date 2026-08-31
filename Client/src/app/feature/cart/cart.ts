@@ -8,6 +8,7 @@ import { finalize } from 'rxjs';
 import { Role } from '../../shared/models/user';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { LocationService } from '../../shared/LocationService';
+import { OrderStatus } from '../../shared/models/status';
 
 @Component({
   selector: 'app-cart',
@@ -35,9 +36,16 @@ export class Cart implements OnInit {
 
   ngOnInit(): void {
     this.orderApiService.getCustomerActiveOrder().subscribe(order => {
-      if (order) {
-        this.router.navigate(['/order-status']);
+      if (!order) {
+        return;
       }
+
+      if (order.status === OrderStatus.AwaitingPayment) {
+        this.router.navigate(['/payment', order.id]);
+        return;
+      }
+
+      this.router.navigate(['/order-status']);
     });
   }
 
@@ -113,9 +121,8 @@ checkout(): void {
     .createOrder(payload)
     .pipe(finalize(() => this.isSubmittingOrder.set(false)))
     .subscribe({
-      next: () => {
-        this.cartService.clear();
-        this.router.navigate(['/order-status']);
+      next: (order) => {
+        this.router.navigate(['/payment', order.id]);
       },
       error: (error: HttpErrorResponse) => {
         const backendMessage =
