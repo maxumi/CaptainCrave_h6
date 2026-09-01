@@ -8,17 +8,23 @@
   --color-primary-hover: #f3c400;
 
   --color-danger: #b21919;
+  --color-danger-background: #f4d2d2;
 
   --color-muted: #778096;
   --color-border: #d9dde7;
+  --color-success: #1f8f52;
 
   --color-background: #eef3fb;
   --color-card: #fffaf0;
 
+  --surface-glass: rgba(255, 255, 255, 0.9);
+  --surface-glass-strong: rgba(255, 255, 255, 0.96);
+  --surface-border: rgba(255, 255, 255, 0.45);
+  --text-on-water: #f4f8ff;
+  --text-on-water-muted: #d3e3ff;
+
   --color-blue: #034fc4;
   --color-blue-dark: #002a79;
-
-  --color-danger-background: #f4d2d2;
 }
 
 /* Base */
@@ -53,7 +59,71 @@ body {
 }
 
 .page-content {
+  position: relative;
   flex: 1;
+
+  background:
+    radial-gradient(
+      circle at 49% 28%,
+      rgba(23, 124, 238, 0.68),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 12% 75%,
+      rgba(0, 24, 86, 0.34),
+      transparent 30%
+    ),
+    linear-gradient(
+      150deg,
+      #063f99 0%,
+      #0758bb 46%,
+      #032d78 100%
+    );
+
+  overflow: hidden;
+}
+
+.page-content::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  opacity: 0.18;
+
+  background-image:
+    repeating-radial-gradient(
+      circle at 18% 30%,
+      transparent 0 32px,
+      rgba(255, 255, 255, 0.35) 33px 34px,
+      transparent 35px 64px
+    ),
+    linear-gradient(
+      24deg,
+      transparent 48%,
+      rgba(255, 255, 255, 0.22) 49%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 51%
+    ),
+    linear-gradient(
+      -18deg,
+      transparent 48%,
+      rgba(255, 255, 255, 0.16) 49%,
+      rgba(255, 255, 255, 0.16) 50%,
+      transparent 51%
+    );
+
+  background-size:
+    220px 220px,
+    280px 280px,
+    340px 340px;
+
+  pointer-events: none;
+}
+
+router-outlet + * {
+  position: relative;
+  z-index: 1;
 }
 
 /* Auth */

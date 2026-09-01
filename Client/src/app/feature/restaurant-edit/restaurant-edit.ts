@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -84,7 +85,12 @@ export class RestaurantEdit implements OnInit {
         next: (restaurant) => {
           this.currentRestaurant.set(restaurant);
         },
-        error: () => {
+        error: (error: HttpErrorResponse) => {
+          if (error.status === 404) {
+            void this.router.navigate(['/restaurant-create']);
+            return;
+          }
+
           this.loadError.set(
             'Could not load restaurant profile.'
           );

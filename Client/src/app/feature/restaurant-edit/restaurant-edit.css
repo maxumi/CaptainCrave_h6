@@ -1,10 +1,20 @@
 .restaurant-page {
-  padding: 32px;
+  padding: 24px;
 }
 
 .menu-content {
-  max-width: 1100px;
+  max-width: 1120px;
   margin: 0 auto;
+  padding: 24px;
+  background: linear-gradient(
+    180deg,
+    var(--surface-glass) 0%,
+    var(--surface-glass-strong) 100%
+  );
+  border: 1px solid var(--surface-border);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(0, 23, 66, 0.24);
+  backdrop-filter: blur(6px);
 }
 
 .editor-card {
@@ -69,9 +79,9 @@
 }
 
 .restaurant-tabs button {
-  color: var(--color-muted);
-  background: none;
-  border: none;
+  color: var(--color-dark);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--color-border);
   font-weight: bold;
   padding: 10px 16px;
   border-radius: 8px;
@@ -80,8 +90,9 @@
 
 .restaurant-tabs button.active,
 .restaurant-tabs button:hover {
-  background-color: var(--color-dark);
+  background-color: var(--color-blue-dark);
   color: var(--color-white);
+  border-color: var(--color-blue-dark);
 }
 
 .success {
@@ -91,7 +102,11 @@
 
 @media (max-width: 600px) {
   .restaurant-page {
-    padding: 20px;
+    padding: 12px;
+  }
+
+  .menu-content {
+    padding: 16px;
   }
 
   .location-grid {
