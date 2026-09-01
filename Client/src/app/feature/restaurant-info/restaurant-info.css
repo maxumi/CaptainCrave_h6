@@ -1,37 +1,56 @@
 .restaurant-info-page {
   max-width: 1120px;
-  margin: 0 auto;
+  margin: 20px auto;
   padding: 24px 28px 36px;
+  background: linear-gradient(
+    180deg,
+    var(--surface-glass) 0%,
+    var(--surface-glass-strong) 100%
+  );
+  border: 1px solid var(--surface-border);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgba(0, 23, 66, 0.24);
+  backdrop-filter: blur(6px);
 }
 
 .restaurant-banner {
   position: relative;
   height: 180px;
+  border: 1px solid var(--color-border);
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  box-shadow: rgba(100, 100, 111, 0.1) 0 10px 24px 0;
+  box-shadow: 0 10px 24px rgba(0, 20, 72, 0.1);
 }
 
 .restaurant-banner img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+
   display: block;
+  object-fit: cover;
 }
 
 .restaurant-banner-overlay {
   position: absolute;
   inset: 0;
+
   display: flex;
   align-items: flex-end;
+
   padding: 20px 22px;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.12), rgba(15, 23, 42, 0.6));
+
+  background: linear-gradient(
+    180deg,
+    rgba(0, 42, 121, 0.08),
+    rgba(0, 29, 87, 0.7)
+  );
 }
 
 .restaurant-banner-overlay h1 {
   margin: 0;
-  color: white;
+
+  color: var(--color-white);
+
   font-size: clamp(28px, 4vw, 46px);
   line-height: 1;
   letter-spacing: -0.04em;
@@ -39,13 +58,20 @@
 
 .restaurant-info-page h2 {
   margin: 28px 0 14px;
+
+  color: var(--color-dark);
+
   font-size: 40px;
   line-height: 1.05;
   letter-spacing: -0.02em;
 }
 
+/* Menu state */
+
 .menu-state {
   margin: 10px 0 16px;
+
+  color: var(--color-dark);
   font-size: 14px;
 }
 
@@ -54,8 +80,10 @@
 }
 
 .menu-state-success {
-  color: #145a2c;
+  color: #287a45;
 }
+
+/* Tabs */
 
 .menu-tabs {
   display: flex;
@@ -65,36 +93,49 @@
 }
 
 .tab-btn {
-  border: 1px solid var(--color-border);
+  padding: 7px 14px;
   background-color: var(--color-white);
   color: var(--color-dark);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
-  padding: 7px 14px;
-  font-weight: 700;
   font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
 }
 
 .tab-btn:hover {
-  border-color: var(--color-dark);
+  border-color: var(--color-blue);
+  color: var(--color-blue);
 }
 
 .tab-btn.active {
-  border-color: var(--color-dark);
-  background-color: var(--color-dark);
+  background-color: var(--color-blue-dark);
   color: var(--color-white);
+  border-color: var(--color-blue-dark);
 }
 
+.tab-btn:active {
+  transform: translateY(1px);
+}
+
+/* Categories */
 .category-section {
   margin-bottom: 24px;
 }
 
 .category-section > h3 {
   margin: 0 0 12px;
+  color: var(--color-dark);
   font-size: 22px;
   letter-spacing: -0.01em;
 }
+
+/* Menu grid */
 
 .menu-grid {
   display: grid;
@@ -102,21 +143,30 @@
   gap: 16px;
 }
 
+/* Menu cards */
+
 .menu-card {
+  min-height: 130px;
+  padding: 14px;
+  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  min-height: 130px;
-  padding: 14px;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  box-sizing: border-box;
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  box-shadow: 0 6px 18px rgba(0, 20, 72, 0.07);
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease;
 }
 
 .menu-card:hover {
   transform: translateY(-1px);
-  box-shadow: rgba(100, 100, 111, 0.2) 0 10px 24px 0;
+  border-color: #c5cee0;
+  box-shadow: 0 10px 24px rgba(0, 20, 72, 0.13);
 }
 
 .menu-card-content {
@@ -125,6 +175,7 @@
 
 .menu-card h3 {
   margin: 0;
+  color: var(--color-dark);
   font-size: 20px;
   line-height: 1.2;
 }
@@ -135,15 +186,16 @@
 
 .menu-card .price {
   margin: 8px 0 2px;
+  color: var(--color-dark);
   font-weight: 700;
 }
 
 .menu-card .description {
+  max-width: 44ch;
+  margin-bottom: 10px;
   color: var(--color-muted);
   font-size: 13px;
   line-height: 1.35;
-  margin-bottom: 10px;
-  max-width: 44ch;
 }
 
 .add-btn {
@@ -155,12 +207,15 @@
   width: 88px;
   height: 88px;
   object-fit: cover;
-  border-radius: 10px;
   border: 1px solid var(--color-border);
+  border-radius: 10px;
 }
+
+/* Responsive */
 
 @media (max-width: 600px) {
   .restaurant-info-page {
+    margin: 12px;
     padding: 16px;
   }
 
@@ -178,8 +233,8 @@
   }
 
   .menu-card {
-    align-items: flex-start;
     min-height: 110px;
+    align-items: flex-start;
   }
 
   .menu-card h3 {

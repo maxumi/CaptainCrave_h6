@@ -13,6 +13,7 @@ export class MenuItemList {
   @Input() menuName: string | null = null;
   @Input() menuItems: MenuItem[] = [];
   @Input() selectedItemId: number | null = null;
+  @Input() isMenuSelected = true;
   @Input() currency = '';
 
   @Output() addItem = new EventEmitter<void>();

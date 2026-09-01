@@ -63,6 +63,45 @@
   color: var(--color-muted);
 }
 
+.coordinates-box {
+  margin-top: 16px;
+}
+
+.coordinates-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-dark);
+}
+
+.coordinates-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.coordinates-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #f7f7f7;
+  color: var(--color-dark);
+}
+
+.btn-secondary {
+  white-space: nowrap;
+}
+
+.copy-status {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--color-success);
+}
+
 #nearby-restaurants-map {
   width: 100%;
   height: 360px;
