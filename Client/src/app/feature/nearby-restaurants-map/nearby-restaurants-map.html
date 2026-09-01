@@ -38,6 +38,30 @@
       <p class="location-current">
         {{ t('restaurants.location.currentPrefix') }} {{ selectedLocation().label }}
       </p>
+
+      <div class="coordinates-box">
+        <label class="coordinates-label" for="selected-location-coordinates">
+          Latitude, Longitude
+        </label>
+
+        <div class="coordinates-controls">
+          <input
+            id="selected-location-coordinates"
+            class="coordinates-input"
+            type="text"
+            readonly
+            [value]="selectedCoordinatesText"
+          />
+
+          <button class="btn btn-secondary" type="button" (click)="copySelectedCoordinates()">
+            Copy
+          </button>
+        </div>
+
+        @if (copyStatus()) {
+          <small class="copy-status">{{ copyStatus() }}</small>
+        }
+      </div>
     </section>
 
     <div id="nearby-restaurants-map"></div>
