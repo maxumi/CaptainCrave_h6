@@ -9,6 +9,10 @@
     </div>
   </div>
 
+<app-restaurant-reviews
+  [restaurantId]="restaurantId()"
+/>
+
 <h2>{{ t('restaurantInfo.menu') }}</h2>
 
   @if (isAdmin()) {
@@ -62,7 +66,7 @@
     @if (selectedMenuId() !== null) {
       <!-- Uncategorized items -->
       @if (uncategorizedItems().length) {
-        <div class="menu-grid">
+        <div class="menu-grid" style="margin-bottom: 24px;">
           @for (item of uncategorizedItems(); track item.id) {
             <app-menu-item-card
               [item]="item"

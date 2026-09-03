@@ -31,4 +31,7 @@ public interface IOrderService
 
     // Returns delivered/cancelled orders for a user.
     Task<IEnumerable<OrderDto>> GetHistoricOrdersForUserAsync(int userId);
+
+    // Checks whether the given user has a delivered order from the restaurant (used to gate review eligibility).
+    Task<bool> HasCustomerOrderedFromRestaurantAsync(int userId, int restaurantId);
 }

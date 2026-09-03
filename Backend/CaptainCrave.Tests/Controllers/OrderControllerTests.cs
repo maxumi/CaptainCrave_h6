@@ -276,5 +276,29 @@ public class OrderControllerTests
 
         Assert.IsType<OkObjectResult>(result);
     }
+
+    [Fact]
+    public async Task HasOrderedFromRestaurant_ServiceReturnsTrue_ReturnsOkWithTrue()
+    {
+        var (controller, mockService) = CreateController(userId: 7, role: UserRole.Customer);
+        mockService.Setup(s => s.HasCustomerOrderedFromRestaurantAsync(7, 3)).ReturnsAsync(true);
+
+        var result = await controller.HasOrderedFromRestaurant(3);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal(true, okResult.Value?.GetType().GetProperty("hasOrdered")?.GetValue(okResult.Value));
+    }
+
+    [Fact]
+    public async Task HasOrderedFromRestaurant_ServiceReturnsFalse_ReturnsOkWithFalse()
+    {
+        var (controller, mockService) = CreateController(userId: 7, role: UserRole.Customer);
+        mockService.Setup(s => s.HasCustomerOrderedFromRestaurantAsync(7, 3)).ReturnsAsync(false);
+
+        var result = await controller.HasOrderedFromRestaurant(3);
+
+        var okResult = Assert.IsType<OkObjectResult>(result);
+        Assert.Equal(false, okResult.Value?.GetType().GetProperty("hasOrdered")?.GetValue(okResult.Value));
+    }
 }
 

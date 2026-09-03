@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MenuItemCard } from './menu-item-card/menu-item-card';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { RestaurantReviews } from './restaurant-reviews/restaurant-reviews';
 import { MenuItemApiService, MenuItemDto } from '../../shared/menu-item-api.service';
 import { MenuApiService, MenuDto } from '../../shared/menu-api.service';
 import { CategoryApiService, CategoryDto } from '../../shared/category-api.service';
@@ -10,10 +11,16 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Role } from '../../shared/models/user';
 import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api.service';
 import { finalize, forkJoin } from 'rxjs';
+import {
+  ReviewApiService,
+  RestaurantReviewSummaryDto,
+  ReviewDto,
+} from '../../shared/review-api.service';
+
 
 @Component({
   selector: 'app-restaurant-info',
-  imports: [TranslocoModule, MenuItemCard, RouterLink],
+  imports: [TranslocoModule, MenuItemCard, RouterLink, RestaurantReviews],
   templateUrl: './restaurant-info.html',
   styleUrl: './restaurant-info.css',
 })
@@ -26,8 +33,10 @@ export class RestaurantInfo implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly transloco = inject(TranslocoService);
   private readonly restaurantApiService = inject(RestaurantApiService);
+  private readonly reviewApiService = inject(ReviewApiService);
 
   readonly restaurant = signal<RestaurantDto | null>(null);
+  readonly restaurantId = signal(0);
   readonly menus = signal<MenuDto[]>([]);
   readonly categories = signal<CategoryDto[]>([]);
   readonly menuItems = signal<MenuItemDto[]>([]);
@@ -72,8 +81,6 @@ export class RestaurantInfo implements OnInit {
     return result;
   });
 
-  private restaurantId = 0;
-
   ngOnInit(): void {
     const restaurantId = Number(
       this.route.snapshot.queryParamMap.get('restaurantId')
@@ -86,9 +93,9 @@ export class RestaurantInfo implements OnInit {
       return;
     }
 
-    this.restaurantId = restaurantId;
-    this.loadRestaurant(restaurantId);
-    this.loadMenus(restaurantId);
+    this.restaurantId.set(restaurantId);
+    this.loadRestaurant(this.restaurantId());
+    this.loadMenus(this.restaurantId());
   }
 
   private loadRestaurant(restaurantId: number): void {
@@ -135,7 +142,7 @@ export class RestaurantInfo implements OnInit {
 
     const wasAdded = this.cartService.addItem(
       item,
-      this.restaurantId
+      this.restaurantId()
     );
 
     if (!wasAdded) {

@@ -1,5 +1,5 @@
-/* when angular is renderd it is throwin inside an additonal div,
-   use host when manipulating that */
+/* When Angular is rendered it is placed inside an additional host element.
+   Use :host when styling the component container. */
 
 :host {
   position: sticky;
@@ -8,26 +8,32 @@
   display: block;
   padding: 0;
 }
+
 .navbar {
   width: 100%;
   margin: 0;
   padding: 14px 40px;
-  background-color: #f8f8f8;
-  color: #222;
-  border-radius: 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+
   box-sizing: border-box;
 
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+
+  background-color: var(--color-white);
+  color: var(--color-dark);
+
+  border-bottom: 1px solid var(--color-border);
+
+  box-shadow: 0 2px 10px rgba(0, 20, 72, 0.08);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 20px;
+
   color: inherit;
   text-decoration: none;
   white-space: nowrap;
@@ -43,20 +49,42 @@
   width: 100%;
   height: 44px;
   padding: 0 16px;
-  background-color: #eee8f0;
-  border-radius: 20px;
 
   display: flex;
   align-items: center;
   gap: 8px;
+
+  background-color: var(--color-background);
+
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.search-box:focus-within {
+  background-color: var(--color-white);
+  border-color: var(--color-blue);
+
+  box-shadow: 0 0 0 3px rgba(3, 79, 196, 0.1);
 }
 
 .search-box input {
   width: 100%;
   min-width: 0;
+
   border: none;
   outline: none;
+
   background: transparent;
+  color: var(--color-dark);
+}
+
+.search-box input::placeholder {
+  color: var(--color-muted);
 }
 
 .navbar-actions {
@@ -74,43 +102,68 @@
 }
 
 .nav-link {
-  text-decoration: none;
-  color: #222;
+  padding: 7px 10px;
+
+  color: var(--color-dark);
+
   border: 1px solid transparent;
-  padding: 6px 10px;
   border-radius: 8px;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  text-decoration: none;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .nav-link:hover {
-  background-color: #fff;
+  background-color: var(--color-background);
   border-color: var(--color-border);
+  color: var(--color-blue);
 }
 
 .notification-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
+  width: 38px;
+  height: 38px;
 
   display: flex;
   align-items: center;
   justify-content: center;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.notification-btn:hover {
+  background-color: var(--color-background);
+  border-color: var(--color-border);
 }
 
 .notification-icon {
-  color: #333;
-  transition: color 0.2s ease, transform 0.2s ease;
+  color: var(--color-dark);
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .notification-btn:hover .notification-icon {
-  color: #116df7;
-  transform: scale(1.15);
+  color: var(--color-blue);
+  transform: scale(1.1);
 }
 
 .auth-buttons {
   margin-left: auto;
+
   display: flex;
   align-items: center;
   gap: 10px;
@@ -119,46 +172,69 @@
 
 .auth-buttons button {
   min-width: 92px;
-  border-radius: 10px;
-  background-color: #222;
-  color: #fff;
+  padding: 8px 14px;
+
+  background-color: var(--color-blue-dark);
+  color: var(--color-white);
+
+  border: 1px solid var(--color-blue-dark);
+  border-radius: 8px;
+
+  font-weight: 600;
+
   cursor: pointer;
-  padding: 5px 12px;
-  transition-duration: 0.4s;
   white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease;
 }
 
 .auth-buttons button:hover {
-  background-color: #ffffff;
-  color: black;
-  box-shadow: 0 2px 5px rgba(178, 25, 25, 0.5);
+  background-color: var(--color-blue);
+  border-color: var(--color-blue);
+  transform: translateY(-1px);
+}
+
+.auth-buttons button:active {
+  transform: translateY(0);
 }
 
 .language-select select {
   min-width: 90px;
-  height: 26px;
+  height: 36px;
   padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-  background-color: #fff;
-  color: #222;
+
+  background-color: var(--color-white);
+  color: var(--color-dark);
+
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+
   cursor: pointer;
   outline: none;
+
   font-size: 14px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .language-select select:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 2px 5px rgba(178, 25, 25, 0.25);
+  border-color: var(--color-blue);
 }
 
 .language-select select:focus {
-  border-color: #116df7;
-  box-shadow: 0 0 0 2px rgba(17, 109, 247, 0.2);
+  border-color: var(--color-blue);
+
+  box-shadow: 0 0 0 3px rgba(3, 79, 196, 0.1);
 }
 
 .user-name {
-  color: #222;
+  color: var(--color-dark);
+
   font-weight: 600;
   white-space: nowrap;
 }
@@ -167,11 +243,26 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border: none;
+
+  padding: 6px 8px;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+
   background: transparent;
+  color: inherit;
+
   cursor: pointer;
   font: inherit;
-  color: inherit;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.profile-btn:hover {
+  background-color: var(--color-background);
+  border-color: var(--color-border);
 }
 
 .cart-btn {
@@ -182,15 +273,15 @@
 }
 
 .profile-btn mat-icon {
-  font-size: 24px;
   width: 24px;
   height: 24px;
+  font-size: 24px;
 }
 
 .cart-btn mat-icon {
-  font-size: 18px;
   width: 18px;
   height: 18px;
+  font-size: 18px;
 }
 
 @media (max-width: 980px) {

@@ -30,9 +30,9 @@
 }
 
 .table-head {
-  background-color: #f0f0f0;
+  background-color: rgba(6, 63, 153, 0.08);
   font-weight: bold;
-  color: var(--color-muted);
+  color: #2b3e64;
 }
 
 .table-row {
@@ -42,7 +42,7 @@
 
 .table-row:hover,
 .table-row.selected {
-  background-color: #f8f8f8;
+  background-color: rgba(6, 63, 153, 0.07);
 }
 
 .actions {

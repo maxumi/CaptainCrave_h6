@@ -16,9 +16,14 @@
 	</div>
 
 	@if (!menuItems.length) {
-		<div class="card empty-state">
-			<h2>{{ t('menuEdit.emptyMenu.title') }}</h2>
-			<p>{{ t('menuEdit.emptyMenu.message') }}</p>
+		<div class="card empty-state" style="padding: 8px;">
+			@if (isMenuSelected) {
+				<h2>{{ t('menuEdit.emptyMenuItems.title') }}</h2>
+				<p>{{ t('menuEdit.emptyMenuItems.message') }}</p>
+			} @else {
+				<h2>{{ t('menuEdit.emptyMenu.title') }}</h2>
+				<p>{{ t('menuEdit.emptyMenu.message') }}</p>
+			}
 		</div>
 	}
 

@@ -34,6 +34,7 @@ ASP.NET Core 10 Web API for the CaptainCrave food ordering platform.
     - [Menu Items](#menu-items)
     - [Orders](#orders)
     - [Payments](#payments)
+    - [Reviews](#reviews)
     - [Image uploads](#image-uploads)
   - [Technology](#technology)
   - [Authentication](#authentication)
@@ -84,6 +85,8 @@ Restaurant --< Menu --< Category
 A `Restaurant` can have multiple `Menu`s. Each `Menu` has its own `Category` list (for example "Burgere", "Tilbehør", "Drikkevarer") and its own `MenuItem`s. A `MenuItem` belongs to exactly one `Menu`, and its `CategoryId` is optional, so items can be listed without a category (for example a combo or daily deal). The `Menu` layer exists so a restaurant can have more than one menu card (for example seasonal, or breakfast and lunch) without duplicating categories or items.
 
 Orders (`Order` and `OrderItem`) store a reference to the customer, the restaurant, and a snapshot of the ordered menu items with their quantity and price at order time.
+
+A `Review` belongs to a `User` and a `Restaurant`, with a `Rating` from 1-5. A user may leave at most one review per restaurant (enforced by a unique index on `user_id`+`restaurant_id`), and only after a `Delivered` order from that restaurant (see [Reviews](#reviews)).
 
 ### Orchestration (.NET Aspire)
 
@@ -285,7 +288,7 @@ The default .NET logger is replaced with [Serilog](https://serilog.net/), config
 ### Restaurants
 | Method | Route | Auth | Description |
 |---|---|---|---|
-| GET | `/api/restaurants` | Public | List all restaurants |
+| GET | `/api/restaurants` | Public | List all restaurants (each includes `averageRating`/`reviewCount`) |
 | GET | `/api/restaurants/nearby?latitude=&longitude=&radiusKm=` | Public | List restaurants within a radius of a point |
 | GET | `/api/restaurants/{id}` | Public | Get a restaurant by ID |
 | GET | `/api/restaurants/me` | Restaurant, Admin | The caller's own restaurant profile |
@@ -340,6 +343,7 @@ The default .NET logger is replaced with [Serilog](https://serilog.net/), config
 | GET | `/api/orders/{id}` | Authenticated | Get order details |
 | GET | `/api/orders/customer/active` (alias: `/api/orders/active`) | Customer | The caller's current active order |
 | GET | `/api/orders/customer/history` | Customer | The caller's past orders |
+| GET | `/api/orders/customer/has-ordered/{restaurantId}` | Customer | Whether the caller has a delivered order from a restaurant (used to gate review eligibility) |
 | GET | `/api/orders/restaurant/active` | Restaurant, Admin | Active orders for the caller's restaurant |
 | GET | `/api/orders/restaurant/history` | Restaurant, Admin | Completed orders for the caller's restaurant |
 | PATCH | `/api/orders/{id}/status` | Restaurant, Admin | Update order status (`Preparing`, `OnTheWay`, `ReadyForPickup`, `Delivered`, `Cancelled`, ...). Triggers an `OrderStatusChanged` SignalR event to the customer |
@@ -349,6 +353,16 @@ The default .NET logger is replaced with [Serilog](https://serilog.net/), config
 |---|---|---|---|
 | POST | `/api/payments` | Customer, Admin | Submit a fake card charge for an order awaiting payment (see [Mock payment system](#mock-payment-system)) |
 | GET | `/api/payments/order/{orderId}` | Authenticated | Get the most recent payment attempt for an order |
+
+### Reviews
+| Method | Route | Auth | Description |
+|---|---|---|---|
+| GET | `/api/reviews/restaurant/{restaurantId}` | Public | Rating summary for a restaurant (`averageRating`, `reviewCount` — no individual reviews) |
+| GET | `/api/reviews/restaurant/{restaurantId}/mine` | Authenticated | The caller's own review for a restaurant, or 404 if they have not reviewed it |
+| POST | `/api/reviews` | Authenticated | Create a review (1-5). Requires a delivered order from that restaurant (403 otherwise) and no existing review (400) |
+| PUT | `/api/reviews/{reviewId}` | Authenticated | Update the caller's own review |
+
+A restaurant's `averageRating`/`reviewCount` are computed with a SQL aggregate query (`AVG`/`COUNT` on the `reviews` table), not by loading every review into memory. `RestaurantReviewSummaryDto` is a true summary — it never carries the individual reviews; use the `/mine` endpoint for the current user's own review.
 
 Most write endpoints require `Authorize(Roles = ...)` and a `Bearer` token obtained from `/api/auth/login`. Read (`GET`) endpoints for restaurants/menus/categories/menu items are public so the storefront can be browsed without logging in.
 

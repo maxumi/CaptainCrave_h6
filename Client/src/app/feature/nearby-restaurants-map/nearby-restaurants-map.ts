@@ -30,6 +30,7 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
     readonly isLoading = signal(true);
     readonly isResolvingAddress = signal(false);
     readonly loadError = signal<string | null>(null);
+    readonly copyStatus = signal<string | null>(null);
 
     // Leaflet map
     private map!: L.Map;
@@ -132,6 +133,32 @@ export class NearbyRestaurantsMap implements OnInit, AfterViewInit, OnDestroy {
     this.addressInput.set(this.locationService.selectedLocation().label);
     this.loadError.set(null);
     this.loadNearbyRestaurantsFromSelectedLocation();
+  }
+
+  get selectedCoordinatesText(): string {
+    const { lat, lng } = this.selectedLocation();
+    return `${lat}, ${lng}`;
+  }
+
+  copySelectedCoordinates(): void {
+    const text = this.selectedCoordinatesText;
+
+    if (!navigator.clipboard) {
+      this.copyStatus.set('Clipboard not available');
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        this.copyStatus.set('Copied');
+      })
+      .catch(() => {
+        this.copyStatus.set('Copy failed');
+      })
+      .finally(() => {
+        setTimeout(() => this.copyStatus.set(null), 1400);
+      });
   }
 
   private loadNearbyRestaurantsFromSelectedLocation(): void {

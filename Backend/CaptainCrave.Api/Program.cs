@@ -115,6 +115,10 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 // DI — Notifikationer (SignalR)
 builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 
+// DI — Reviews
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+
 // Global exception handling — catches anything a controller didn't already handle itself,
 // logs it via Serilog and returns a consistent ProblemDetails response instead of a raw stack trace.
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

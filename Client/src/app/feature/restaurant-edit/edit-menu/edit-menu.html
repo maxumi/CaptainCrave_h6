@@ -63,6 +63,7 @@
       [menuName]="store.menus().find(menu => menu.id === store.menuId())?.name ?? null"
       [menuItems]="store.menuItems()"
       [selectedItemId]="store.selectedItem()?.id ?? null"
+      [isMenuSelected]="store.menuId() != null"
       [currency]="currency"
       (addItem)="startCreateItem()"
       (deleteMenu)="deleteSelectedMenu()"
