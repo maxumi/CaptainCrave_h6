@@ -7,6 +7,12 @@ import { CartService } from '../../../shared/cart.service';
 import { PaymentStatus } from '../../../shared/models/payment';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
+/**
+ * Payment component for handling order payments.
+ * 
+ * Allows for user to input a card number and process the payment for an order.
+ * Does not use a real payment provider.
+ */
 @Component({
   selector: 'app-payment',
   imports: [TranslocoModule],

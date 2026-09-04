@@ -3,6 +3,7 @@ import { TranslocoTestingModule, TranslocoTestingOptions } from '@jsverse/transl
 import en from '../../../../public/i18n/en.json';
 import da from '../../../../public/i18n/da.json';
 
+// If using transloco during a test or requires it, this function provides a configured testing module.
 export function getTranslocoModule(options: TranslocoTestingOptions = {}) {
   return TranslocoTestingModule.forRoot({
     langs: { en, da },

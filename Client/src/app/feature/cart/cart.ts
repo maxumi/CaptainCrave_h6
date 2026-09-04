@@ -10,6 +10,11 @@ import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { LocationService } from '../../shared/LocationService';
 import { OrderStatus } from '../../shared/models/status';
 
+/**
+ * Cart component for managing the user's shopping cart.
+ *
+ * Allows users to view, update, and remove items from their cart, and proceed to checkout/Payment.
+ */
 @Component({
   selector: 'app-cart',
   imports: [TranslocoModule],
@@ -26,6 +31,7 @@ export class Cart implements OnInit {
 
   readonly DeliveryType = DeliveryType;
 
+  // Signals and computed properties for the cart component
   readonly selectedDeliveryType = signal<DeliveryType>(DeliveryType.Delivery);
   readonly cartItems = this.cartService.items;
   readonly total = this.cartService.total;
@@ -49,6 +55,7 @@ export class Cart implements OnInit {
     });
   }
 
+  // Event handler for when the quantity input changes
   onQuantityInput(item: CartItem, event: Event): void {
     const input = event.target as HTMLInputElement;
     const quantity = Number(input.value);
@@ -68,7 +75,8 @@ export class Cart implements OnInit {
     this.cartService.clear();
   }
 
-checkout(): void {
+  // Event handler for when the checkout button is clicked
+  checkout(): void {
   const user = this.authService.user();
   const items = this.cartItems();
 

@@ -6,6 +6,11 @@ import { AuthService } from '../auth/auth.service';
 import { Role } from '../../shared/models/user';
 import { Notification } from './notification/notification';
 
+/**
+ * Navbar component for handling the application's navigation bar.
+ *
+ * Displays different navigation options based on the user's role and provides language switching and logout functionality.
+ */
 @Component({
   selector: 'app-navbar',
   imports: [MatIconModule, TranslocoModule, RouterLink, Notification],
@@ -21,6 +26,8 @@ export class Navbar {
     const role = this.user()?.role;
     return role === Role.Restaurant;
   });
+
+  // computes a value for the profile route based on the user's role
   readonly profileRoute = computed(() =>
     this.user()?.role === Role.Restaurant ? '/restaurant-edit' : '/profile'
   );
