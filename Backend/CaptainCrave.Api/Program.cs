@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Api.Data;
 using Api.Models;
 using Api.Hubs;
+using Api.Middleware;
 using Api.Repositories;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -11,8 +12,22 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Serilog;
+
+// Bootstrap logger: catches any startup failure before the host's own Serilog config is read from appsettings.
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Replaces the default .NET logger with Serilog, configured entirely from the "Serilog" section in appsettings.json.
+// preserveStaticLogger: true keeps each host's logger independent of the shared static Log.Logger, which
+// avoids a "logger is already frozen" crash when tests spin up multiple WebApplicationFactory<Program> hosts.
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext(), preserveStaticLogger: true);
 
 // Controllers
 builder.Services.AddControllers()
@@ -104,6 +119,11 @@ builder.Services.AddScoped<INotificationService, SignalRNotificationService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 
+// Global exception handling — catches anything a controller didn't already handle itself,
+// logs it via Serilog and returns a consistent ProblemDetails response instead of a raw stack trace.
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 // JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
@@ -149,6 +169,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Build app
 var app = builder.Build();
 
+// Structured request logging (method, path, status code, elapsed time) for every request.
+app.UseSerilogRequestLogging();
+
+// Must run before any middleware that could throw, so it can catch exceptions from the rest of the pipeline.
+app.UseExceptionHandler();
+
 // Seed testdata (kun i Development), så der ikke skal oprette data manuelt.
 if (app.Environment.IsDevelopment())
 {
@@ -180,7 +206,14 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
-app.Run();
+try
+{
+    app.Run();
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 
 // Gør Program synlig for CaptainCrave.Tests, så WebApplicationFactory<Program> kan starte API'en i tests.
 public partial class Program { }
