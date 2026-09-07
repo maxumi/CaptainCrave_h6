@@ -18,9 +18,6 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     [Authorize(Roles = "Customer,Admin")] // Kun kunder og administratorer kan oprette ordrer.
     public async Task<IActionResult> Create(CreateOrderDto dto)
     {
-        // SVENDEPRØVE – Controllerens ansvar er HTTP:
-        // valider input, kald OrderService, og oversæt resultatet til en statuskode.
-        // Prisberegning og andre forretningsregler ligger derfor ikke her.
         // Kontrollerer om request-data opfylder valideringskravene. 
         // Hvis ikke, returneres en 400 Bad Request med fejlbeskeder.
         if (!ModelState.IsValid)
@@ -161,8 +158,6 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
     {
-        // SVENDEPRØVE – følg requestet herfra til OrderService.UpdateStatusAsync.
-        // Servicen tjekker ejerskab og gyldige statusskift. Controlleren vælger HTTP-svaret.
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 

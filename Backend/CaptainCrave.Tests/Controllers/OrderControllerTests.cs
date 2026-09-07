@@ -133,8 +133,6 @@ public class OrderControllerTests
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedAtAction()
     {
-        // SVENDEPRØVE – unit-test med AAA: Arrange nedenfor, Act ved controller.Create,
-        // og Assert til sidst. Moq isolerer Controlleren fra den rigtige Service.
         var (controller, mockService) = CreateController();
         var dto = MakeCreateDto();
         mockService.Setup(s => s.CreateAsync(dto)).ReturnsAsync(MakeOrderDto());

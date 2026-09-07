@@ -61,10 +61,6 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Create(CreateMenuDto dto)
     {
-        // SVENDEPRØVE – forklar dette flow:
-        // 1) IActionResult gør, at endpointet kan svare med flere HTTP-statuskoder.
-        // 2) Controlleren validerer requestet og tjekker adgang.
-        // 3) Service-laget opretter menuen; Controlleren taler ikke direkte med databasen.
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
@@ -75,14 +71,11 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
                 return Unauthorized();
 
             var restaurant = await _restaurantService.GetByUserIdAsync(userId.Value);
-            // Ejerskabstjek: rollen "Restaurant" er ikke nok. Brugeren skal eje netop denne restaurant.
-            // NotFound skjuler samtidig, om en anden restaurants id faktisk findes.
             if (restaurant is null || restaurant.Id != dto.RestaurantId)
                 return NotFound();
         }
 
         var created = await _menuService.CreateAsync(dto);
-        // 201 Created fortæller, at en ny ressource er lavet. Svaret peger også på GetById.
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 

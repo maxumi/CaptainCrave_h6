@@ -28,8 +28,6 @@ public class SoftDeleteIntegrationTests : IClassFixture<CaptainCraveApiFactory>
     [Fact]
     public async Task MenuItem_SoftDelete_Restore_And_HardDelete_FullLifecycle()
     {
-        // SVENDEPRØVE – integrationstest, fordi Controller, EF Core query-filters og database
-        // skal virke sammen. En unit-test med mocks kan ikke bevise hele denne livscyklus.
         using var client = _factory.CreateClient();
 
         var (_, token) = await RegisterAndLoginAsync(client, "owner1@test.dk");

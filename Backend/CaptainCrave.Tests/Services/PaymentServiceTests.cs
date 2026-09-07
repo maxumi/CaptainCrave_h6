@@ -103,8 +103,6 @@ public class PaymentServiceTests
     [Fact]
     public async Task ProcessPaymentAsync_Succeeds_UsesOrderTotalPriceNotClientInput()
     {
-        // SVENDEPRØVE – testen beviser en forretningsregel, ikke kun at metoden kan køre:
-        // betalingsbeløbet skal komme fra den servergemte ordre og kan ikke vælges af klienten.
         // The amount must come from the order server-side, since CreatePaymentDto has no Amount field at all.
         var (service, mockPaymentRepository, mockOrderRepository, _) = CreateService();
         mockOrderRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(MakeOrder());

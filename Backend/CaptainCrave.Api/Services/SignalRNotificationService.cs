@@ -13,8 +13,6 @@ public class SignalRNotificationService(IHubContext<NotificationHub> hubContext)
     // Sender en "NewOrder"-besked til alle, der lytter i restaurantens gruppe,
     // så restauranten kan se den nye ordre dukke op med det samme, uden at genindlæse siden.
     public Task NotifyNewOrderAsync(int restaurantId, int orderId) =>
-        // SVENDEPRØVE – eventnavnet "NewOrder" er aftalen mellem backend og klient.
-        // IHubContext gør, at en almindelig Service kan sende gennem Hubben.
         _hubContext.Clients.Group(NotificationGroups.Restaurant(restaurantId))
             .SendAsync("NewOrder", new { orderId });
 
