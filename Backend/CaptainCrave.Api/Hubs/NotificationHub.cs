@@ -18,6 +18,8 @@ public class NotificationHub(IRestaurantRepository restaurantRepository) : Hub
     // beskeder der er relevante for netop den bruger.
     public override async Task OnConnectedAsync()
     {
+        // SVENDEPRØVE – Hubben tager imod SignalR-forbindelsen og placerer den i grupper.
+        // En gruppe gør, at vi kan sende målrettet i stedet for at sende ordredata til alle.
         // Alle brugere lægges i deres egen personlige gruppe (bruges til f.eks. "din ordrestatus ændrede sig").
         var userId = Context.User!.GetId();
         await Groups.AddToGroupAsync(Context.ConnectionId, NotificationGroups.User(userId));

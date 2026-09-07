@@ -32,7 +32,8 @@ public class MenuConfiguration : IEntityTypeConfiguration<Menu>
         builder.ConfigureAudit();
         builder.ConfigureSoftDelete();
 
-        // Skjuler menuer, hvis menuen selv eller dens restaurant er soft-deleted.
+        // SVENDEPRØVE – menuen skjules både, når den selv er slettet, og når dens parent
+        // Restaurant er slettet. På den måde vises child-data ikke under en slettet restaurant.
         builder.HasQueryFilter(m => !m.IsDeleted && !m.Restaurant.IsDeleted);
 
         // En restaurant kan have flere menuer.

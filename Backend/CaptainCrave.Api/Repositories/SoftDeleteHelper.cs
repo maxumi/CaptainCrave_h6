@@ -10,6 +10,8 @@ public static class SoftDeleteHelper
     // sletningen og den generelle UpdatedAt-opdatering.
     public static void MarkDeleted<T>(T entity) where T : ISoftDeletable, IAuditable
     {
+        // SVENDEPRØVE – <T> gør metoden genbrugelig. Begrænsningerne efter "where"
+        // sikrer, at T har både soft-delete-felter og auditfelter. Det følger DRY-princippet.
         var now = DateTime.UtcNow;
         entity.IsDeleted = true;
         entity.DeletedAt = now;
@@ -20,6 +22,7 @@ public static class SoftDeleteHelper
     // nulstiller DeletedAt, og opdaterer UpdatedAt til nu.
     public static void MarkRestored<T>(T entity) where T : ISoftDeletable, IAuditable
     {
+        // Restore fjerner mærket i stedet for at oprette en ny række. Data og id bevares.
         entity.IsDeleted = false;
         entity.DeletedAt = null;
         entity.UpdatedAt = DateTime.UtcNow;
