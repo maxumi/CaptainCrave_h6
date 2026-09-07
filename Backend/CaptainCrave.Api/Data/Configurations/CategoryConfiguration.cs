@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
-// Configures the categories table columns and relationships
+// Konfigurerer categories-tabellens kolonner og relationer.
 public class CategoryConfiguration : IEntityTypeConfiguration<Category>
 {
     public void Configure(EntityTypeBuilder<Category> builder)
@@ -26,15 +26,17 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .IsRequired()
             .HasMaxLength(100);
 
+        // Tilføjer de fælles felter til audit og soft delete.
         builder.ConfigureAudit();
         builder.ConfigureSoftDelete();
 
+        // En kategori tilhører én menu, mens en menu kan have flere kategorier.
         builder.HasOne(c => c.Menu)
             .WithMany(m => m.Categories)
             .HasForeignKey(c => c.MenuId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Categories are hidden if deleted directly, or if their menu or restaurant is soft-deleted.
+        // Skjuler kategorier, hvis kategorien selv, dens menu eller restauranten er soft-deleted.
         builder.HasQueryFilter(c => !c.IsDeleted && !c.Menu.IsDeleted && !c.Menu.Restaurant.IsDeleted);
     }
 }

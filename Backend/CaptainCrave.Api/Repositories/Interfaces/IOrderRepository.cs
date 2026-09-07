@@ -3,30 +3,32 @@ using Api.Models.Enums;
 
 namespace Api.Repositories;
 
-// Defines data access operations for orders.
+// Definerer databaseoperationer for ordrer.
 public interface IOrderRepository
 {
-    // Returns an order with all navigation properties loaded, or null if not found.
+    // Henter en ordre med dens relaterede data, eller null hvis den ikke findes.
     Task<Order?> GetByIdAsync(int id);
 
-    // Saves a new order (with its items) and returns it with the generated ID.
+    // Gemmer en ny ordre (med dens items) og returnerer den med det genererede ID.
     Task<Order> CreateAsync(Order order);
 
-    // Updates the status and updated_at of an existing order. Returns false if not found.
+    // Opdaterer status og updated_at på en eksisterende ordre.
+    // Returnerer false hvis ordren ikke findes.
     Task<bool> UpdateStatusAsync(int id, OrderStatus status);
 
-    // Returns active orders for a restaurant.
+    // Henter aktive ordrer for en restaurant.
     Task<IEnumerable<Order>> GetActiveByRestaurantAsync(int restaurantId);
 
-    // Returns delivered/cancelled orders for a restaurant.
+    // Henter leverede og annullerede ordrer for en restaurant.
     Task<IEnumerable<Order>> GetHistoryByRestaurantAsync(int restaurantId);
 
-    // Returns the first active order for a user, or null if none exist.
+    // Henter brugerens første aktive ordre, eller null hvis der ikke findes en.
     Task<Order?> GetActiveOrderForUserAsync(int userId);
 
-    // Returns delivered/cancelled orders for a user.
+    // Henter leverede og annullerede ordrer for en bruger.
     Task<IEnumerable<Order>> GetHistoryForUserAsync(int userId);
 
-    // Checks whether a user has a delivered order from a restaurant (used to gate review eligibility).
+    // Kontrollerer om brugeren har en leveret ordre fra restauranten.
+    // Bruges til at afgøre om brugeren må anmelde restauranten.
     Task<bool> HasUserOrderedFromRestaurantAsync(int userId, int restaurantId);
 }

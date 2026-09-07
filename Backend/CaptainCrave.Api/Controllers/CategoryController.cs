@@ -8,14 +8,14 @@ using System.Security.Claims;
 
 namespace Api.Controllers;
 
-// Handles HTTP requests for category resources.
+// Håndterer HTTP-requests relateret til kategorier.
 [ApiController]
 [Route("api/[controller]")]
 public class CategoriesController(ICategoryService categoryService) : ControllerBase
 {
     private readonly ICategoryService _categoryService = categoryService;
 
-    // Retrieves the logged-in user's ID from the JWT token.
+    // Henter den aktuelle brugers ID fra JWT-tokenet.
     private int? GetCurrentUserId()
     {
         var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -24,7 +24,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return int.TryParse(claimValue, out var userId) ? userId : null;
     }
 
-    // Returns all categories belonging to the specified restaurant, across all of its menus.
+    // Henter alle kategorier, der tilhører den angivne restaurant, på tværs af dens menuer.
     [HttpGet("restaurant/{restaurantId}")]
     public async Task<IActionResult> GetByRestaurant(int restaurantId)
     {
@@ -32,7 +32,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Ok(categories);
     }
 
-    // Returns all categories belonging to the specified menu.
+    // Henter alle kategorier, der tilhører den angivne menu.
     [HttpGet("menu/{menuId}")]
     public async Task<IActionResult> GetByMenu(int menuId)
     {
@@ -40,7 +40,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Ok(categories);
     }
 
-    // Creates a new category and returns it with a 201 status.
+    // Opretter en ny kategori og returnerer den med status 201 Created.
     [HttpPost]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Create(CreateCategoryDto dto)
@@ -52,8 +52,8 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return Created(string.Empty, created);
     }
 
-    // Deletes a category if the caller is authorized. This is a soft delete: the category
-    // is hidden, not removed, and can be restored.
+    // Soft deleter en kategori, hvis brugeren har adgang til den.
+    // Kategorien skjules, men fjernes ikke permanent og kan derfor gendannes.
     [HttpDelete("{id}")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -69,7 +69,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return NoContent();
     }
 
-    // Restores a previously soft-deleted category if the caller is authorized.
+    // Gendanner en tidligere soft-deleted kategori, hvis brugeren har adgang til den.
     [HttpPost("{id}/restore")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Restore(int id)
@@ -85,7 +85,8 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         return NoContent();
     }
 
-    // Permanently deletes a category (soft-deleted or not) if the caller is authorized. This cannot be undone.
+    // Sletter en kategori permanent, hvis brugeren har adgang til den.
+    // Denne handling kan ikke fortrydes.
     [HttpDelete("{id}/permanent")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> HardDelete(int id)
@@ -108,7 +109,7 @@ public class CategoriesController(ICategoryService categoryService) : Controller
         }
     }
 
-    // Returns the soft-deleted categories for a restaurant, so they can be reviewed and restored.
+    // Henter soft-deleted kategorier for en restaurant, så de kan vises og eventuelt gendannes.
     [HttpGet("restaurant/{restaurantId}/deleted")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetDeleted(int restaurantId)

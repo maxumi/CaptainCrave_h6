@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
-// Configures the menu_items table columns, constraints and relationships
+// Konfigurerer menu_items-tabellens kolonner, begrænsninger og relationer.
 public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
 {
     public void Configure(EntityTypeBuilder<MenuItem> builder)
@@ -50,14 +50,17 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.ConfigureAudit();
         builder.ConfigureSoftDelete();
 
-        // Soft-deleted menu items are hidden from every normal query, and so are items of a soft-deleted menu or restaurant.
+        // Skjuler menu-items, hvis item'et selv, menuen eller restauranten er soft-deleted.
         builder.HasQueryFilter(m => !m.IsDeleted && !m.Menu.IsDeleted && !m.Menu.Restaurant.IsDeleted);
 
+        // Et menu-item tilhører én menu, mens en menu kan indeholde flere menu-items.
         builder.HasOne(m => m.Menu)
             .WithMany(mn => mn.MenuItems)
             .HasForeignKey(m => m.MenuId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Et menu-item kan valgfrit tilhøre en kategori.
+        // Kategorien kan ikke slettes permanent, så længe menu-items stadig refererer til den.
         builder.HasOne(m => m.Category)
             .WithMany(c => c.MenuItems)
             .HasForeignKey(m => m.CategoryId)

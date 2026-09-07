@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs;
 
+// Data der bruges til at oprette en ny restaurant.
 public class CreateRestaurantDto
 {
     [Required]
@@ -18,6 +19,7 @@ public class CreateRestaurantDto
     [MaxLength(255)]
     public string Address { get; set; } = string.Empty;
 
+    // Positionen bruges blandt andet til søgning efter restauranter i nærheden.
     [Range(-90, 90)]
     public double Latitude { get; set; }
 

@@ -1,5 +1,6 @@
 namespace Api.DTOs;
 
+// Repræsenterer en restaurant, som returneres fra API'et.
 public class RestaurantDto
 {
     public int Id { get; set; }
@@ -14,9 +15,11 @@ public class RestaurantDto
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 
+    // Soft delete-oplysninger.
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 
+    // Beregnede oplysninger baseret på restaurantens anmeldelser.
     public double AverageRating { get; set; }
     public int ReviewCount { get; set; }
 }

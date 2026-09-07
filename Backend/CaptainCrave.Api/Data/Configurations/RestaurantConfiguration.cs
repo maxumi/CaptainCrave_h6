@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
-// Configures the restaurants table columns, constraints and relationships
+// Konfigurerer restaurants-tabellens kolonner, begrænsninger og relationer.
 public class RestaurantConfiguration : IEntityTypeConfiguration<Restaurant>
 {
     public void Configure(EntityTypeBuilder<Restaurant> builder)
@@ -55,14 +55,19 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Restaurant>
         builder.ConfigureAudit();
         builder.ConfigureSoftDelete();
 
-        // Soft-deleted restaurants are hidden from every normal query.
+        // Skjuler soft-deleted restauranter fra normale queries.
         builder.HasQueryFilter(r => !r.IsDeleted);
 
+        // Relationer
+        // En restaurant er tilknyttet én bruger.
+        // Brugeren kan ikke slettes permanent, så længe restauranten refererer til den.
         builder.HasOne(r => r.User)
             .WithMany()
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // En restaurant kan have flere menuer.
+        // Hvis restauranten slettes permanent, slettes dens menuer også.
         builder.HasMany(r => r.Menus)
             .WithOne(m => m.Restaurant)
             .HasForeignKey(m => m.RestaurantId)

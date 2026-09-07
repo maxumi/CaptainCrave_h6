@@ -1,18 +1,18 @@
 namespace Api.DTOs;
 
-// Read-only representation of a menu returned by the API.
+// Repræsenterer en menu, som returneres fra API'et.
 public class MenuDto
 {
-    // Menu's unique identifier.
+    // Menuens unikke ID.
     public int Id { get; set; }
 
-    // Id of the restaurant this menu belongs to.
+    // ID på restauranten som menuen tilhører.
     public int RestaurantId { get; set; }
 
-    // Display name of the menu.
+    // Navnet der vises for menuen.
     public string Name { get; set; } = string.Empty;
 
-    // Whether the menu is soft-deleted (hidden but recoverable).
+    // Angiver om menuen er soft-deleted og derfor skjult, men stadig kan gendannes.
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 

@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace Api.Controllers;
 
-// Handles requests related to restaurants. 
+// Håndterer requests relateret til restauranter.
 [ApiController]
 [Route("api/[controller]")]
 public class RestaurantsController(IRestaurantService restaurantService, IMenuItemService menuItemService, IMenuService menuService, IImageStorageService imageStorageService) : ControllerBase
@@ -18,7 +18,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
     private readonly IMenuService _menuService = menuService;
     private readonly IImageStorageService _imageStorageService = imageStorageService;
 
-    // Retrieves the logged-in user's ID from the JWT token.
+    // Henter den aktuelle brugers ID fra JWT-tokenet.
     private int? GetCurrentUserId()
     {
         var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -27,7 +27,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return int.TryParse(claimValue, out var userId) ? userId : null;
     }
 
-    // Returns all restaurants.
+    // Henter alle aktive restauranter.
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -35,7 +35,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return Ok(restaurants);
     }
 
-    // Returns restaurants within the specified radius of the given latitude and longitude.
+    // Henter restauranter inden for den angivne radius fra en geografisk position.
     [HttpGet("nearby")]
     public async Task<IActionResult> GetNearby(
         [FromQuery] double latitude,
@@ -51,7 +51,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return Ok(restaurants);
     }
 
-    // Returns a single restaurant by ID, or 404 if not found.
+    // Henter en enkelt restaurant ud fra ID, eller returnerer 404 hvis ikke fundet.
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -61,9 +61,8 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
 
         return Ok(restaurant);
     }
-    
-    // Returns the restaurant profile that belongs
-    // to the currently logged-in restaurant user.
+
+    // Henter restaurantprofilen, der tilhører den aktuelle restaurantbruger.
     [HttpGet("me")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetMine()
@@ -79,7 +78,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return Ok(restaurant);
     }
 
-    // Returns all menu items for the specified restaurant.
+    // Henter alle menu-items for den angivne restaurant.
     [HttpGet("{id}/menu-items")]
     public async Task<IActionResult> GetMenuItems(int id)
     {
@@ -87,7 +86,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return Ok(items);
     }
 
-    // Returns all menus for the specified restaurant.
+    // Henter alle menuer for den angivne restaurant.
     [HttpGet("{id}/menus")]
     public async Task<IActionResult> GetMenus(int id)
     {
@@ -95,7 +94,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return Ok(menus);
     }
 
-    // Creates a new restaurant and returns it with a 201 status.
+    // Opretter en ny restaurant og knytter den til den autentificerede bruger.
     [HttpPost]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Create(CreateRestaurantDto dto)
@@ -111,14 +110,14 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         if (existingRestaurant is not null)
             return Conflict(new { message = "Restaurant profile already exists for this account." });
 
-        // Always bind a new restaurant to the authenticated user.
+        // Sikrer at en ny restaurant altid knyttes til den autentificerede bruger.
         dto.UserId = userId.Value;
 
         var created = await _restaurantService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    // Updates the editable restaurant profile fields.
+    // Opdaterer de redigerbare oplysninger på en restaurant.
     [HttpPut("{id}")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Update(int id, UpdateRestaurantDto dto)
@@ -137,7 +136,8 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return Ok(updated);
     }
 
-    // Uploads (or replaces) a restaurant's image and stores it on local disk under wwwroot/uploads.
+    // Uploader eller erstatter restaurantens billede.
+    // Billedet gemmes lokalt under wwwroot/uploads.
     [HttpPost("{id}/image")]
     [Authorize(Roles = "Restaurant,Admin")]
     [RequestSizeLimit(5_000_000)]
@@ -151,6 +151,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         if (restaurant is null)
             return NotFound();
 
+        // Kun ejeren af restauranten eller en administrator må ændre billedet.
         if (!User.IsInRole("Admin") && restaurant.UserId != userId)
             return Forbid();
 
@@ -167,6 +168,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         var updated = await _restaurantService.UpdateImageUrlAsync(id, relativeUrl, userId.Value, User.IsInRole("Admin"));
         if (updated is null)
         {
+            // Fjerner den uploadede fil igen, hvis databasen ikke kunne opdateres.
             _imageStorageService.Delete(relativeUrl);
             return NotFound();
         }
@@ -174,8 +176,8 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return Ok(updated);
     }
 
-    // Deletes the caller's restaurant if authorized. This is a soft delete: the restaurant
-    // (and its menus and menu items) are hidden, not removed, and can be restored.
+    // Soft deleter en restaurant, hvis brugeren ejer den eller er administrator.
+    // Restauranten, dens menuer og menu-items skjules, men fjernes ikke permanent.
     [HttpDelete("{id}")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -191,7 +193,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return NoContent();
     }
 
-    // Restores a previously soft-deleted restaurant if the caller owns it or is an admin.
+    // Gendanner en tidligere soft-deleted restaurant.
     [HttpPost("{id}/restore")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Restore(int id)
@@ -207,7 +209,8 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         return NoContent();
     }
 
-    // Permanently deletes a restaurant (soft-deleted or not) if the caller owns it or is an admin. This cannot be undone.
+    // Sletter en restaurant permanent, hvis brugeren ejer den eller er administrator.
+    // Denne handling kan ikke fortrydes.
     [HttpDelete("{id}/permanent")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> HardDelete(int id)
@@ -230,7 +233,7 @@ public class RestaurantsController(IRestaurantService restaurantService, IMenuIt
         }
     }
 
-    // Returns every soft-deleted restaurant, for an admin trash view.
+    // Henter alle soft-deleted restauranter til administratorens oversigt over slettede data.
     [HttpGet("deleted")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetDeleted()

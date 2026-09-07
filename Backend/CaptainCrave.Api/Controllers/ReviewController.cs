@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
+// Håndterer requests relateret til anmeldelser og vurderinger af restauranter.
 [ApiController]
 [Route("api/[controller]")]
 public class ReviewsController : ControllerBase
@@ -16,7 +17,7 @@ public class ReviewsController : ControllerBase
         _reviewService = reviewService;
     }
 
-    // Returns reviews and the average rating for a restaurant.
+    // Henter en restaurants gennemsnitlige vurdering og øvrige anmeldelsesoplysninger.
     // GET: api/reviews/restaurant/5
     [HttpGet("restaurant/{restaurantId:int}")]
     [AllowAnonymous]
@@ -29,7 +30,7 @@ public class ReviewsController : ControllerBase
         return Ok(result);
     }
 
-    // Returns the logged-in user's own review for a restaurant, if any.
+    // Henter den aktuelle brugers egen anmeldelse af en restaurant, hvis den findes.
     // GET: api/reviews/restaurant/5/mine
     [HttpGet("restaurant/{restaurantId:int}/mine")]
     [Authorize]
@@ -48,7 +49,8 @@ public class ReviewsController : ControllerBase
         return Ok(review);
     }
 
-    // Creates a review for a restaurant.
+    // Opretter en anmeldelse for en restaurant.
+    // Servicen kontrollerer blandt andet rating og om kunden har ret til at anmelde restauranten.
     // POST: api/reviews
     [HttpPost]
     [Authorize]
@@ -79,7 +81,7 @@ public class ReviewsController : ControllerBase
         }
     }
 
-    // Updates one of the logged-in user's existing reviews.
+    // Opdaterer en eksisterende anmeldelse, hvis den tilhører den aktuelle bruger.
     // PUT: api/reviews/5
     [HttpPut("{reviewId:int}")]
     [Authorize]

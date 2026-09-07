@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace Api.Controllers;
 
-// Handles HTTP requests for menu resources.
+// Håndterer HTTP-requests relateret til menuer.
 [ApiController]
 [Route("api/[controller]")]
 public class MenusController(IMenuService menuService, IRestaurantService restaurantService) : ControllerBase
@@ -16,7 +16,7 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     private readonly IMenuService _menuService = menuService;
     private readonly IRestaurantService _restaurantService = restaurantService;
 
-    // Retrieves the logged-in user's ID from the JWT token.
+    // Henter den aktuelle brugers ID fra JWT-tokenet.
     private int? GetCurrentUserId()
     {
         var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -26,9 +26,9 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     }
 
     /// <summary>
-    /// Returns all menus for the specified restaurant.
+    /// Henter alle menuer for den angivne restaurant.
     /// </summary>
-    /// <param name="restaurantId">Route value identifying the restaurant.</param>
+    /// <param name="restaurantId">ID på restauranten.</param>
     [HttpGet("restaurant/{restaurantId}")]
     public async Task<IActionResult> GetByRestaurant(int restaurantId)
     {
@@ -37,9 +37,10 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     }
 
     /// <summary>
-    /// Returns a single menu by ID, or 404 if not found.
+    /// Henter en enkelt menu ud fra dens ID.
+    /// Returnerer 404 Not Found, hvis menuen ikke findes.
     /// </summary>
-    /// <param name="id">Route value identifying the menu.</param>
+    /// <param name="id">ID på menuen.</param>
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -51,10 +52,11 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     }
 
     /// <summary>
-    /// Creates a new menu and returns it with a 201 status. Restaurant users may only
-    /// create menus for the restaurant they own; Admins can target any restaurant.
+    /// Opretter en ny menu og returnerer den med status 201 Created.
+    /// Restaurantbrugere kan kun oprette menuer til deres egen restaurant,
+    /// mens administratorer kan oprette menuer til alle restauranter.
     /// </summary>
-    /// <param name="dto">The requested menu's restaurant id and name.</param>
+    /// <param name="dto">Oplysninger om restaurant og navn på menuen.</param>
     [HttpPost]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Create(CreateMenuDto dto)
@@ -78,10 +80,10 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     }
 
     /// <summary>
-    /// Deletes a menu when the caller owns its restaurant or is an admin.
-    /// This is a soft delete: the menu (and its menu items) are hidden, not removed, and can be restored.
+    /// Soft deleter en menu, hvis brugeren ejer restauranten eller er administrator.
+    /// Menuen og dens menu-items skjules, men fjernes ikke permanent.
     /// </summary>
-    /// <param name="id">The menu id to delete.</param>
+    /// <param name="id">ID på menuen der skal slettes.</param>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -98,9 +100,10 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     }
 
     /// <summary>
-    /// Restores a previously soft-deleted menu when the caller owns its restaurant or is an admin.
+    /// Gendanner en tidligere soft-deleted menu, hvis brugeren ejer restauranten
+    /// eller er administrator.
     /// </summary>
-    /// <param name="id">The menu id to restore.</param>
+    /// <param name="id">ID på menuen der skal gendannes.</param>
     [HttpPost("{id}/restore")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Restore(int id)
@@ -117,10 +120,10 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     }
 
     /// <summary>
-    /// Permanently deletes a menu (soft-deleted or not) when the caller owns its restaurant or is an admin.
-    /// This cannot be undone.
+    /// Sletter en menu permanent, hvis brugeren ejer restauranten eller er administrator.
+    /// Denne handling kan ikke fortrydes.
     /// </summary>
-    /// <param name="id">The menu id to permanently delete.</param>
+    /// <param name="id">ID på menuen der skal slettes permanent.</param>
     [HttpDelete("{id}/permanent")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> HardDelete(int id)
@@ -144,9 +147,10 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     }
 
     /// <summary>
-    /// Returns the soft-deleted menus for a restaurant, so they can be reviewed and restored.
+    /// Henter soft-deleted menuer for en restaurant, så de kan vises
+    /// og eventuelt gendannes.
     /// </summary>
-    /// <param name="restaurantId">The owning restaurant's id.</param>
+    /// <param name="restaurantId">ID på restauranten.</param>
     [HttpGet("restaurant/{restaurantId}/deleted")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetDeleted(int restaurantId)

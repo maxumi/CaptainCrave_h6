@@ -4,13 +4,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-// Handles user registration and login requests
+// Håndterer registrering og login af brugere.
 [ApiController]
 [Route("api/auth")]
 public class AuthController(IAuthService authService) : ControllerBase
 {
-    // Creates a new user account. 
-    // Returns 201 Created if successful or 409 Conflict if the email already exists.
+    // Opretter en ny brugerkonto.
+    // Returnerer 201 Created ved succes eller 409 Conflict, hvis e-mailen allerede findes.
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
     {
@@ -19,7 +19,7 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         try
         {
-            // The controller forwards the data to AuthService, which creates the user in the database
+            // Sender registreringsdata videre til AuthService, som står for oprettelsen af brugeren.
             var response = await authService.RegisterAsync(dto);
             return CreatedAtAction(nameof(Register), response);
         }
@@ -29,8 +29,8 @@ public class AuthController(IAuthService authService) : ControllerBase
         }
     }
 
-    // Verifies the user's email and password.
-    // Returns a JWT token if the login is successful.
+    // Kontrollerer brugerens e-mail og adgangskode.
+    // Returnerer et JWT-token, hvis login lykkes.
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
     {
@@ -39,7 +39,7 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         try
         {
-            //AuthService checks whether the email address and password match a user in the database and generates a JWT token if they do
+            // AuthService validerer loginoplysningerne og genererer et JWT-token ved korrekt login.
             var response = await authService.LoginAsync(dto);
             return Ok(response);
         }

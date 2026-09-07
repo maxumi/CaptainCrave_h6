@@ -6,20 +6,20 @@ using System.Security.Claims;
 
 namespace Api.Controllers;
 
-// Handles requests related to customer and restaurant orders.
+// Håndterer requests relateret til kunde- og restaurantordrer.
 [ApiController]
 [Route("api/[controller]")]
 public class OrdersController(IOrderService orderService) : ControllerBase
 {
     private readonly IOrderService _orderService = orderService;
 
-    // POST: api/orders — creates a new order for an authenticated customer.
+    // POST: api/orders — Opretter en ny ordre for en kunde eller administrator.
     [HttpPost]
-    [Authorize(Roles = "Customer,Admin")] // Only customers and admins can create orders.
+    [Authorize(Roles = "Customer,Admin")] // Kun kunder og administratorer kan oprette ordrer.
     public async Task<IActionResult> Create(CreateOrderDto dto)
     {
-        // Checks if the incoming request data is valid. 
-        // If not, it returns a 400 Bad Request response with details about the validation errors.
+        // Kontrollerer om request-data opfylder valideringskravene. 
+        // Hvis ikke, returneres en 400 Bad Request med fejlbeskeder.
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
@@ -34,7 +34,7 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         }
     }
 
-    // GET: api/orders/{id} — returns the full order detail for any authenticated user.
+    // GET: api/orders/{id} — Henter en ordre ud fra dens ID.
     [HttpGet("{id}")]
     [Authorize]
     public async Task<IActionResult> GetById(int id)
@@ -46,15 +46,16 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         return Ok(order);
     }
 
-    // GET: api/orders/active — returns the active order for the current user.
+    // GET: api/orders/active — Henter den aktive ordre for den aktuelle kunde.
     [HttpGet("customer/active")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetActiveOrderForCustomer()
     {
-        // Gets the authenticated user's ID from the JWT token.
+        // Henter den autentificerede brugers ID fra JWT-tokenet.
         var userId = User.GetId();
 
-        // Retrieves the customer's active order. If there is no active order, it returns a 404 Not Found response.
+        // Henter kundens aktive ordre. 
+        // Hvis der ikke findes nogen aktiv ordre, returneres 404 Not Found.
         var order = await _orderService.GetActiveOrderForUserAsync(userId);
 
         if (order is null)
@@ -63,13 +64,14 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         return Ok(order);
     }
 
-    // Backward-compatible route alias for existing clients.
+    // Bevarer den tidligere route, så eksisterende klientkode fortsat virker.
     [HttpGet("active")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetActiveOrder() => await GetActiveOrderForCustomer();
 
-    // GET: api/orders/customer/has-ordered/{restaurantId} — checks whether the current customer
-    // has a delivered order from the restaurant, so the client can decide if they may leave a review.
+    // GET: api/orders/customer/has-ordered/{restaurantId} — Kontrollerer om den aktuelle kunde 
+    // tidligere har fået leveret en ordre fra restauranten.
+    // Resultatet bruges blandt andet til at afgøre, om kunden må anmelde restauranten.
     [HttpGet("customer/has-ordered/{restaurantId:int}")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> HasOrderedFromRestaurant(int restaurantId)
@@ -79,20 +81,20 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         return Ok(new { hasOrdered });
     }
 
-    // Returns all completed or historical orders for a customer.
+    // Henter kundens afsluttede og historiske ordrer.
     [HttpGet("customer/history")]
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> GetCustomerHistory()
     {
-        // Gets the current customer ID from JWT.
+        // Henter den autentificerede brugers ID fra JWT-tokenet.
         var userId = User.GetId();
 
-        // Retrieves previous orders. If there are no previous orders, it returns an empty list.
+        // Returnerer en tom liste, hvis kunden ikke har nogen historiske ordrer.
         var orders = await _orderService.GetHistoricOrdersForUserAsync(userId);
         return Ok(orders);
     }
 
-    // Returns all active orders belonging to a restaurant.
+    // Henter alle aktive ordrer for den restaurant, som brugeren har adgang til.
     [HttpGet("restaurant/active")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetRestaurantActiveOrders()
@@ -101,13 +103,13 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         var role = User.GetRole();
         try
         {
-            // Retrieves active orders for the restaurant.
+            // Henter aktive ordrer for restauranten, som brugeren har adgang til.
             var orders = await _orderService.GetRestaurantActiveOrdersAsync(userId, role);
             return Ok(orders);
         }
         catch (UnauthorizedAccessException ex)
         {
-            // User is not allowed to access these orders.
+            // Brugeren har ikke adgang til restaurantens ordrer.
             return StatusCode(StatusCodes.Status403Forbidden, new { message = ex.Message });
         }
         catch (KeyNotFoundException ex)
@@ -120,7 +122,7 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         }
     }
 
-    // Returns all completed orders for a restaurant.
+    // Henter alle afsluttede ordrer for en restaurant.
     [HttpGet("restaurant/history")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetRestaurantHistoricOrders()
@@ -129,7 +131,7 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         var role = User.GetRole();
         try
         {
-            // Retrieves completed restaurant orders.
+            // Henter afsluttede restaurant ordrer.
             var orders = await _orderService.GetRestaurantHistoricOrdersAsync(userId, role);
             return Ok(orders);
         }
@@ -148,9 +150,10 @@ public class OrdersController(IOrderService orderService) : ControllerBase
     }
 
     // PATCH: api/orders/{id}/status")]
-    // Updates the status of an order. 
-    // Only restaurant users can update to "Preparing", "Ready", or "Completed". 
-    // Only customers can update to "Cancelled". 
+    // Opdaterer status på en ordre.
+    // Kun restaurantbrugere og administratorer kan opdatere status på en ordre, undtagen for kunder, 
+    // som kun kan opdatere til "Cancelled".
+    // Adgang og gyldige statusskift kontrolleres i OrderService.
     [HttpPatch("{id}/status")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
@@ -190,6 +193,7 @@ public class OrdersController(IOrderService orderService) : ControllerBase
         return Ok(order);
     }
 
+    // Henter aktive ordrer for en bestemt restaurant ud fra restaurantens ID.
     [HttpGet("restaurant/{restaurantId}/active")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetRestaurantActiveOrdersById(
@@ -200,7 +204,9 @@ public class OrdersController(IOrderService orderService) : ControllerBase
 
         return Ok(orders);
     }
-    
+
+
+    // Henter historiske ordrer for en bestemt restaurant ud fra restaurantens ID.
     [HttpGet("restaurant/{restaurantId}/history")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetRestaurantHistoricOrdersById(

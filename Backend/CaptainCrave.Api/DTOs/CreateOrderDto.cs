@@ -3,6 +3,7 @@ using Api.Models.Enums;
 
 namespace Api.DTOs;
 
+// Data der bruges til at oprette en ny ordre.
 public class CreateOrderDto : IValidatableObject
 {
     [Required]
@@ -17,10 +18,12 @@ public class CreateOrderDto : IValidatableObject
     [MaxLength(500)]
     public string? DeliveryAddress { get; set; }
 
+    // En ordre skal indeholde mindst én order-item.
     [Required]
     [MinLength(1, ErrorMessage = "Cart cannot be empty.")]
     public List<CreateOrderItemDto> Items { get; set; } = [];
 
+    // Kræver leveringsadresse, hvis kunden har valgt levering.
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (DeliveryType == DeliveryType.Delivery && string.IsNullOrWhiteSpace(DeliveryAddress))

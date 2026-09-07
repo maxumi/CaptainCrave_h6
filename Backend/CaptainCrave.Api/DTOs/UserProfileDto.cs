@@ -1,5 +1,6 @@
 namespace Api.DTOs;
 
+// Repræsenterer profiloplysninger for den aktuelle bruger.
 public class UserProfileDto
 {
     public int Id { get; set; }

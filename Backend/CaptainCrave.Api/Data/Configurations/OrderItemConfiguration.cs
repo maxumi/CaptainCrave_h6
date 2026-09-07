@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
+// Konfigurerer order_items-tabellens kolonner og relationer.
 public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 {
     public void Configure(EntityTypeBuilder<OrderItem> builder)
@@ -35,6 +36,10 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.ConfigureAudit();
 
+        // Relationer
+        // En order-item refererer til det menu-item, der blev bestilt.
+        // Restrict bevarer relationen til tidligere ordrer 
+        // og forhindrer permanent sletning af et refereret menu-item.
         builder.HasOne(oi => oi.MenuItem)
             .WithMany()
             .HasForeignKey(oi => oi.MenuItemId)

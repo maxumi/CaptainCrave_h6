@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs;
 
+// Data der kan ændres på en eksisterende restaurantprofil.
 public class UpdateRestaurantDto
 {
     [Required]

@@ -1,5 +1,6 @@
 namespace Api.DTOs;
 
+// Repræsenterer et menu-item, som returneres fra API'et.
 public class MenuItemDto
 {
     public int Id { get; set; }
@@ -11,7 +12,7 @@ public class MenuItemDto
     public string ImageUrl { get; set; } = string.Empty;
     public bool IsAvailable { get; set; }
 
-    // Whether the menu item is soft-deleted (hidden but recoverable).
+    // Angiver om menu-item'et er soft-deleted og derfor skjult, men stadig kan gendannes.
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
 

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-// Handles requests related to the currently logged-in user.
+// Håndterer requests relateret til den aktuelle autentificerede bruger.
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
@@ -15,6 +15,7 @@ public class UsersController(IUserRepository userRepository) : ControllerBase
 {
     private readonly IUserRepository _userRepository = userRepository;
 
+    // Henter den aktuelle brugers ID fra JWT-tokenet.
     private int? GetCurrentUserId()
     {
         var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -23,6 +24,7 @@ public class UsersController(IUserRepository userRepository) : ControllerBase
         return int.TryParse(claimValue, out var userId) ? userId : null;
     }
 
+    // Henter profiloplysninger for den aktuelle bruger.
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
@@ -46,6 +48,7 @@ public class UsersController(IUserRepository userRepository) : ControllerBase
         });
     }
 
+    // Opdaterer profiloplysninger for den aktuelle bruger.
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMe([FromBody] UpdateUserProfileDto dto)
     {

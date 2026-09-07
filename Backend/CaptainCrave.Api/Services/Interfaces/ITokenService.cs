@@ -2,8 +2,9 @@ using Api.Models;
 
 namespace Api.Services;
 
-// Defines the operation for generating a JWT token
+// Definerer funktionen til generering af JWT-tokens.
 public interface ITokenService
 {
+    // Genererer et JWT-token for den angivne bruger.
     string GenerateToken(User user);
 }
