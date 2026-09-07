@@ -18,11 +18,14 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
     /// <returns>Ordren med alle detaljer, eller null hvis den ikke findes.</returns>
     public async Task<Order?> GetByIdAsync(int id) =>
         await _db.Orders
+            // Historiske ordrer skal stadig vise retter, som senere er soft-deleted.
+            // Derfor omgår denne kontrollerede forespørgsel de globale filtre.
             .IgnoreQueryFilters()
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.MenuItem)
             .Include(o => o.User)
             .Include(o => o.Restaurant)
+            // Read-only query: EF Core behøver ikke holde øje med senere ændringer.
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id);
 

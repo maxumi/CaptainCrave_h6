@@ -61,6 +61,8 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Create(CreateMenuDto dto)
     {
+        // Controllerens flow: valider requestet, tjek adgang, kald Service-laget
+        // og oversæt resultatet til et passende HTTP-svar.
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
@@ -71,11 +73,14 @@ public class MenusController(IMenuService menuService, IRestaurantService restau
                 return Unauthorized();
 
             var restaurant = await _restaurantService.GetByUserIdAsync(userId.Value);
+            // Rollen "Restaurant" er ikke nok; brugeren skal eje netop denne restaurant.
+            // NotFound afslører samtidig ikke, om en anden restaurants id findes.
             if (restaurant is null || restaurant.Id != dto.RestaurantId)
                 return NotFound();
         }
 
         var created = await _menuService.CreateAsync(dto);
+        // 201 Created fortæller, at ressourcen er oprettet, og peger på GetById.
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 

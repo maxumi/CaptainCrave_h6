@@ -58,6 +58,8 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
     [Fact(Timeout = 30000)]
     public async Task NewOrder_And_OrderStatusChanged_Notifications_Are_Received_Live()
     {
+        // Rigtige SignalR-klienter forbindes til API'et i hukommelsen.
+        // Testen beviser eventnavn, gruppevalg og at beskeden faktisk bliver modtaget.
         using var client = _factory.CreateClient();
 
         // 1. Opret en restaurant-bruger og en kunde-bruger, og log dem ind.

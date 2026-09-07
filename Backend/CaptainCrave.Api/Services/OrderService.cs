@@ -38,6 +38,8 @@ public class OrderService(
     /// <returns>Den nyoprettede ordre som DTO, med status "afventer betaling".</returns>
     public async Task<OrderDto> CreateAsync(CreateOrderDto dto)
     {
+        // Service-laget indeholder forretningsreglerne. Data fra klienten kan ændres,
+        // så bruger, restaurant og retternes priser hentes fra serverens database.
         var user = await _userRepository.GetByIdAsync(dto.UserId)
             ?? throw new KeyNotFoundException($"User {dto.UserId} not found.");
 
@@ -63,6 +65,7 @@ public class OrderService(
             var menuItem = await _menuItemRepository.GetByIdAsync(itemDto.MenuItemId)
                 ?? throw new KeyNotFoundException($"Menu item {itemDto.MenuItemId} not found.");
 
+            // Serverens pris bruges; en pris sendt fra klienten ville kunne manipuleres.
             var orderItem = itemDto.ToOrderItem(menuItem.Price);
             total += menuItem.Price * itemDto.Quantity;
             order.OrderItems.Add(orderItem);
@@ -113,6 +116,7 @@ public class OrderService(
     /// <returns>True hvis statussen blev opdateret, false hvis ordren ikke findes.</returns>
     public async Task<bool> UpdateStatusAsync(int id, UpdateOrderStatusDto dto, int currentUserId, UserRole currentUserRole)
     {
+        // Statusændringen har tre sikkerhedsnet: ejerskab, nuværende status og lovligt næste trin.
         var order = await _orderRepository.GetByIdAsync(id);
         if (order is null)
             return false;
@@ -205,6 +209,8 @@ public class OrderService(
     /// <returns>True hvis skiftet er lovligt.</returns>
     private static bool IsValidTransition(DeliveryType deliveryType, OrderStatus currentStatus, OrderStatus nextStatus)
     {
+        // En lille state machine: kun de viste skift er tilladt.
+        // Alle ukendte kombinationer ender i false, som er den sikre standard.
         // Afvis skift der ikke ændrer noget, statussen skal rent faktisk blive anderledes.
         if (currentStatus == nextStatus)
             return false;

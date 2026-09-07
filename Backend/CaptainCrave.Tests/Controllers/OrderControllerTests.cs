@@ -133,6 +133,8 @@ public class OrderControllerTests
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedAtAction()
     {
+        // Unit-test med AAA: Arrange gør klar, Act kalder Controlleren,
+        // og Assert tjekker resultatet. Moq erstatter den rigtige Service.
         var (controller, mockService) = CreateController();
         var dto = MakeCreateDto();
         mockService.Setup(s => s.CreateAsync(dto)).ReturnsAsync(MakeOrderDto());

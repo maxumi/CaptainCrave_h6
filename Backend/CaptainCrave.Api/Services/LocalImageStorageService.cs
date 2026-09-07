@@ -17,6 +17,8 @@ public class LocalImageStorageService(IWebHostEnvironment env) : IImageStorageSe
     /// <returns>Den relative URL til den gemte fil, fx "/uploads/menu-items/xxx.jpg".</returns>
     public async Task<string> SaveAsync(IFormFile file, string subfolder)
     {
+        // Filer er input fra brugeren og må ikke stoles på.
+        // Størrelse og filendelse kontrolleres, før noget skrives til disken.
         if (file.Length == 0 || file.Length > MaxFileSizeBytes)
             throw new InvalidOperationException("File is empty or exceeds the 5 MB limit.");
 
@@ -30,7 +32,7 @@ public class LocalImageStorageService(IWebHostEnvironment env) : IImageStorageSe
         var folderPath = Path.Combine(webRootPath, "uploads", subfolder);
         Directory.CreateDirectory(folderPath);
 
-        // Vi finder selv på filnavnet her; vi stoler aldrig på navnet klienten sendte.
+        // GUID-navnet undgår navnekollisioner og path traversal gennem brugerens filnavn.
         var fileName = $"{Guid.NewGuid()}{extension}";
         var fullPath = Path.Combine(folderPath, fileName);
 

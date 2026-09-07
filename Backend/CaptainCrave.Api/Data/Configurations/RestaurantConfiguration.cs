@@ -55,7 +55,8 @@ public class RestaurantConfiguration : IEntityTypeConfiguration<Restaurant>
         builder.ConfigureAudit();
         builder.ConfigureSoftDelete();
 
-        // Skjuler soft-deleted restauranter fra normale queries.
+        // Et globalt query-filter får EF Core til automatisk at skjule slettede rækker.
+        // Derfor behøver hvert repository ikke selv at huske betingelsen !IsDeleted.
         builder.HasQueryFilter(r => !r.IsDeleted);
 
         // Relationer

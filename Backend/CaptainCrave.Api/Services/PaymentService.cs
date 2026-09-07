@@ -26,6 +26,9 @@ public class PaymentService(
     /// <returns>Betalingsforsøget som DTO (med status Succeeded eller Failed).</returns>
     public async Task<PaymentDto> ProcessPaymentAsync(CreatePaymentDto dto)
     {
+        // Dette er et mock-flow, ikke en rigtig betaling. De normale trin vises stadig:
+        // tjek ordre, gem forsøg, opdatér status og send besked.
+        // Beløbet kommer altid fra ordren på serveren.
         var order = await _orderRepository.GetByIdAsync(dto.OrderId)
             ?? throw new KeyNotFoundException($"Order {dto.OrderId} not found.");
 
@@ -48,6 +51,7 @@ public class PaymentService(
 
         if (succeeded)
         {
+            // Kun en succes flytter ordren videre. Et fejlet forsøg gemmes som historik.
             await _orderRepository.UpdateStatusAsync(order.Id, OrderStatus.Pending);
 
             // Restauranten får først besked om ordren, når betalingen rent faktisk er gennemført.

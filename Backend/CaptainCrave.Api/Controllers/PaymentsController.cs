@@ -17,6 +17,8 @@ public class PaymentsController(IPaymentService paymentService) : ControllerBase
     [Authorize(Roles = "Customer,Admin")]
     public async Task<IActionResult> Create(CreatePaymentDto dto)
     {
+        // IActionResult gør flere HTTP-svar mulige: 201 ved oprettet betaling
+        // og 400 ved kendte fejl fra Service-laget.
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 

@@ -103,6 +103,8 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
     [RequestSizeLimit(5_000_000)]
     public async Task<IActionResult> UploadImage(int id, IFormFile file)
     {
+        // Controlleren styrer HTTP-flowet; storage-servicen validerer og gemmer filen.
+        // RequestSizeLimit stopper store requests tidligt, mens SaveAsync tjekker igen.
         var userId = GetCurrentUserId();
         if (userId is null)
             return Unauthorized();
@@ -120,6 +122,8 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         var updated = await _menuItemService.UpdateImageUrlAsync(id, relativeUrl, userId.Value, User.IsInRole("Admin"));
         if (updated is null)
         {
+            // Hvis databasen ikke kan bruge billedet, slettes filen igen,
+            // så serveren ikke efterlades med en fil uden et menu-item.
             _imageStorageService.Delete(relativeUrl);
             return NotFound();
         }
