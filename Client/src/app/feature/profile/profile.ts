@@ -9,6 +9,7 @@ import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api
 import { UserApiService } from '../../shared/user-api.service';
 import { configureLeafletDefaultIcons } from '../../shared/leaflet-icons';
 
+
 @Component({
   selector: 'app-profile',
   standalone: true,

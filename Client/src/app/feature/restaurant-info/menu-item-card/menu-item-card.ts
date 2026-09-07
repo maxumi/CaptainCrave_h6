@@ -2,6 +2,9 @@ import { Component, input, output } from '@angular/core';
 import { TranslocoModule } from '@jsverse/transloco';
 import { MenuItemDto } from '../../../shared/menu-item-api.service';
 
+/**
+ * Component for displaying a menu item card, including its details and the option to add it to the cart.
+ */
 @Component({
   selector: 'app-menu-item-card',
   imports: [TranslocoModule],

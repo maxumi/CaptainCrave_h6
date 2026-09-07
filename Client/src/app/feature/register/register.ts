@@ -25,6 +25,9 @@ interface RegisterFormData {
   role: Role;
 }
 
+/**
+ * Component for handling user registration, including form validation and submission.
+ */
 @Component({
   selector: 'app-register',
   imports: [TranslocoModule, RouterLink, FormField,  FormRoot],

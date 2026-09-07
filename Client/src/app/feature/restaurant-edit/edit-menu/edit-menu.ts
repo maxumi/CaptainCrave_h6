@@ -19,6 +19,9 @@ import { MenuItemList } from './menu-item-list/menu-item-list';
 import { MenuEditorForm } from './menu-editor-form/menu-editor-form';
 import { MenuItemApiService } from '../../../shared/menu-item-api.service';
 
+/**
+ * Component for editing the menu of a specific restaurant, including managing menu items and categories.
+ */
 @Component({
   selector: 'app-edit-menu',
   imports: [TranslocoModule, MenuItemList, MenuEditorForm],

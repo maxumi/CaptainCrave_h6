@@ -5,6 +5,9 @@ import { CommonModule } from '@angular/common';
 
 import { OrderApiService, OrderDto } from '../../shared/order-api.service';
 
+/**
+ * Component for viewing the customer's order history, including past orders and their details.
+ */
 @Component({
   selector: 'app-order-history',
   imports: [DatePipe, DecimalPipe, TranslocoModule, CommonModule],

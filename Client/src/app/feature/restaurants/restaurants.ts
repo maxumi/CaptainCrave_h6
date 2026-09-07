@@ -4,6 +4,10 @@ import { RestaurantApiService, RestaurantDto } from '../../shared/restaurant-api
 import { ReviewApiService } from '../../shared/review-api.service';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
+
+/**
+ * Component for displaying a list of restaurants.
+ */
 @Component({
   selector: 'app-restaurants',
   imports: [TranslocoModule, RouterLink],

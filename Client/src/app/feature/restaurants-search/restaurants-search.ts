@@ -16,6 +16,9 @@ import {
   RestaurantDto,
 } from '../../shared/restaurant-api.service';
 
+/**
+ * Component for searching and displaying a list of restaurants
+ */
 @Component({
   selector: 'app-restaurants-search',
   imports: [TranslocoModule, RouterLink, FormsModule],

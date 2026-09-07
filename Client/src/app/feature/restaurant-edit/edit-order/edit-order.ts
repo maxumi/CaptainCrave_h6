@@ -19,6 +19,9 @@ interface OrderDraft {
 
 type OrderMode = 'active' | 'history';
 
+/**
+ * Component for editing and managing orders for a specific restaurant, including updating order statuses.
+ */
 @Component({
   selector: 'app-edit-order',
   imports: [TranslocoModule, DatePipe, FormField, FormRoot],

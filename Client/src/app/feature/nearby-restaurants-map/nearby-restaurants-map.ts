@@ -10,7 +10,9 @@ import { FormsModule } from '@angular/forms';
 import { configureLeafletDefaultIcons } from '../../shared/leaflet-icons';
 
 const MAX_DISTANCE_KM = 50;
-
+/**
+ * Component for displaying nearby restaurants on a map, allowing users to select a location and view restaurants within a specified distance.
+ */
 @Component({
   selector: 'app-nearby-restaurants-map',
   imports: [TranslocoModule, FormsModule],

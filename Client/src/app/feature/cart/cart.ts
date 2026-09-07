@@ -29,6 +29,7 @@ export class Cart implements OnInit {
   private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
 
+  // Delivery types available for the order
   readonly DeliveryType = DeliveryType;
 
   // Signals and computed properties for the cart component
