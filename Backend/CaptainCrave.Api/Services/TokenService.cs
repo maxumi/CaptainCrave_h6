@@ -6,7 +6,15 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Api.Services;
 
-// Genererer et signeret JWT-token ud fra brugerens oplysninger og JWT-indstillingerne i appsettings.json
+// Genererer et signeret JWT-token til en bruger, ud fra indstillinger i appsettings.json
+public class TokenService(IConfiguration config) : ITokenService
+{
+    /// <summary>
+    /// Bygger et JWT-token (en slags digitalt bevis) med brugerens id, e-mail og rolle skrevet
+    /// ind i sig, og underskriver det med en hemmelig nøgle, så ingen kan lave et falsk token.
+    /// Klienten sender dette token med i alle kald bagefter, så serveren ved hvem der spørger.
+    /// </summary>
+    /// <returns>Et færdigt, underskrevet JWT-token som en tekststreng.</returns>
 public class TokenService(IConfiguration config) : ITokenService
 {
     // Opretter et JWT-token med brugerens ID, e-mail og rolle som claims

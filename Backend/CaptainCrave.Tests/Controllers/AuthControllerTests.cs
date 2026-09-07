@@ -6,11 +6,11 @@ using Moq;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for AuthController.
-// IAuthService is mocked so no database, password hashing, or JWT logic runs.
+// Unit-tests for AuthController.
+// IAuthService bliver mocket, så der ikke køres database, kodeord-hashing eller JWT-logik.
 public class AuthControllerTests
 {
-    // Creates an AuthController with a mocked IAuthService.
+    // Opretter en AuthController med en mocket IAuthService.
     private static (AuthController controller, Mock<IAuthService> mockService) CreateController()
     {
         var mockService = new Mock<IAuthService>();
@@ -20,7 +20,7 @@ public class AuthControllerTests
 
     // Register
 
-    // Successful registration returns 201 Created.
+    // En vellykket registrering giver 201 Created.
     [Fact]
     public async Task Register_ValidDto_ReturnsCreatedAtAction()
     {
@@ -35,7 +35,7 @@ public class AuthControllerTests
         Assert.IsType<CreatedAtActionResult>(result);
     }
 
-    // Response body contains the auth token and user info.
+    // Svaret indeholder auth-tokenet og brugerens data.
     [Fact]
     public async Task Register_ValidDto_ReturnsAuthResponse()
     {
@@ -50,7 +50,7 @@ public class AuthControllerTests
         Assert.Equal(response, result?.Value);
     }
 
-    // Duplicate email causes the service to throw InvalidOperationException, which the controller maps to 409 Conflict.
+    // En allerede brugt e-mail får servicen til at kaste InvalidOperationException, som controlleren omdanner til 409 Conflict.
     [Fact]
     public async Task Register_DuplicateEmail_ReturnsConflict()
     {
@@ -64,7 +64,7 @@ public class AuthControllerTests
         Assert.IsType<ConflictObjectResult>(result);
     }
 
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task Register_InvalidModelState_ReturnsBadRequest()
     {
@@ -78,7 +78,7 @@ public class AuthControllerTests
 
     // Login
 
-    // Valid credentials return 200 OK.
+    // Gyldige oplysninger giver 200 OK.
     [Fact]
     public async Task Login_ValidCredentials_ReturnsOk()
     {
@@ -93,7 +93,7 @@ public class AuthControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Response body contains the auth token and user info.
+    // Svaret indeholder auth-tokenet og brugerens data.
     [Fact]
     public async Task Login_ValidCredentials_ReturnsAuthResponse()
     {
@@ -108,7 +108,7 @@ public class AuthControllerTests
         Assert.Equal(response, result?.Value);
     }
 
-    // Wrong password causes the service to throw UnauthorizedAccessException, which maps to 401 Unauthorized.
+    // Forkert kodeord får servicen til at kaste UnauthorizedAccessException, som giver 401 Unauthorized.
     [Fact]
     public async Task Login_InvalidCredentials_ReturnsUnauthorized()
     {
@@ -122,7 +122,7 @@ public class AuthControllerTests
         Assert.IsType<UnauthorizedObjectResult>(result);
     }
 
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task Login_InvalidModelState_ReturnsBadRequest()
     {

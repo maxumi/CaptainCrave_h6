@@ -9,7 +9,7 @@ public enum PaymentStatus
     // Betalingen blev gennemført.
     Succeeded,
 
-    // Betalingen blev afvist (fx falsk "kort afvist").
+    // Betalingen blev afvist (fx falsk “kort afvist”).
     Failed,
 
     // Betalingen blev annulleret, inden den blev gennemført.

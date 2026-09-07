@@ -6,10 +6,12 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for ReviewService business logic (rating validation, duplicate prevention,
-// review-eligibility enforcement, and rating summaries). Repositories are mocked so no database access occurs.
+// Unit-tests for ReviewService's forretningslogik (validering af vurdering, undgåelse af dobbelt-anmeldelser,
+// håndhævelse af hvem der må anmelde, og vurderings-sammenfatninger). Repositories bliver mocket, så der ikke sker database-adgang.
 public class ReviewServiceTests
 {
+    /// <summary>Opretter ReviewService med anmeldelses- og ordre-repositories som mocks.</summary>
+    /// <returns>Servicen og begge mocks, så reglerne kan testes uden en database.</returns>
     private static (ReviewService service, Mock<IReviewRepository> mockReviewRepository, Mock<IOrderRepository> mockOrderRepository) CreateService()
     {
         var mockReviewRepository = new Mock<IReviewRepository>();
@@ -20,6 +22,7 @@ public class ReviewServiceTests
 
     // CreateAsync
 
+    // En vurdering uden for 1-5 bliver afvist.
     [Theory]
     [InlineData(0)]
     [InlineData(6)]
@@ -32,6 +35,7 @@ public class ReviewServiceTests
         Assert.Null(result);
     }
 
+    // Man kan ikke anmelde samme restaurant to gange.
     [Fact]
     public async Task CreateAsync_AlreadyReviewed_ReturnsNull()
     {
@@ -45,6 +49,7 @@ public class ReviewServiceTests
         mockOrderRepository.Verify(r => r.HasUserOrderedFromRestaurantAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
     }
 
+    // En bruger, der aldrig har bestilt fra restauranten, må ikke anmelde den.
     [Fact]
     public async Task CreateAsync_UserHasNotOrderedFromRestaurant_ThrowsUnauthorizedAccessException()
     {
@@ -56,6 +61,7 @@ public class ReviewServiceTests
             service.CreateAsync(1, new CreateReviewDto { RestaurantId = 2, Rating = 5 }));
     }
 
+    // En kunde, der har bestilt før og aldrig har anmeldt, må gerne oprette en anmeldelse.
     [Fact]
     public async Task CreateAsync_EligibleCustomer_CreatesAndReturnsReview()
     {
@@ -75,6 +81,7 @@ public class ReviewServiceTests
 
     // UpdateAsync
 
+    // En opdateret vurdering uden for 1-5 bliver afvist.
     [Theory]
     [InlineData(0)]
     [InlineData(6)]
@@ -87,6 +94,7 @@ public class ReviewServiceTests
         Assert.Null(result);
     }
 
+    // Hvis anmeldelsen slet ikke findes, kan man ikke opdatere den.
     [Fact]
     public async Task UpdateAsync_ReviewNotFound_ReturnsNull()
     {
@@ -98,6 +106,7 @@ public class ReviewServiceTests
         Assert.Null(result);
     }
 
+    // Man må kun opdatere sin egen anmeldelse.
     [Fact]
     public async Task UpdateAsync_NotOwner_ReturnsNull()
     {
@@ -109,6 +118,7 @@ public class ReviewServiceTests
         Assert.Null(result);
     }
 
+    // Ejeren af anmeldelsen må ændre sin vurdering.
     [Fact]
     public async Task UpdateAsync_Owner_UpdatesRating()
     {
@@ -124,6 +134,7 @@ public class ReviewServiceTests
 
     // GetByRestaurantIdAsync
 
+    // Giver kun en sammenfatning (gennemsnit og antal), ikke de enkelte anmeldelser.
     [Fact]
     public async Task GetByRestaurantIdAsync_ReturnsAggregatedSummaryWithoutIndividualReviews()
     {
@@ -137,6 +148,7 @@ public class ReviewServiceTests
         Assert.Equal(4, result.ReviewCount);
     }
 
+    // En restaurant uden anmeldelser får en sammenfatning på nul.
     [Fact]
     public async Task GetByRestaurantIdAsync_NoReviews_ReturnsZeroSummary()
     {
@@ -151,6 +163,7 @@ public class ReviewServiceTests
 
     // GetMyReviewAsync
 
+    // Hvis brugeren ikke har skrevet en anmeldelse, giver det null.
     [Fact]
     public async Task GetMyReviewAsync_NoReview_ReturnsNull()
     {
@@ -162,6 +175,7 @@ public class ReviewServiceTests
         Assert.Null(result);
     }
 
+    // Hvis brugeren har skrevet en anmeldelse, giver det dens data.
     [Fact]
     public async Task GetMyReviewAsync_HasReview_ReturnsDto()
     {

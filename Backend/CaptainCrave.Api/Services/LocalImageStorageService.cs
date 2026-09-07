@@ -1,6 +1,6 @@
 namespace Api.Services;
 
-// Stores uploaded images on local disk, under wwwroot/uploads, served back via static files.
+// Gemmer uploadede billeder lokalt på disken, under wwwroot/uploads, og serveres som statiske filer.
 public class LocalImageStorageService(IWebHostEnvironment env) : IImageStorageService
 {
     private static readonly HashSet<string> AllowedExtensions =
@@ -9,6 +9,12 @@ public class LocalImageStorageService(IWebHostEnvironment env) : IImageStorageSe
     private const long MaxFileSizeBytes = 5 * 1024 * 1024;
     private const string UploadsUrlPrefix = "/uploads/";
 
+    /// <summary>
+    /// Gemmer en uploadet fil på disken under et helt nyt, tilfældigt navn.
+    /// Vi bruger ALDRIG det filnavn, brugeren selv har sendt, fordi det kan indeholde
+    /// farlige tegn eller forsøge at overskrive andre filer på serveren.
+    /// </summary>
+    /// <returns>Den relative URL til den gemte fil, fx "/uploads/menu-items/xxx.jpg".</returns>
     public async Task<string> SaveAsync(IFormFile file, string subfolder)
     {
         if (file.Length == 0 || file.Length > MaxFileSizeBytes)
@@ -24,7 +30,7 @@ public class LocalImageStorageService(IWebHostEnvironment env) : IImageStorageSe
         var folderPath = Path.Combine(webRootPath, "uploads", subfolder);
         Directory.CreateDirectory(folderPath);
 
-        // generate the file name ourselves; never trust the client-supplied name
+        // Vi finder selv på filnavnet her; vi stoler aldrig på navnet klienten sendte.
         var fileName = $"{Guid.NewGuid()}{extension}";
         var fullPath = Path.Combine(folderPath, fileName);
 
@@ -36,6 +42,9 @@ public class LocalImageStorageService(IWebHostEnvironment env) : IImageStorageSe
         return $"{UploadsUrlPrefix}{subfolder}/{fileName}";
     }
 
+    // Sletter en tidligere gemt billedfil fra disken, men kun hvis stien rent faktisk
+    // peger ind i vores egen uploads-mappe. Gør ingenting, hvis stien er tom, eller hvis
+    // den peger på noget udenfor (fx et eksternt billede fra en anden hjemmeside).
     public void Delete(string? relativeUrl)
     {
         if (string.IsNullOrWhiteSpace(relativeUrl) || !relativeUrl.StartsWith(UploadsUrlPrefix, StringComparison.OrdinalIgnoreCase))

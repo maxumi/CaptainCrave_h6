@@ -9,11 +9,11 @@ using System.Security.Claims;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for CategoriesController.
-// ICategoryService is mocked so no database access occurs.
+// Unit-tests for CategoriesController.
+// ICategoryService bliver mocket, så der ikke sker nogen database-adgang.
 public class CategoryControllerTests
 {
-    // Creates a CategoriesController with a mocked ICategoryService and an authenticated HttpContext (user id "1").
+    // Opretter en CategoriesController med en mocket ICategoryService og en autentificeret HttpContext (bruger-id "1").
     private static (CategoriesController controller, Mock<ICategoryService> mockService) CreateController()
     {
         var mockService = new Mock<ICategoryService>();
@@ -29,7 +29,7 @@ public class CategoryControllerTests
 
     // GetByRestaurant
 
-    // Returns 200 OK for a valid restaurant ID.
+    // Giver 200 OK for et gyldigt restaurant-id.
     [Fact]
     public async Task GetByRestaurant_ReturnsOk()
     {
@@ -41,7 +41,7 @@ public class CategoryControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Response body contains the full category list.
+    // Svaret indeholder hele kategori-listen.
     [Fact]
     public async Task GetByRestaurant_ReturnsCategories()
     {
@@ -58,7 +58,7 @@ public class CategoryControllerTests
         Assert.Equal(categories, result?.Value);
     }
 
-    // Returns 200 OK with an empty collection when the restaurant has no categories.
+    // Giver 200 OK med en tom liste, når restauranten ingen kategorier har.
     [Fact]
     public async Task GetByRestaurant_EmptyList_ReturnsOkWithEmptyCollection()
     {
@@ -73,7 +73,7 @@ public class CategoryControllerTests
 
     // Create
 
-    // Valid DTO returns 201 Created.
+    // Gyldig DTO giver 201 Created.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreated()
     {
@@ -87,7 +87,7 @@ public class CategoryControllerTests
         Assert.IsType<CreatedResult>(result);
     }
 
-    // Response body contains the newly created category.
+    // Svaret indeholder den nyoprettede kategori.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedCategory()
     {
@@ -101,7 +101,7 @@ public class CategoryControllerTests
         Assert.Equal(created, result?.Value);
     }
 
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task Create_InvalidModelState_ReturnsBadRequest()
     {
@@ -115,6 +115,7 @@ public class CategoryControllerTests
 
     // Delete (soft delete)
 
+    // Sletter en kategori og giver 204 No Content.
     [Fact]
     public async Task Delete_ExistingId_ReturnsNoContent()
     {
@@ -126,6 +127,7 @@ public class CategoryControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Sletning af en kategori, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task Delete_NonExistingId_ReturnsNotFound()
     {
@@ -139,6 +141,7 @@ public class CategoryControllerTests
 
     // Restore
 
+    // En slettet kategori kan gendannes, og controlleren svarer med 204 No Content.
     [Fact]
     public async Task Restore_ExistingId_ReturnsNoContent()
     {
@@ -150,6 +153,7 @@ public class CategoryControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Gendannelse af en kategori, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task Restore_NonExistingId_ReturnsNotFound()
     {
@@ -161,8 +165,9 @@ public class CategoryControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
-    // HardDelete (permanent delete)
+    // HardDelete (permanent sletning)
 
+    // Sletter en kategori for altid og giver 204 No Content.
     [Fact]
     public async Task HardDelete_ExistingId_ReturnsNoContent()
     {
@@ -174,6 +179,7 @@ public class CategoryControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // En databasefejl under permanent sletning giver 409 Conflict.
     [Fact]
     public async Task HardDelete_WhenDbUpdateExceptionThrown_ReturnsConflict()
     {
@@ -187,6 +193,7 @@ public class CategoryControllerTests
 
     // GetDeleted
 
+    // Henter slettede kategorier for restaurantens ejer og giver 200 OK.
     [Fact]
     public async Task GetDeleted_ReturnsOk()
     {
@@ -198,6 +205,7 @@ public class CategoryControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
+    // Hvis brugeren ikke ejer restauranten, giver det 403 Forbidden.
     [Fact]
     public async Task GetDeleted_NotOwner_ReturnsForbidden()
     {

@@ -2,10 +2,12 @@ using Api.Models;
 
 namespace Api.Repositories;
 
-// Shared helpers for soft-deletable entities, so every repository does not repeat the same field updates.
+// Nogle fælles små hjælpe-metoder til soft delete, så hvert repository ikke skal skrive
+// de samme fire linjer kode igen og igen for at markere noget som slettet/gendannet.
 public static class SoftDeleteHelper
 {
-    // Marks an entity as deleted and bumps its updated timestamp.
+    // Markerer en entitet som slettet (IsDeleted = true) og gemmer tidspunktet for både
+    // sletningen og den generelle UpdatedAt-opdatering.
     public static void MarkDeleted<T>(T entity) where T : ISoftDeletable, IAuditable
     {
         var now = DateTime.UtcNow;
@@ -14,7 +16,8 @@ public static class SoftDeleteHelper
         entity.UpdatedAt = now;
     }
 
-    // Un-marks a previously deleted entity and bumps its updated timestamp.
+    // Fjerner slette-markeringen fra en tidligere slettet entitet (IsDeleted = false),
+    // nulstiller DeletedAt, og opdaterer UpdatedAt til nu.
     public static void MarkRestored<T>(T entity) where T : ISoftDeletable, IAuditable
     {
         entity.IsDeleted = false;

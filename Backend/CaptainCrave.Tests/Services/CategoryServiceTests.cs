@@ -6,10 +6,12 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for CategoryService business logic. Ownership is resolved through the category's
-// menu (via IMenuService), so IMenuService is mocked alongside the repositories.
+// Unit-tests for CategoryService's forretningslogik. Ejerskab afgøres via kategoriens
+// menu (via IMenuService), så IMenuService bliver mocket sammen med repositories.
 public class CategoryServiceTests
 {
+    /// <summary>Opretter CategoryService og alle dens afhængigheder som mocks.</summary>
+    /// <returns>Servicen og de tre mocks, som hver test kan sætte forventninger på.</returns>
     private static (
         CategoryService service,
         Mock<ICategoryRepository> mockCategoryRepository,
@@ -23,6 +25,7 @@ public class CategoryServiceTests
         return (service, mockCategoryRepository, mockMenuService, mockRestaurantRepository);
     }
 
+    // Opretter en gyldig kategori, og den får et rigtigt id fra databasen.
     [Fact]
     public async Task CreateAsync_ValidDto_ReturnsCreatedCategory()
     {
@@ -34,6 +37,7 @@ public class CategoryServiceTests
         Assert.Equal(3, result.Id);
     }
 
+    // Hvis kategorien slet ikke findes, kan man ikke slette den, og servicen giver false.
     [Fact]
     public async Task DeleteAsync_CategoryNotFound_ReturnsFalse()
     {
@@ -45,6 +49,7 @@ public class CategoryServiceTests
         Assert.False(result);
     }
 
+    // Ejeren af restauranten må slette kategorien, og den bliver soft-deleted.
     [Fact]
     public async Task DeleteAsync_Owner_ReturnsTrue()
     {
@@ -60,6 +65,7 @@ public class CategoryServiceTests
         mockCategoryRepository.Verify(r => r.SoftDeleteAsync(category), Times.Once);
     }
 
+    // Hvis menuen, kategorien hører til, ikke længere findes, kan ejerskab ikke tjekkes, og sletning fejler.
     [Fact]
     public async Task DeleteAsync_MenuNoLongerExists_ReturnsFalse()
     {
@@ -73,6 +79,7 @@ public class CategoryServiceTests
         Assert.False(result);
     }
 
+    // En bruger, der ikke ejer restauranten, må ikke slette kategorien.
     [Fact]
     public async Task DeleteAsync_NotOwner_ReturnsFalse()
     {
@@ -87,6 +94,7 @@ public class CategoryServiceTests
         Assert.False(result);
     }
 
+    // Man kan ikke gendanne en kategori, der slet ikke er slettet.
     [Fact]
     public async Task RestoreAsync_NotDeleted_ReturnsFalse()
     {
@@ -98,6 +106,7 @@ public class CategoryServiceTests
         Assert.False(result);
     }
 
+    // En admin må slette kategorien for altid uden at skulle eje restauranten.
     [Fact]
     public async Task HardDeleteAsync_Admin_BypassesOwnershipCheck()
     {
@@ -112,6 +121,7 @@ public class CategoryServiceTests
         mockMenuService.Verify(s => s.GetByIdIncludingDeletedAsync(It.IsAny<int>()), Times.Never);
     }
 
+    // En bruger, der ikke ejer restauranten, må ikke se dens slettede kategorier.
     [Fact]
     public async Task GetDeletedByRestaurantIdAsync_NotOwner_ReturnsNull()
     {

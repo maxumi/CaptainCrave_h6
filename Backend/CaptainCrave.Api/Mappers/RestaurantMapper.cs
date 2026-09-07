@@ -3,11 +3,16 @@ using Api.Models;
 
 namespace Api.Mappers;
 
-// Extension methods for mapping between Restaurant models and DTOs.
+// Denne klasse hjælper os med at bygge om mellem Restaurant (det vi gemmer i databasen)
+// og de DTO'er vi sender frem og tilbage til klienten.
 public static class RestaurantMapper
 {
-    // Maps a Restaurant entity to a RestaurantDto for API responses.
-    // averageRating/reviewCount are computed separately (aggregate query) since Restaurant has no in-memory Reviews load.
+    /// <summary>
+    /// Tager en restaurant og pakker den om til en RestaurantDto. Gennemsnitsvurdering og
+    /// antal anmeldelser sendes med som separate parametre, fordi de bliver udregnet i en
+    /// anden forespørgsel (restauranten selv har ikke anmeldelserne loadet ind).
+    /// </summary>
+    /// <returns>En RestaurantDto klar til at blive sendt til klienten.</returns>
     public static RestaurantDto ToDto(this Restaurant restaurant, double averageRating = 0, int reviewCount = 0) => new()
     {
         Id = restaurant.Id,
@@ -27,7 +32,11 @@ public static class RestaurantMapper
         ReviewCount = reviewCount
     };
 
-    // Maps a CreateRestaurantDto to a Restaurant entity ready to be persisted.
+    /// <summary>
+    /// Tager de oplysninger, klienten har sendt for en NY restaurant, og bygger en rigtig
+    /// Restaurant-model ud fra dem, som bagefter kan gemmes i databasen.
+    /// </summary>
+    /// <returns>En ny Restaurant, klar til at blive gemt (har endnu ikke et Id).</returns>
     public static Restaurant ToRestaurant(this CreateRestaurantDto dto) => new()
     {
         UserId = dto.UserId,

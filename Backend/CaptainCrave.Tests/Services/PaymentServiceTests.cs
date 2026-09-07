@@ -7,11 +7,13 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for PaymentService (the fake/mock payment gateway).
-// IPaymentRepository, IOrderRepository, and INotificationService are all mocked, so no
-// database or SignalR calls occur — only the gateway/business logic itself is exercised.
+// Unit-tests for PaymentService (den falske betalingsgateway).
+// IPaymentRepository, IOrderRepository og INotificationService bliver alle mocket, så der ikke
+// sker database- eller SignalR-kald, kun selve gateway-/forretningslogikken bliver testet.
 public class PaymentServiceTests
 {
+    /// <summary>Opretter PaymentService med betalinger, ordrer og notifikationer som mocks.</summary>
+    /// <returns>Servicen og alle tre mocks, så hver betalingsregel kan testes for sig.</returns>
     private static (
         PaymentService service,
         Mock<IPaymentRepository> mockPaymentRepository,
@@ -30,6 +32,8 @@ public class PaymentServiceTests
         return (service, mockPaymentRepository, mockOrderRepository, mockNotificationService);
     }
 
+    /// <summary>Bygger en ordre med et fast beløb, som betalingsservicen kan arbejde med.</summary>
+    /// <returns>En ordre klar til et falsk betalingsforsøg.</returns>
     private static Order MakeOrder(int id = 1, OrderStatus status = OrderStatus.AwaitingPayment) => new()
     {
         Id = id,
@@ -41,6 +45,7 @@ public class PaymentServiceTests
 
     // ProcessPaymentAsync
 
+    // En ukendt ordre giver en fejl, før betalingen bliver forsøgt.
     [Fact]
     public async Task ProcessPaymentAsync_UnknownOrder_ThrowsKeyNotFoundException()
     {
@@ -52,6 +57,7 @@ public class PaymentServiceTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.ProcessPaymentAsync(dto));
     }
 
+    // Man kan ikke betale en ordre, der ikke afventer betaling.
     [Fact]
     public async Task ProcessPaymentAsync_OrderNotAwaitingPayment_ThrowsInvalidOperationException()
     {
@@ -63,6 +69,7 @@ public class PaymentServiceTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.ProcessPaymentAsync(dto));
     }
 
+    // Et kortnummer, der ikke slutter på nuller, giver en vellykket betaling.
     [Fact]
     public async Task ProcessPaymentAsync_CardNotEndingInZeros_SucceedsAndMarksPaymentSucceeded()
     {
@@ -77,6 +84,7 @@ public class PaymentServiceTests
         Assert.Equal(PaymentStatus.Succeeded, result.Status);
     }
 
+    // Et kortnummer, der slutter på fire nuller, giver en fejlet (falsk) betaling.
     [Fact]
     public async Task ProcessPaymentAsync_CardEndingInFourZeros_FailsAndMarksPaymentFailed()
     {
@@ -91,6 +99,7 @@ public class PaymentServiceTests
         Assert.Equal(PaymentStatus.Failed, result.Status);
     }
 
+    // Beløbet, der betales, kommer fra ordren på serveren, ikke fra klienten.
     [Fact]
     public async Task ProcessPaymentAsync_Succeeds_UsesOrderTotalPriceNotClientInput()
     {
@@ -106,6 +115,7 @@ public class PaymentServiceTests
         Assert.Equal(99.50m, result.Amount);
     }
 
+    // En vellykket betaling får en reference-kode fra den falske gateway.
     [Fact]
     public async Task ProcessPaymentAsync_Succeeds_SetsProviderReference()
     {
@@ -120,6 +130,7 @@ public class PaymentServiceTests
         Assert.False(string.IsNullOrWhiteSpace(result.ProviderReference));
     }
 
+    // En fejlet betaling får ingen reference-kode.
     [Fact]
     public async Task ProcessPaymentAsync_Fails_DoesNotSetProviderReference()
     {
@@ -134,6 +145,7 @@ public class PaymentServiceTests
         Assert.Null(result.ProviderReference);
     }
 
+    // En vellykket betaling sætter ordrens status til Pending.
     [Fact]
     public async Task ProcessPaymentAsync_Succeeds_UpdatesOrderStatusToPending()
     {
@@ -148,6 +160,7 @@ public class PaymentServiceTests
         mockOrderRepository.Verify(r => r.UpdateStatusAsync(1, OrderStatus.Pending), Times.Once);
     }
 
+    // En vellykket betaling sender besked til restauranten om den nye ordre.
     [Fact]
     public async Task ProcessPaymentAsync_Succeeds_SendsNewOrderNotification()
     {
@@ -162,6 +175,7 @@ public class PaymentServiceTests
         mockNotificationService.Verify(n => n.NotifyNewOrderAsync(5, 1), Times.Once);
     }
 
+    // En fejlet betaling ændrer ikke ordrens status.
     [Fact]
     public async Task ProcessPaymentAsync_Fails_DoesNotUpdateOrderStatus()
     {
@@ -176,6 +190,7 @@ public class PaymentServiceTests
         mockOrderRepository.Verify(r => r.UpdateStatusAsync(It.IsAny<int>(), It.IsAny<OrderStatus>()), Times.Never);
     }
 
+    // En fejlet betaling sender ikke besked til restauranten.
     [Fact]
     public async Task ProcessPaymentAsync_Fails_DoesNotSendNewOrderNotification()
     {
@@ -192,6 +207,7 @@ public class PaymentServiceTests
 
     // GetLatestByOrderIdAsync
 
+    // Henter det seneste betalingsforsøg for en ordre.
     [Fact]
     public async Task GetLatestByOrderIdAsync_PaymentExists_ReturnsDto()
     {
@@ -205,6 +221,7 @@ public class PaymentServiceTests
         Assert.Equal(PaymentStatus.Succeeded, result!.Status);
     }
 
+    // Hvis ordren aldrig har haft et betalingsforsøg, giver det null.
     [Fact]
     public async Task GetLatestByOrderIdAsync_NoPayment_ReturnsNull()
     {

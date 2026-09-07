@@ -7,12 +7,14 @@ using Moq;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for PaymentsController.
-// IPaymentService is mocked so no database or gateway logic runs.
-// The controller never reads ClaimsPrincipal itself (ownership is enforced in the service layer
-// via OrderRepository lookups), so no authenticated user setup is needed here.
+// Unit-tests for PaymentsController.
+// IPaymentService bliver mocket, så der ikke køres database- eller gateway-logik.
+// Controlleren læser aldrig selv ClaimsPrincipal (ejerskab håndhæves i service-laget
+// via OrderRepository-opslåg), så der er ikke brug for en autentificeret bruger her.
 public class PaymentsControllerTests
 {
+    /// <summary>Opretter betalingscontrolleren med en mocket service.</summary>
+    /// <returns>Controlleren og dens mock, så testen kan styre servicesvaret.</returns>
     private static (PaymentsController controller, Mock<IPaymentService> mockService) CreateController()
     {
         var mockService = new Mock<IPaymentService>();
@@ -20,6 +22,8 @@ public class PaymentsControllerTests
         return (controller, mockService);
     }
 
+    /// <summary>Bygger et betalingsresultat med faste testdata.</summary>
+    /// <returns>En betalings-DTO, som controller-testene kan bruge.</returns>
     private static PaymentDto MakePaymentDto(int id = 1, int orderId = 1, PaymentStatus status = PaymentStatus.Succeeded) => new()
     {
         Id = id,
@@ -32,7 +36,7 @@ public class PaymentsControllerTests
 
     // Create
 
-    // A successful (fake) charge returns 201 Created pointing at GetByOrderId.
+    // En vellykket (falsk) betaling giver 201 Created, der peger på GetByOrderId.
     [Fact]
     public async Task Create_SuccessfulPayment_ReturnsCreatedAtAction()
     {
@@ -45,7 +49,7 @@ public class PaymentsControllerTests
         Assert.IsType<CreatedAtActionResult>(result);
     }
 
-    // Response body contains the resulting payment DTO.
+    // Svaret indeholder den resulterende betalings-DTO.
     [Fact]
     public async Task Create_SuccessfulPayment_ReturnsPaymentDto()
     {
@@ -59,7 +63,7 @@ public class PaymentsControllerTests
         Assert.Equal(paymentDto, result?.Value);
     }
 
-    // Model validation errors (e.g. missing CardNumber) return 400 before the service is called.
+    // Fejl i modelvalidering (fx manglende CardNumber) giver 400, før servicen kaldes.
     [Fact]
     public async Task Create_InvalidModelState_ReturnsBadRequest()
     {
@@ -73,7 +77,7 @@ public class PaymentsControllerTests
         mockService.Verify(s => s.ProcessPaymentAsync(It.IsAny<CreatePaymentDto>()), Times.Never);
     }
 
-    // An unknown order ID becomes a 400, not a 404, matching the service's KeyNotFoundException mapping.
+    // Et ukendt ordre-id bliver til 400, ikke 404, i tråd med servicens KeyNotFoundException-håndtering.
     [Fact]
     public async Task Create_UnknownOrder_ReturnsBadRequest()
     {
@@ -86,7 +90,7 @@ public class PaymentsControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
-    // Paying for an order that isn't awaiting payment (already paid, cancelled, ...) returns 400.
+    // Betaling for en ordre, der ikke afventer betaling (allerede betalt, annulleret, ...) giver 400.
     [Fact]
     public async Task Create_OrderNotAwaitingPayment_ReturnsBadRequest()
     {
@@ -101,7 +105,7 @@ public class PaymentsControllerTests
 
     // GetByOrderId
 
-    // Returns 200 OK with the latest payment attempt when one exists.
+    // Giver 200 OK med det seneste betalingsforsøg, når et sådant findes.
     [Fact]
     public async Task GetByOrderId_PaymentExists_ReturnsOk()
     {
@@ -113,7 +117,7 @@ public class PaymentsControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Returns 404 Not Found when the order has no payment attempts yet.
+    // Giver 404 Not Found, når ordren endnu ikke har nogen betalingsforsøg.
     [Fact]
     public async Task GetByOrderId_NoPayment_ReturnsNotFound()
     {

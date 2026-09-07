@@ -4,17 +4,25 @@ using Api.Repositories;
 
 namespace Api.Services;
 
+// Håndterer forretningslogikken for anmeldelser (reviews) og vurderinger.
 public class ReviewService : IReviewService
 {
     private readonly IReviewRepository _reviewRepository;
     private readonly IOrderRepository _orderRepository;
 
+    // Opretter servicen med adgang til anmeldelser og ordrer. Ordre-adgangen bruges til
+    // at bevise, at en kunde har handlet hos restauranten, før kunden må anmelde den.
     public ReviewService(IReviewRepository reviewRepository, IOrderRepository orderRepository)
     {
         _reviewRepository = reviewRepository;
         _orderRepository = orderRepository;
     }
 
+    /// <summary>
+    /// Henter en restaurants samlede vurdering: gennemsnitlig stjernescore og hvor mange
+    /// anmeldelser den har fået i alt.
+    /// </summary>
+    /// <returns>En sammenfatning med gennemsnit og antal anmeldelser.</returns>
     public async Task<RestaurantReviewSummaryDto> GetByRestaurantIdAsync(int restaurantId)
     {
         var (average, count) = await _reviewRepository.GetSummaryAsync(restaurantId);
@@ -27,12 +35,23 @@ public class ReviewService : IReviewService
         };
     }
 
+    /// <summary>
+    /// Henter den anmeldelse, en bestemt bruger selv har skrevet om en restaurant, hvis der
+    /// er skrevet en. Bruges så en bruger kan se og redigere sin egen anmeldelse.
+    /// </summary>
+    /// <returns>Brugerens egen anmeldelse som DTO, eller null hvis brugeren ikke har skrevet en.</returns>
     public async Task<ReviewDto?> GetMyReviewAsync(int userId, int restaurantId)
     {
         var review = await _reviewRepository.GetByUserAndRestaurantAsync(userId, restaurantId);
         return review is null ? null : MapToDto(review);
     }
 
+    /// <summary>
+    /// Opretter en ny anmeldelse. Der er tre regler, der skal være opfyldt: vurderingen skal
+    /// være mellem 1 og 5 stjerner, brugeren må ikke allerede have anmeldt restauranten før,
+    /// og brugeren skal rent faktisk have fået en ordre leveret fra restauranten.
+    /// </summary>
+    /// <returns>Den nye anmeldelse som DTO, eller null hvis vurderingen er ugyldig eller allerede findes.</returns>
     public async Task<ReviewDto?> CreateAsync(int userId, CreateReviewDto dto)
     {
         if (dto.Rating < 1 || dto.Rating > 5)
@@ -74,6 +93,12 @@ public class ReviewService : IReviewService
         return MapToDto(createdReview);
     }
 
+    /// <summary>
+    /// Opdaterer stjerne-vurderingen på en anmeldelse, som allerede findes, men kun hvis det
+    /// er brugerens egen anmeldelse (man kan ikke redigere andres anmeldelser).
+    /// </summary>
+    /// <returns>Den opdaterede anmeldelse som DTO, eller null hvis vurderingen er ugyldig,
+    /// anmeldelsen ikke findes, eller den ikke tilhører brugeren.</returns>
     public async Task<ReviewDto?> UpdateAsync(
         int userId,
         int reviewId,
@@ -106,6 +131,10 @@ public class ReviewService : IReviewService
         return MapToDto(updatedReview);
     }
 
+    /// <summary>
+    /// Pakker en Review-model om til den DTO, der bliver sendt videre til klienten.
+    /// </summary>
+    /// <returns>Anmeldelsen som ReviewDto.</returns>
     private static ReviewDto MapToDto(Review review)
     {
         return new ReviewDto

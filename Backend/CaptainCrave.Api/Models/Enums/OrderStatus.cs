@@ -1,24 +1,24 @@
 namespace Api.Models.Enums;
 
-// Represents the possible statuses an order can have.
+// Alle de statusser en ordre kan have, fra den bliver oprettet til den er færdig.
 public enum OrderStatus
 {
-    // The order has been placed.
+    // Ordren er lagt og betalt, men restauranten er ikke gået i gang endnu.
     Pending,
 
-    // The restaurant is preparing the order.
+    // Restauranten er i gang med at lave maden.
     Preparing,
 
-    // The order is being delivered.
+    // Ordren er på vej ud til kunden (kun ved levering).
     OnTheWay,
 
-    // The order is ready for pick up.
+    // Ordren står klar til at blive hentet (kun ved afhentning).
     ReadyForPickup,
 
-    // The order has been completed and delivered or picked up.
+    // Ordren er færdig, leveret eller afhentet.
     Delivered,
 
-    // The order has been cancelled and will not be completed.
+    // Ordren er annulleret og bliver ikke færdiggørt.
     Cancelled,
 
     // Ordren er oprettet, men den falske betaling er endnu ikke gennemført (se PaymentsController).

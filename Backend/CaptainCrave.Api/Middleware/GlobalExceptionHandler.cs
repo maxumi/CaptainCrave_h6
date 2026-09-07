@@ -4,11 +4,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Middleware;
 
-// Safety net for any exception a controller didn't already catch itself. Keeps the mapping
-// from exception type to HTTP status consistent with what controllers already do by hand,
-// and makes sure nothing ever reaches the client as a raw stack trace.
+// Sikkerhedsnet for enhver fejl, en controller ikke selv har fået fanget.
+// Oversætter fejltyper til de samme HTTP-statuskoder, controllerne ellers ville
+// have brugt, og sørger for at klienten aldrig ser en rå stack trace.
 public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
 {
+    /// <summary>
+    /// Fanger en ufanget fejl, så den ikke vælter hele serveren. Fejlen bliver logget, og
+    /// klienten får et pænt JSON-svar (ProblemDetails) tilbage i stedet for en rå fejlbesked.
+    /// </summary>
+    /// <returns>True, for at fortælle ASP.NET Core at fejlen er blevet håndteret færdig.</returns>
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
         var (statusCode, title) = exception switch
@@ -21,7 +26,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             _ => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
 
-        // Unexpected (500) exceptions are logged with full detail; anything else is a known/expected outcome.
+        // Uventede (500) fejl logges med fuld detalje; alt andet er et kendt/forventet udfald.
         if (statusCode == StatusCodes.Status500InternalServerError)
             logger.LogError(exception, "Unhandled exception on {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
         else
@@ -29,7 +34,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
 
         httpContext.Response.StatusCode = statusCode;
 
-        // Never leak the real exception message for 500s — only for the known, expected exception types above.
+        // Den rigtige fejlbesked må aldrig lække ved 500'ere, kun ved de kendte, forventede fejltyper ovenfor.
         var detail = statusCode == StatusCodes.Status500InternalServerError ? "Please try again later." : exception.Message;
 
         await httpContext.Response.WriteAsJsonAsync(new ProblemDetails

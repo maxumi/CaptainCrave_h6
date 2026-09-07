@@ -6,20 +6,16 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Hubs;
 
-/// <summary>
-/// SignalR-hub som klienter forbinder til for at modtage live besked om ordrer.
-/// Kræver et gyldigt JWT. Når en klient forbinder, bliver den automatisk lagt
-/// i sin egen gruppe, og — hvis brugeren er en restaurant — også restaurantens gruppe.
-/// </summary>
+// SignalR-hub som klienter forbinder til for at modtage live besked om ordrer.
+// Kræver et gyldigt JWT. Når en klient forbinder, bliver den automatisk lagt
+// i sin egen gruppe, og, hvis brugeren er en restaurant, også restaurantens gruppe.
 [Authorize]
 public class NotificationHub(IRestaurantRepository restaurantRepository) : Hub
 {
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
 
-    /// <summary>
-    /// Lægger den forbindende klient i de rigtige grupper, så den kun modtager
-    /// beskeder der er relevante for netop den bruger.
-    /// </summary>
+    // Lægger den forbindende klient i de rigtige grupper, så den kun modtager
+    // beskeder der er relevante for netop den bruger.
     public override async Task OnConnectedAsync()
     {
         // Alle brugere lægges i deres egen personlige gruppe (bruges til f.eks. "din ordrestatus ændrede sig").

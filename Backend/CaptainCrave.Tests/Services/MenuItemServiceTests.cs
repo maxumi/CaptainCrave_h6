@@ -6,10 +6,12 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for MenuItemService business logic. Ownership is resolved through the item's
-// menu (via IMenuService), so IMenuService is mocked alongside the repositories.
+// Unit-tests for MenuItemService's forretningslogik. Ejerskab afgøres via rettens
+// menu (via IMenuService), så IMenuService bliver mocket sammen med repositories.
 public class MenuItemServiceTests
 {
+    /// <summary>Opretter MenuItemService og alle dens database-, menu- og billedafhængigheder som mocks.</summary>
+    /// <returns>Servicen og de fire mocks, som hver test kan sætte forventninger på.</returns>
     private static (
         MenuItemService service,
         Mock<IMenuItemRepository> mockMenuItemRepository,
@@ -25,6 +27,7 @@ public class MenuItemServiceTests
         return (service, mockMenuItemRepository, mockRestaurantRepository, mockMenuService, mockImageStorageService);
     }
 
+    // Opretter en gyldig ret, og den får et rigtigt id fra databasen.
     [Fact]
     public async Task CreateAsync_ValidDto_ReturnsCreatedMenuItem()
     {
@@ -36,6 +39,7 @@ public class MenuItemServiceTests
         Assert.Equal(10, result.Id);
     }
 
+    // Hvis retten slet ikke findes, kan man ikke opdatere den.
     [Fact]
     public async Task UpdateAsync_ItemNotFound_ReturnsNull()
     {
@@ -47,6 +51,7 @@ public class MenuItemServiceTests
         Assert.Null(result);
     }
 
+    // Ejeren må opdatere navn, pris og tilgængelighed på sin ret.
     [Fact]
     public async Task UpdateAsync_Owner_UpdatesFieldsAndReturnsDto()
     {
@@ -65,6 +70,7 @@ public class MenuItemServiceTests
         Assert.False(result?.IsAvailable);
     }
 
+    // En bruger, der ikke ejer retten, må ikke opdatere den.
     [Fact]
     public async Task UpdateAsync_NotOwner_ReturnsNullAndDoesNotUpdate()
     {
@@ -80,6 +86,7 @@ public class MenuItemServiceTests
         mockMenuItemRepository.Verify(r => r.UpdateAsync(It.IsAny<MenuItem>()), Times.Never);
     }
 
+    // En admin må flytte retten til en anden menu uden at eje restauranten.
     [Fact]
     public async Task UpdateAsync_Admin_CanReassignMenuId()
     {
@@ -94,6 +101,7 @@ public class MenuItemServiceTests
         Assert.Equal(99, existing.MenuId);
     }
 
+    // Ejeren må slette sin ret, og den bliver soft-deleted.
     [Fact]
     public async Task DeleteAsync_Owner_ReturnsTrue()
     {
@@ -109,6 +117,7 @@ public class MenuItemServiceTests
         mockMenuItemRepository.Verify(r => r.SoftDeleteAsync(existing), Times.Once);
     }
 
+    // Man kan ikke gendanne en ret, der slet ikke er slettet.
     [Fact]
     public async Task RestoreAsync_NotDeleted_ReturnsFalse()
     {
@@ -120,6 +129,7 @@ public class MenuItemServiceTests
         Assert.False(result);
     }
 
+    // En bruger, der ikke ejer restauranten, må ikke slette retten for altid.
     [Fact]
     public async Task HardDeleteAsync_NotOwner_ReturnsFalse()
     {
@@ -137,6 +147,7 @@ public class MenuItemServiceTests
 
     // UpdateImageUrlAsync
 
+    // Hvis retten ikke findes, sker der intet, og servicen sletter ikke nogen fil.
     [Fact]
     public async Task UpdateImageUrlAsync_ItemNotFound_ReturnsNull()
     {
@@ -149,6 +160,7 @@ public class MenuItemServiceTests
         mockImageStorageService.Verify(s => s.Delete(It.IsAny<string>()), Times.Never);
     }
 
+    // En bruger, der ikke ejer retten, må ikke opdatere dens billede.
     [Fact]
     public async Task UpdateImageUrlAsync_NotOwner_ReturnsNullAndDoesNotUpdate()
     {
@@ -164,6 +176,7 @@ public class MenuItemServiceTests
         mockMenuItemRepository.Verify(r => r.UpdateAsync(It.IsAny<MenuItem>()), Times.Never);
     }
 
+    // Ejeren må skifte billede, og det gamle billede bliver slettet fra disken.
     [Fact]
     public async Task UpdateImageUrlAsync_Owner_UpdatesImageAndDeletesPreviousFile()
     {
@@ -180,6 +193,7 @@ public class MenuItemServiceTests
         mockImageStorageService.Verify(s => s.Delete("/uploads/menu-items/old.jpg"), Times.Once);
     }
 
+    // En admin må skifte billede uden selv at eje restauranten.
     [Fact]
     public async Task UpdateImageUrlAsync_Admin_BypassesOwnershipCheck()
     {

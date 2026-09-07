@@ -9,12 +9,12 @@ using System.Security.Claims;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for MenuItemsController.
-// IMenuItemService and IRestaurantService are mocked so no database access occurs.
-// An authenticated ClaimsPrincipal (user id "1") is supplied so GetCurrentUserId resolves inside the controller.
+// Unit-tests for MenuItemsController.
+// IMenuItemService og IRestaurantService bliver mocket, så der ikke sker nogen database-adgang.
+// En autentificeret ClaimsPrincipal (bruger-id "1") gives, så GetCurrentUserId kan finde et id inde i controlleren.
 public class MenuItemControllerTests
 {
-    // Creates a MenuItemsController with mocked services and an authenticated HttpContext.
+    // Opretter en MenuItemsController med mockede services og en autentificeret HttpContext.
     private static (MenuItemsController controller, Mock<IMenuItemService> mockService, Mock<IImageStorageService> mockImageStorageService) CreateController()
     {
         var mockService = new Mock<IMenuItemService>();
@@ -31,7 +31,7 @@ public class MenuItemControllerTests
         return (controller, mockService, mockImageStorageService);
     }
 
-    // Creates a MenuItemsController with no authenticated user, so GetCurrentUserId returns null.
+    // Opretter en MenuItemsController uden en autentificeret bruger, så GetCurrentUserId returnerer null.
     private static MenuItemsController CreateUnauthenticatedController()
     {
         var controller = new MenuItemsController(Mock.Of<IMenuItemService>(), Mock.Of<IRestaurantService>(), Mock.Of<IMenuService>(), Mock.Of<IImageStorageService>());
@@ -44,7 +44,7 @@ public class MenuItemControllerTests
 
     // Create
 
-    // Valid DTO returns 201 Created.
+    // Gyldig DTO giver 201 Created.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreated()
     {
@@ -58,7 +58,7 @@ public class MenuItemControllerTests
         Assert.IsType<CreatedResult>(result);
     }
 
-    // Response body contains the newly created menu item.
+    // Svaret indeholder den nyoprettede ret.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedMenuItem()
     {
@@ -72,7 +72,7 @@ public class MenuItemControllerTests
         Assert.Equal(created, result?.Value);
     }
 
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task Create_InvalidModelState_ReturnsBadRequest()
     {
@@ -86,6 +86,7 @@ public class MenuItemControllerTests
 
     // UploadImage
 
+    // Ikke logget ind giver 401 Unauthorized.
     [Fact]
     public async Task UploadImage_NoUserIdClaim_ReturnsUnauthorized()
     {
@@ -96,6 +97,7 @@ public class MenuItemControllerTests
         Assert.IsType<UnauthorizedResult>(result);
     }
 
+    // En ugyldig fil (tom eller for stor) giver 400 Bad Request.
     [Fact]
     public async Task UploadImage_InvalidFile_ReturnsBadRequest()
     {
@@ -109,6 +111,7 @@ public class MenuItemControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
+    // Gyldig fil gemmes, og svaret indeholder den opdaterede ret.
     [Fact]
     public async Task UploadImage_ValidFile_ReturnsOkWithUpdatedMenuItem()
     {
@@ -122,6 +125,7 @@ public class MenuItemControllerTests
         Assert.Equal(updated, result?.Value);
     }
 
+    // Hvis servicen fejler efter filen er gemt, bliver den nyligt uploadede fil slettet igen, og der gives 404.
     [Fact]
     public async Task UploadImage_ServiceReturnsNull_DeletesUploadedFileAndReturnsNotFound()
     {
@@ -137,6 +141,7 @@ public class MenuItemControllerTests
 
     // Delete (soft delete)
 
+    // Sletter en ret og giver 204 No Content.
     [Fact]
     public async Task Delete_ExistingId_ReturnsNoContent()
     {
@@ -148,6 +153,7 @@ public class MenuItemControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Sletning af en ret, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task Delete_NonExistingId_ReturnsNotFound()
     {
@@ -161,6 +167,7 @@ public class MenuItemControllerTests
 
     // Restore
 
+    // Gendanner en ret og giver 204 No Content.
     [Fact]
     public async Task Restore_ExistingId_ReturnsNoContent()
     {
@@ -172,6 +179,7 @@ public class MenuItemControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Gendannelse af en ret, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task Restore_NonExistingId_ReturnsNotFound()
     {
@@ -183,8 +191,9 @@ public class MenuItemControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
-    // HardDelete (permanent delete)
+    // HardDelete (permanent sletning)
 
+    // Sletter en ret for altid og giver 204 No Content.
     [Fact]
     public async Task HardDelete_ExistingId_ReturnsNoContent()
     {
@@ -196,6 +205,7 @@ public class MenuItemControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // En databasefejl under permanent sletning giver 409 Conflict.
     [Fact]
     public async Task HardDelete_WhenDbUpdateExceptionThrown_ReturnsConflict()
     {
@@ -209,6 +219,7 @@ public class MenuItemControllerTests
 
     // GetDeleted
 
+    // Henter slettede retter for restaurantens ejer og giver 200 OK.
     [Fact]
     public async Task GetDeleted_ReturnsOk()
     {
@@ -220,6 +231,7 @@ public class MenuItemControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
+    // Hvis brugeren ikke ejer restauranten, giver det 403 Forbidden.
     [Fact]
     public async Task GetDeleted_NotOwner_ReturnsForbidden()
     {

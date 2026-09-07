@@ -6,13 +6,14 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for LocalImageStorageService. Uses a real temp directory as the web root,
-// since the service performs actual file system I/O.
+// Unit-tests for LocalImageStorageService. Bruger et rigtigt midlertidigt katalog som web-rod,
+// da servicen udfører rigtig fil-I/O.
 public class LocalImageStorageServiceTests : IDisposable
 {
     private readonly string _webRootPath;
     private readonly LocalImageStorageService _service;
 
+    // Opretter en tom, midlertidig webmappe og peger billedservicen på den.
     public LocalImageStorageServiceTests()
     {
         _webRootPath = Path.Combine(Path.GetTempPath(), "CaptainCraveTests_" + Guid.NewGuid());
@@ -23,12 +24,15 @@ public class LocalImageStorageServiceTests : IDisposable
         _service = new LocalImageStorageService(mockEnv.Object);
     }
 
+    // Rydder den midlertidige webmappe op, når hver test er færdig.
     public void Dispose()
     {
         if (Directory.Exists(_webRootPath))
             Directory.Delete(_webRootPath, recursive: true);
     }
 
+    /// <summary>Bygger en lille falsk uploadfil direkte i hukommelsen.</summary>
+    /// <returns>En formularfil, der kan sendes til billedservicen.</returns>
     private static IFormFile CreateFormFile(string fileName, int contentLength = 10)
     {
         var content = Encoding.UTF8.GetBytes(new string('a', contentLength));
@@ -36,6 +40,7 @@ public class LocalImageStorageServiceTests : IDisposable
         return new FormFile(stream, 0, content.Length, "file", fileName);
     }
 
+    // Gemmer en gyldig fil under den rigtige undermappe og giver en URL, man kan bruge i browseren.
     [Fact]
     public async Task SaveAsync_ValidFile_WritesFileUnderSubfolderAndReturnsRelativeUrl()
     {
@@ -49,6 +54,7 @@ public class LocalImageStorageServiceTests : IDisposable
         Assert.True(File.Exists(fullPath));
     }
 
+    // Filnavnet, klienten sender, bliver aldrig brugt direkte, så man ikke kan snyde med farlige stier.
     [Fact]
     public async Task SaveAsync_GeneratesNameIndependentOfClientFileName()
     {
@@ -60,6 +66,7 @@ public class LocalImageStorageServiceTests : IDisposable
         Assert.DoesNotContain("..", relativeUrl);
     }
 
+    // En tom fil bliver afvist med en fejl.
     [Fact]
     public async Task SaveAsync_EmptyFile_ThrowsInvalidOperationException()
     {
@@ -68,6 +75,7 @@ public class LocalImageStorageServiceTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SaveAsync(file, "restaurants"));
     }
 
+    // En filtype, der ikke er tilladt (fx PDF), bliver afvist med en fejl.
     [Fact]
     public async Task SaveAsync_DisallowedExtension_ThrowsInvalidOperationException()
     {
@@ -76,6 +84,7 @@ public class LocalImageStorageServiceTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(() => _service.SaveAsync(file, "restaurants"));
     }
 
+    // Sletter en fil, der ligger lokalt under uploads-mappen.
     [Fact]
     public void Delete_LocalUploadUrl_DeletesFile()
     {
@@ -89,6 +98,7 @@ public class LocalImageStorageServiceTests : IDisposable
         Assert.False(File.Exists(filePath));
     }
 
+    // En URL til et eksternt billede (fx et logo) bliver ignoreret, uden at det giver en fejl.
     [Fact]
     public void Delete_ExternalUrl_DoesNotThrow()
     {
@@ -97,6 +107,7 @@ public class LocalImageStorageServiceTests : IDisposable
         Assert.Null(exception);
     }
 
+    // Et tomt eller manglende billede-link giver ingen fejl, det bliver bare sprunget over.
     [Fact]
     public void Delete_NullOrEmpty_DoesNotThrow()
     {
