@@ -15,14 +15,19 @@ public class TokenService(IConfiguration config) : ITokenService
     /// Klienten sender dette token med i alle kald bagefter, så serveren ved hvem der spørger.
     /// </summary>
     /// <returns>Et færdigt, underskrevet JWT-token som en tekststreng.</returns>
+public class TokenService(IConfiguration config) : ITokenService
+{
+    // Opretter et JWT-token med brugerens ID, e-mail og rolle som claims
     public string GenerateToken(User user)
     {
+        // Henter den hemmelige nøgle, der bruges til at signere tokenet.
         var secret = config["Jwt:Secret"]
             ?? throw new InvalidOperationException("JWT secret is not configured.");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        // Claims indeholder de brugeroplysninger, som senere kan læses fra det autentificerede token.
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -31,8 +36,10 @@ public class TokenService(IConfiguration config) : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        // Henter tokenets levetid fra konfigurationen og bruger 60 minutter som standard.
         var expiryMinutes = config.GetValue<int>("Jwt:ExpiryMinutes", 60);
 
+        // Opretter og signerer JWT-tokenet med issuer, audience, claims og udløbstidspunkt.
         var token = new JwtSecurityToken(
             issuer: config["Jwt:Issuer"],
             audience: config["Jwt:Audience"],
@@ -40,6 +47,7 @@ public class TokenService(IConfiguration config) : ITokenService
             expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
             signingCredentials: credentials);
 
+        // Konverterer tokenet til den streng, der sendes tilbage til klienten.
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

@@ -2,12 +2,12 @@ using Api.Models;
 
 namespace Api.Repositories;
 
-// Defines data access operations for (fake) payment attempts.
+// Definerer databaseoperationer for simulerede betalingsforsøg.
 public interface IPaymentRepository
 {
-    // Saves a new payment attempt and returns it with the generated ID.
+    // Gemmer et nyt betalingsforsøg og returnerer det med det genererede ID.
     Task<Payment> CreateAsync(Payment payment);
 
-    // Returns the most recent payment attempt for an order, or null if none exist.
+    // Henter det seneste betalingsforsøg for en ordre, eller null hvis der ikke findes et.
     Task<Payment?> GetLatestByOrderIdAsync(int orderId);
 }

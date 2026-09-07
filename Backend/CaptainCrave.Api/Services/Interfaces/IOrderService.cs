@@ -3,35 +3,39 @@ using Api.Models.Enums;
 
 namespace Api.Services;
 
-// Defines business logic operations for orders.
+// Definerer forretningslogik for ordrer.
 public interface IOrderService
 {
-    // Returns a single order DTO by ID, or null if not found.
+    // Henter en ordre ud fra ID, eller null hvis den ikke findes.
     Task<OrderDto?> GetByIdAsync(int id);
 
-    // Validates and creates an order, returning the created order as a DTO.
+    // Validerer og opretter en ny ordre og returnerer den som DTO.
     Task<OrderDto> CreateAsync(CreateOrderDto dto);
 
-    // Updates the status of an order. Returns false if the order does not exist.
+    // Opdaterer status på en ordre.
+    // Adgang og gyldige statusskift håndteres i service-laget.
     Task<bool> UpdateStatusAsync(int id, UpdateOrderStatusDto dto, int currentUserId, UserRole currentUserRole);
 
-    // Returns active orders for the restaurant linked to the current user.
+    // Henter aktive ordrer for restauranten der er tilknyttet den aktuelle bruger.
     Task<IEnumerable<OrderDto>> GetRestaurantActiveOrdersAsync(int currentUserId, UserRole currentUserRole);
 
-    // Returns delivered/cancelled orders for the restaurant linked to the current user.
+    // Henter leverede og annullerede ordrer for restauranten der er tilknyttet den aktuelle bruger.
     Task<IEnumerable<OrderDto>> GetRestaurantHistoricOrdersAsync(int currentUserId, UserRole currentUserRole);
 
+    // Henter aktive ordrer for en restaurant ud fra restaurantens ID.
     Task<IEnumerable<OrderDto>> GetRestaurantActiveOrdersByRestaurantIdAsync(int restaurantId);
 
+    // Henter historiske ordrer for en restaurant ud fra restaurantens ID.
     Task<IEnumerable<OrderDto>> GetRestaurantHistoricOrdersByRestaurantIdAsync(int restaurantId);
 
 
-    // Returns the active order for a user, or null if none exists.
+    // Henter brugerens aktive ordre, eller null hvis der ikke findes en.
     Task<OrderDto?> GetActiveOrderForUserAsync(int userId);
 
-    // Returns delivered/cancelled orders for a user.
+    // Henter leverede og annullerede ordrer for en bruger.
     Task<IEnumerable<OrderDto>> GetHistoricOrdersForUserAsync(int userId);
 
-    // Checks whether the given user has a delivered order from the restaurant (used to gate review eligibility).
+    // Kontrollerer om brugeren har en leveret ordre fra restauranten.
+    // Bruges til at afgøre om kunden må anmelde restauranten.
     Task<bool> HasCustomerOrderedFromRestaurantAsync(int userId, int restaurantId);
 }

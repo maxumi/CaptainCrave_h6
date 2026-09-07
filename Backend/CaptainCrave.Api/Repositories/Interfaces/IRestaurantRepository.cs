@@ -2,39 +2,40 @@ using Api.Models;
 
 namespace Api.Repositories;
 
-// Defines data access operations for restaurants.
+// Definerer databaseoperationer for restauranter.
 public interface IRestaurantRepository
 {
-    // Returns all restaurants.
+    // Henter alle aktive restauranter.
     Task<IEnumerable<Restaurant>> GetAllAsync();
 
-    // Returns a restaurant by ID, or null if not found. Excludes soft-deleted restaurants.
+    // Henter en restaurant ud fra ID. Soft-deleted restauranter medtages ikke.
     Task<Restaurant?> GetByIdAsync(int id);
 
-    // Returns a restaurant by ID including soft-deleted ones, or null if it never existed.
+    // Henter en restaurant ud fra ID, også hvis den er soft-deleted.
     Task<Restaurant?> GetByIdIncludingDeletedAsync(int id);
 
-    // Returns all soft-deleted restaurants, so they can be listed for restoring.
+    // Henter alle soft-deleted restauranter, så de kan vises og gendannes.
     Task<IEnumerable<Restaurant>> GetDeletedAsync();
 
-    // Returns all restaurants owned by the specified user.
+    // Henter alle restauranter der tilhører den angivne bruger.
     Task<IEnumerable<Restaurant>> GetByUserIdAsync(int userId);
 
-    // Returns one restaurant owned by the specified user, or null if not found.
+    // Henter én restaurant der tilhører den angivne bruger, eller null hvis ingen findes.
     Task<Restaurant?> GetSingleByUserIdAsync(int userId);
 
-    // Saves a new restaurant and returns it with the generated ID.
+    // Gemmer en ny restaurant og returnerer den med det genererede ID.
     Task<Restaurant> CreateAsync(Restaurant restaurant);
 
-    // Updates an existing restaurant row and returns the updated entity.
+    // Opdaterer en eksisterende restaurant og returnerer den opdaterede entity.
     Task<Restaurant> UpdateAsync(Restaurant restaurant);
 
-    // Marks a restaurant (and its menus and menu items) as deleted without removing the rows, so it can be restored later.
+    // Soft-deleter restauranten samt dens menuer og menu-items uden at fjerne rækkerne permanent.
     Task SoftDeleteAsync(Restaurant restaurant);
 
-    // Un-marks a soft-deleted restaurant (and its soft-deleted menus and menu items) so it appears again.
+    // Gendanner restauranten samt dens soft-deleted menuer og menu-items.
     Task RestoreAsync(Restaurant restaurant);
 
-    // Permanently removes a restaurant and lets the database cascade delete its menus and menu items.
+    // Sletter restauranten permanent.
+    // Databasen cascade-sletter de tilhørende menuer og menu-items.
     Task HardDeleteAsync(Restaurant restaurant);
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
+// Konfigurerer orders-tabellens kolonner og relationer.
 public class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
     public void Configure(EntityTypeBuilder<Order> builder)
@@ -25,6 +26,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasColumnName("restaurant_id")
             .IsRequired();
 
+        // Gemmer ordrestatus som tekst i databasen i stedet for en numerisk enum-værdi.
         builder.Property(o => o.Status)
             .HasColumnName("status")
             .HasConversion<string>()
@@ -32,6 +34,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .IsRequired()
             .HasDefaultValue(OrderStatus.Pending);
 
+        // Gemmer leveringstypen som tekst i databasen.
         builder.Property(o => o.DeliveryType)
             .HasColumnName("delivery_type")
             .HasConversion<string>()
@@ -57,17 +60,23 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .IsRequired()
             .HasDefaultValueSql("GETUTCDATE()");
 
-        // Relations
+        // Relationer
+        // En ordre tilhører én bruger.
+        // Restrict forhindrer sletning af brugeren, hvis der stadig findes relaterede ordrer.
         builder.HasOne(o => o.User)
             .WithMany()
             .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // En ordre tilhører én restaurant.
+        // Restauranten kan ikke slettes permanent, hvis den stadig har relaterede ordrer.
         builder.HasOne(o => o.Restaurant)
             .WithMany()
             .HasForeignKey(o => o.RestaurantId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // En ordre kan have flere order-items.
+        // Hvis ordren slettes permanent, slettes dens order-items også.
         builder.HasMany(o => o.OrderItems)
             .WithOne(oi => oi.Order)
             .HasForeignKey(oi => oi.OrderId)

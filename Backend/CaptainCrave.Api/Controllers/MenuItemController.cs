@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace Api.Controllers;
 
-// Handles HTTP requests for menu item resources.
+// Håndterer HTTP-requests relateret til menu-items.
 [ApiController]
 [Route("api/[controller]")]
 public class MenuItemsController(IMenuItemService menuItemService, IRestaurantService restaurantService, IMenuService menuService, IImageStorageService imageStorageService) : ControllerBase
@@ -18,7 +18,7 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
     private readonly IMenuService _menuService = menuService;
     private readonly IImageStorageService _imageStorageService = imageStorageService;
 
-    // Returns all menu items for the specified restaurant.
+    // Henter alle menu-items for den angivne restaurant.
     [HttpGet("restaurant/{restaurantId:int}")]
     public async Task<IActionResult> GetByRestaurantId(int restaurantId)
     {
@@ -29,7 +29,7 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return Ok(items);
     }
 
-    // Returns all menu items for the specified menu.
+    // Henter alle menu-items for den angivne menu.
     [HttpGet("menu/{menuId:int}")]
     public async Task<IActionResult> GetByMenuId(int menuId)
     {
@@ -40,6 +40,7 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return Ok(items);
     }
 
+    // Henter den aktuelle brugers ID fra JWT-tokenet.
     private int? GetCurrentUserId()
     {
         var claimValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
@@ -48,7 +49,8 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return int.TryParse(claimValue, out var userId) ? userId : null;
     }
 
-    // Creates a new menu item and returns it with a 201 status.
+    // Opretter et nyt menu-item og returnerer det med status 201 Created.
+    // Restaurantbrugere kan kun oprette menu-items i deres egen restaurants menuer.
     [HttpPost]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Create(CreateMenuItemDto dto)
@@ -75,7 +77,7 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return Created(string.Empty, created);
     }
 
-    // Updates an existing menu item if the caller is authorized.
+    // Opdaterer et eksisterende menu-item, hvis brugeren har adgang til det.
     [HttpPut("{id}")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Update(int id, CreateMenuItemDto dto)
@@ -94,7 +96,8 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return Ok(updated);
     }
 
-    // Uploads (or replaces) a menu item's image and stores it on local disk under wwwroot/uploads.
+    // Uploader eller erstatter billedet på et menu-item.
+    // Billedet gemmes lokalt under wwwroot/uploads.
     [HttpPost("{id}/image")]
     [Authorize(Roles = "Restaurant,Admin")]
     [RequestSizeLimit(5_000_000)]
@@ -124,8 +127,8 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return Ok(updated);
     }
 
-    // Deletes an existing menu item if the caller is authorized.
-    // This is a soft delete: the item is hidden, not removed, and can be restored.
+    // Soft deleter et menu-item, hvis brugeren har adgang til det.
+    // Menu-item'et skjules, men fjernes ikke permanent.
     [HttpDelete("{id}")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Delete(int id)
@@ -141,7 +144,7 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return NoContent();
     }
 
-    // Restores a previously soft-deleted menu item if the caller is authorized.
+    // Gendanner et tidligere soft-deleted menu-item, hvis brugeren har adgang til det.
     [HttpPost("{id}/restore")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> Restore(int id)
@@ -157,7 +160,8 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         return NoContent();
     }
 
-    // Permanently deletes a menu item (soft-deleted or not) if the caller is authorized. This cannot be undone.
+    // Sletter et menu-item permanent, hvis brugeren har adgang til det.
+    // Denne handling kan ikke fortrydes.
     [HttpDelete("{id}/permanent")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> HardDelete(int id)
@@ -180,7 +184,7 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
         }
     }
 
-    // Returns the soft-deleted menu items for a restaurant, so they can be reviewed and restored.
+    // Henter soft-deleted menu-items for en restaurant, så de kan vises og eventuelt gendannes.
     [HttpGet("restaurant/{restaurantId:int}/deleted")]
     [Authorize(Roles = "Restaurant,Admin")]
     public async Task<IActionResult> GetDeleted(int restaurantId)

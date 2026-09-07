@@ -2,11 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs;
 
+// Data der bruges til at oprette eller opdatere et menu-item.
 public class CreateMenuItemDto
 {
     [Required]
     public int MenuId { get; set; }
 
+    // Kategorien er valgfri, så et menu-item kan eksistere uden en kategori.
     public int? CategoryId { get; set; }
 
     [Required]

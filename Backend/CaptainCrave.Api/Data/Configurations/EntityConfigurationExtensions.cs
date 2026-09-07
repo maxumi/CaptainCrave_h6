@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
-// Shared Fluent API setup for entities implementing IAuditable/ISoftDeletable, so every
-// entity configuration does not repeat the same column setup.
+// Indeholder fælles Fluent API-konfiguration for entities, der understøtter
+// audit eller soft delete, så den samme konfiguration ikke gentages i hver klasse.
 public static class EntityConfigurationExtensions
 {
-    // Configures the created_at / updated_at columns for an auditable entity.
+    // Konfigurerer created_at og updated_at for en entity, der implementerer IAuditable.
     public static void ConfigureAudit<T>(this EntityTypeBuilder<T> builder) where T : class, IAuditable
     {
         builder.Property(e => e.CreatedAt)
@@ -21,7 +21,7 @@ public static class EntityConfigurationExtensions
             .HasColumnName("updated_at");
     }
 
-    // Configures the is_deleted / deleted_at columns for a soft-deletable entity.
+    // Konfigurerer is_deleted og deleted_at for en entity, der understøtter soft delete.
     public static void ConfigureSoftDelete<T>(this EntityTypeBuilder<T> builder) where T : class, ISoftDeletable
     {
         builder.Property(e => e.IsDeleted)

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
+// Konfigurerer payments-tabellens kolonner og betalingsdata.
 public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
     public void Configure(EntityTypeBuilder<Payment> builder)
@@ -17,6 +18,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
 
+        // Hvert betalingsforsøg er tilknyttet en ordre.
         builder.Property(p => p.OrderId)
             .HasColumnName("order_id")
             .IsRequired();
@@ -26,6 +28,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasPrecision(10, 2)
             .IsRequired();
 
+        // Gemmer betalingsstatus som tekst i databasen.
         builder.Property(p => p.Status)
             .HasColumnName("status")
             .HasConversion<string>()
@@ -33,6 +36,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .IsRequired()
             .HasDefaultValue(PaymentStatus.Pending);
 
+        // Indeholder referencen fra det simulerede betalingsflow.
         builder.Property(p => p.ProviderReference)
             .HasColumnName("provider_reference")
             .HasMaxLength(100);

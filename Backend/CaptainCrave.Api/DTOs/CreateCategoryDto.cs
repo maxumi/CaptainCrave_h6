@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs;
 
+// Data der bruges til at oprette en ny kategori.
 public class CreateCategoryDto
 {
     [Required]

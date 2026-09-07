@@ -2,12 +2,12 @@ using Api.DTOs;
 
 namespace Api.Services;
 
-// Defines business logic operations for (fake) payments.
+// Definerer forretningslogik for det simulerede betalingssystem.
 public interface IPaymentService
 {
-    // Behandler en betaling for en ordre via den falske gateway, og returnerer forsøget som DTO.
+    // Behandler en simuleret betaling for en ordre og returnerer betalingsforsøget som DTO.
     Task<PaymentDto> ProcessPaymentAsync(CreatePaymentDto dto);
 
-    // Returns the latest payment attempt for an order, or null if none exist.
+    // Henter det seneste betalingsforsøg for en ordre, eller null hvis der ikke findes et.
     Task<PaymentDto?> GetLatestByOrderIdAsync(int orderId);
 }

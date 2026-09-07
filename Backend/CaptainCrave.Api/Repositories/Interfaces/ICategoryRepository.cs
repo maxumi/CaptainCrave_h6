@@ -2,33 +2,33 @@ using Api.Models;
 
 namespace Api.Repositories;
 
-// Defines data access operations for categories.
+// Definerer databaseoperationer for kategorier.
 public interface ICategoryRepository
 {
-    // Returns all categories belonging to the specified restaurant, across all of its menus.
+    // Henter alle kategorier for en restaurant på tværs af restaurantens menuer.
     Task<IEnumerable<Category>> GetByRestaurantIdAsync(int restaurantId);
 
-    // Returns all categories belonging to the specified menu.
+    // Henter alle kategorier der tilhører den angivne menu.
     Task<IEnumerable<Category>> GetByMenuIdAsync(int menuId);
 
-    // Returns a category by ID, or null if not found. Excludes soft-deleted categories.
+    // Henter en kategori ud fra ID. Soft-deleted kategorier medtages ikke.
     Task<Category?> GetByIdAsync(int id);
 
-    // Returns a category by ID including soft-deleted ones, or null if it never existed.
+    // Henter en kategori ud fra ID, også hvis den er soft-deleted.
     Task<Category?> GetByIdIncludingDeletedAsync(int id);
 
-    // Returns the soft-deleted categories for a restaurant, so they can be listed for restoring.
+    // Henter soft-deleted kategorier for en restaurant, så de kan vises og gendannes.
     Task<IEnumerable<Category>> GetDeletedByRestaurantIdAsync(int restaurantId);
 
-    // Saves a new category and returns it with the generated ID.
+    // Gemmer en ny kategori og returnerer den med det genererede ID.
     Task<Category> CreateAsync(Category category);
 
-    // Marks a category as deleted without removing the row, so it can be restored later.
+    // Soft-deleter en kategori uden at fjerne rækken fra databasen.
     Task SoftDeleteAsync(Category category);
 
-    // Un-marks a soft-deleted category so it appears again.
+    // Gendanner en tidligere soft-deleted kategori.
     Task RestoreAsync(Category category);
 
-    // Permanently removes a category row.
+    // Sletter en kategori permanent fra databasen.
     Task HardDeleteAsync(Category category);
 }

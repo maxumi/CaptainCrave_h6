@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
-// Configures the reviews table and its relationships.
+// Konfigurerer reviews-tabellens kolonner, begrænsninger og relationer.
 public class ReviewConfiguration : IEntityTypeConfiguration<Review>
 {
     public void Configure(EntityTypeBuilder<Review> builder)
@@ -37,20 +37,25 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
             .HasColumnName("updated_at")
             .HasDefaultValueSql("GETUTCDATE()");
 
+        // Relationer
+        // En anmeldelse tilhører den bruger, der har oprettet den.
         builder.HasOne(r => r.User)
             .WithMany()
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // En anmeldelse tilhører den restaurant, der er blevet anmeldt.
+        // En restaurant kan have flere anmeldelser.
         builder.HasOne(r => r.Restaurant)
             .WithMany(r => r.Reviews)
             .HasForeignKey(r => r.RestaurantId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // A user can only review the same restaurant once.
+        // En bruger kan kun oprette én anmeldelse pr. restaurant.
         builder.HasIndex(r => new { r.UserId, r.RestaurantId })
             .IsUnique();
 
+        // Sikrer på databaseniveau, at en vurdering altid ligger mellem 1 og 5. (check constraint)
         builder.ToTable(t =>
             t.HasCheckConstraint(
                 "CK_reviews_rating",

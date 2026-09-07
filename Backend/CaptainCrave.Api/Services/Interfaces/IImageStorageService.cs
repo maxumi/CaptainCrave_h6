@@ -1,11 +1,13 @@
 namespace Api.Services;
 
-// Defines operations for storing and removing uploaded images.
+// Definerer funktioner til lagring og sletning af uploadede billeder.
 public interface IImageStorageService
 {
-    // Saves the file under wwwroot/uploads/{subfolder} with a generated name and returns its public relative URL.
+    // Gemmer filen under wwwroot/uploads/{subfolder} med et genereret filnavn
+    // og returnerer den relative URL til billedet.
     Task<string> SaveAsync(IFormFile file, string subfolder);
 
-    // Deletes a previously stored image given the relative URL returned by SaveAsync. No-op for anything else (e.g. external URLs).
+    // Sletter et tidligere gemt billede ud fra den relative URL fra SaveAsync.
+    // Eksterne URL'er og ugyldige værdier ignoreres.
     void Delete(string? relativeUrl);
 }

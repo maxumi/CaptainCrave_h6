@@ -3,7 +3,7 @@ using Api.Models.Enums;
 
 namespace Api.DTOs.Auth;
 
-// The data a user sends when creating a new account
+// Data som brugeren sender ved oprettelse af en ny konto.
 public class RegisterRequestDto
 {
     [Required]
@@ -13,6 +13,7 @@ public class RegisterRequestDto
     [EmailAddress]
     public string Email { get; set; } = string.Empty;
 
+    // Adgangskoden skal være mindst 8 tegn lang.
     [Required]
     [MinLength(8)]
     public string Password { get; set; } = string.Empty;
@@ -25,5 +26,6 @@ public class RegisterRequestDto
     [Range(-180, 180)]
     public double? Longitude { get; set; }
 
+    // Nye brugere oprettes som kunde som standard.
     public UserRole Role { get; set; } = UserRole.Customer;
 }

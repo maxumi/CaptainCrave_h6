@@ -1,7 +1,7 @@
 namespace Api.DTOs;
 
-// Summarizes a restaurant's ratings. Deliberately excludes individual reviews —
-// use IReviewService.GetMyReviewAsync for the current user's own review.
+// Opsummerer en restaurants vurderinger.
+// Indeholder ikke individuelle anmeldelser, men kun gennemsnit og antal.
 public class RestaurantReviewSummaryDto
 {
     public int RestaurantId { get; set; }

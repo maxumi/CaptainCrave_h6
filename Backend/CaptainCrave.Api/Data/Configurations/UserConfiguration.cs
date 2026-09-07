@@ -5,14 +5,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Api.Data.Configurations;
 
-// Configures the users table columns, constraints and indexes using EF Core fluent API
+// Konfigurerer users-tabellens egne felter ved hjælp af EF Core Fluent API.
+// Identity håndterer de øvrige standardfelter og konfigurationer for brugeren.
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.ToTable("users");
-
-        // builder.HasKey(u => u.Id);
 
         builder.Property(u => u.Id)
             .HasColumnName("id")
@@ -27,9 +26,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("email")
             .IsRequired()
             .HasMaxLength(255);
-
-        // builder.HasIndex(u => u.Email)
-        //     .IsUnique();
 
         builder.Property(u => u.Address)
             .HasColumnName("address")
@@ -46,11 +42,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(255);
 
+        // Gemmer brugerens rolle som tekst i databasen.
         builder.Property(u => u.Role)
             .HasColumnName("role")
             .IsRequired()
             .HasConversion<string>();
 
+        // Tilføjer de fælles audit-felter til brugeren.
         builder.ConfigureAudit();
     }
 }

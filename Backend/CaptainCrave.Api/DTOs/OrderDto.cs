@@ -2,6 +2,7 @@ using Api.Models.Enums;
 
 namespace Api.DTOs;
 
+// Repræsenterer en ordre med kunde-, restaurant- og order-item oplysninger.
 public class OrderDto
 {
     public int Id { get; set; }
@@ -16,5 +17,7 @@ public class OrderDto
     public decimal TotalPrice { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    // Indeholder alle varer der hører til ordren.
     public IEnumerable<OrderItemDto> Items { get; set; } = [];
 }

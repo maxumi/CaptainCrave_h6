@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Api.DTOs;
 
+// Data som den aktuelle bruger kan ændre på sin profil.
 public class UpdateUserProfileDto
 {
     [Required]

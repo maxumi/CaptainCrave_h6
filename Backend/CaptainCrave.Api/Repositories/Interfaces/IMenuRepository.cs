@@ -2,54 +2,54 @@ using Api.Models;
 
 namespace Api.Repositories;
 
-// Defines data access operations for menus.
+// Definerer databaseoperationer for menuer.
 public interface IMenuRepository
 {
     /// <summary>
-    /// Returns all menus belonging to the specified restaurant.
+    /// Henter alle menuer der tilhører den angivne restaurant.
     /// </summary>
-    /// <param name="restaurantId">The owning restaurant's id.</param>
+    /// <param name="restaurantId">ID på restauranten der ejer menuerne.</param>
     Task<IEnumerable<Menu>> GetByRestaurantIdAsync(int restaurantId);
 
     /// <summary>
-    /// Returns a menu by ID, or null if not found. Excludes soft-deleted menus.
+    /// Henter en menu ud fra ID. Soft-deleted menuer medtages ikke.
     /// </summary>
-    /// <param name="id">The menu's id.</param>
+    /// <param name="id">Menuens ID.</param>
     Task<Menu?> GetByIdAsync(int id);
 
     /// <summary>
-    /// Returns a menu by ID including soft-deleted ones, or null if it never existed.
+    /// Henter en menu ud fra ID, også hvis den er soft-deleted.
     /// </summary>
-    /// <param name="id">The menu's id.</param>
+    /// <param name="id">Menuens ID.</param>
     Task<Menu?> GetByIdIncludingDeletedAsync(int id);
 
     /// <summary>
-    /// Returns the soft-deleted menus for a restaurant, so they can be listed for restoring.
+    /// Henter soft-deleted menuer for en restaurant, så de kan vises og gendannes.
     /// </summary>
-    /// <param name="restaurantId">The owning restaurant's id.</param>
+    /// <param name="restaurantId">ID på restauranten der ejer menuerne.</param>
     Task<IEnumerable<Menu>> GetDeletedByRestaurantIdAsync(int restaurantId);
 
     /// <summary>
-    /// Saves a new menu and returns it with the generated ID.
+    /// Gemmer en ny menu og returnerer den med det genererede ID.
     /// </summary>
-    /// <param name="menu">The entity to insert.</param>
+    /// <param name="menu">Menuen der skal oprettes.</param>
     Task<Menu> CreateAsync(Menu menu);
 
     /// <summary>
-    /// Marks a menu (and its menu items) as deleted without removing the rows, so it can be restored later.
+    /// Soft-deleter en menu og dens menu-items uden at fjerne rækkerne permanent.
     /// </summary>
-    /// <param name="menu">The entity to soft delete.</param>
+    /// <param name="menu">Menuen der skal soft-deletes.</param>
     Task SoftDeleteAsync(Menu menu);
 
     /// <summary>
-    /// Un-marks a soft-deleted menu (and its soft-deleted menu items) so it appears again.
+    /// Gendanner en soft-deleted menu og dens soft-deleted menu-items.
     /// </summary>
-    /// <param name="menu">The entity to restore.</param>
+    /// <param name="menu">Menuen der skal gendannes.</param>
     Task RestoreAsync(Menu menu);
 
     /// <summary>
-    /// Permanently removes a menu and lets the database cascade delete its menu items.
+    /// Sletter en menu permanent. Databasen cascade-sletter de tilhørende menu-items.
     /// </summary>
-    /// <param name="menu">The entity to delete.</param>
+    /// <param name="menu">Menuen der skal slettes permanent.</param>
     Task HardDeleteAsync(Menu menu);
 }

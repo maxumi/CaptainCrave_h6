@@ -2,14 +2,19 @@ using Api.DTOs;
 
 namespace Api.Services;
 
+// Definerer forretningslogik for restaurantanmeldelser.
 public interface IReviewService
 {
+    // Henter restaurantens gennemsnitlige rating og antal anmeldelser.
     Task<RestaurantReviewSummaryDto> GetByRestaurantIdAsync(int restaurantId);
 
-    // Returns the logged-in user's own review for a restaurant, or null if they have not reviewed it.
+    // Henter brugerens egen anmeldelse af restauranten,
+    // eller null hvis brugeren endnu ikke har anmeldt den.
     Task<ReviewDto?> GetMyReviewAsync(int userId, int restaurantId);
 
+    // Opretter en anmeldelse, hvis brugeren opfylder kravene for at anmelde restauranten.
     Task<ReviewDto?> CreateAsync(int userId, CreateReviewDto dto);
 
+    // Opdaterer brugerens eksisterende anmeldelse.
     Task<ReviewDto?> UpdateAsync(int userId, int reviewId, UpdateReviewDto dto);
 }

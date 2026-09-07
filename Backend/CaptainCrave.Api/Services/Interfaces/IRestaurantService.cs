@@ -2,41 +2,42 @@ using Api.DTOs;
 
 namespace Api.Services;
 
-// Defines business logic operations for restaurants.
+// Definerer forretningslogik for restauranter.
 public interface IRestaurantService
 {
-    // Returns all restaurants as DTOs.
+    // Henter alle tilgængelige restauranter som DTO'er.
     Task<IEnumerable<RestaurantDto>> GetAllAsync();
 
-    // Returns a single restaurant DTO by ID, or null if not found.
+    // Henter en restaurant ud fra ID, eller null hvis den ikke findes.
     Task<RestaurantDto?> GetByIdAsync(int id);
 
-    // Returns one restaurant DTO owned by the specified user, or null if not found.
+    // Henter restauranten der tilhører den angivne bruger, eller null hvis ingen findes.
     Task<RestaurantDto?> GetByUserIdAsync(int userId);
 
-    // Validates, creates, and returns the new restaurant as a DTO.
+    // Validerer og opretter en ny restaurant og returnerer den som DTO.
     Task<RestaurantDto> CreateAsync(CreateRestaurantDto dto);
 
-    // Updates a restaurant's profile when the caller owns it or is an admin.
+    // Opdaterer restaurantens profil, hvis brugeren ejer restauranten eller er administrator.
     Task<RestaurantDto?> UpdateAsync(int id, UpdateRestaurantDto dto, int userId, bool isAdmin);
 
-    // Updates a restaurant's image URL when the caller owns it or is an admin, returning the updated DTO.
+    // Opdaterer restaurantens billed-URL, hvis brugeren ejer restauranten eller er administrator.
     Task<RestaurantDto?> UpdateImageUrlAsync(int id, string imageUrl, int userId, bool isAdmin);
 
+    // Henter restauranter inden for den angivne radius fra en geografisk position.
     Task<IEnumerable<RestaurantDto>> GetNearbyRestaurantsAsync(
     double latitude,
     double longitude,
     double radiusKm);
 
-    // Soft deletes a restaurant when the caller owns it or is an admin. The restaurant can be restored later.
+    // Soft-deleter en restaurant, hvis brugeren ejer den eller er administrator.
     Task<bool> DeleteAsync(int id, int userId, bool isAdmin);
 
-    // Restores a soft-deleted restaurant when the caller owns it or is an admin.
+    // Gendanner en soft-deleted restaurant, hvis brugeren ejer den eller er administrator.
     Task<bool> RestoreAsync(int id, int userId, bool isAdmin);
 
-    // Permanently deletes a restaurant (soft-deleted or not) when the caller owns it or is an admin.
+    // Sletter en restaurant permanent, hvis brugeren ejer den eller er administrator.
     Task<bool> HardDeleteAsync(int id, int userId, bool isAdmin);
 
-    // Returns every soft-deleted restaurant, for an admin trash view.
+    // Henter alle soft-deleted restauranter til administratorens oversigt.
     Task<IEnumerable<RestaurantDto>> GetDeletedAsync();
 }
