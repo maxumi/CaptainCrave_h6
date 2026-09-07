@@ -23,6 +23,9 @@ interface RestaurantDraft {
   isActive: boolean;
 }
 
+/**
+ * Component for editing the information of a specific restaurant, including its details and cover image.
+ */
 @Component({
   selector: 'app-edit-restaurant-info',
   imports: [FormsModule],

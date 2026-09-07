@@ -8,6 +8,9 @@ import {
 import { OrderApiService } from '../../../shared/order-api.service';
 import { Role } from '../../../shared/models/user';
 
+/**
+ * Component for displaying and managing reviews for a specific restaurant.
+ */
 @Component({
   selector: 'app-restaurant-reviews',
   imports: [],

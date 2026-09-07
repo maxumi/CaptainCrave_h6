@@ -3,6 +3,9 @@ import { TranslocoModule } from '@jsverse/transloco';
 
 import { MenuItem } from '../edit-menu.models';
 
+/**
+ * Component for displaying a list of menu items for a specific restaurant, including options to add, delete, and select items.
+ */
 @Component({
   selector: 'app-menu-item-list',
   imports: [TranslocoModule],
