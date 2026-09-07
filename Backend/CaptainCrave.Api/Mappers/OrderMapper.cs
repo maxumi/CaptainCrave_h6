@@ -3,10 +3,14 @@ using Api.Models;
 
 namespace Api.Mappers;
 
-// Extension methods for mapping between Order/OrderItem models and DTOs.
+// Denne klasse hjælper os med at bygge om mellem Order/OrderItem (det vi gemmer i databasen)
+// og de DTO'er vi sender frem og tilbage til klienten.
 public static class OrderMapper
 {
-    // Maps an OrderItem entity to an OrderItemDto for API responses.
+    /// <summary>
+    /// Tager én ordrelinje (en ret i en ordre) og pakker den om til en OrderItemDto.
+    /// </summary>
+    /// <returns>En OrderItemDto med rettens navn, antal og pris.</returns>
     public static OrderItemDto ToDto(this OrderItem item) => new()
     {
         Id = item.Id,
@@ -16,7 +20,12 @@ public static class OrderMapper
         Price = item.Price
     };
 
-    // Maps an Order entity (with navigation properties loaded) to an OrderDto.
+    /// <summary>
+    /// Tager en hel ordre og pakker den om til en OrderDto med alle ordrelinjer inde i sig.
+    /// OBS: User, Restaurant og OrderItems skal være hentet med fra databasen først
+    /// (f.eks. med Include), ellers bliver navnene tomme tekststrenge.
+    /// </summary>
+    /// <returns>En OrderDto med bruger-navn, restaurant-navn og listen af bestilte retter.</returns>
     public static OrderDto ToDto(this Order order) => new()
     {
         Id = order.Id,
@@ -34,7 +43,12 @@ public static class OrderMapper
         Items = order.OrderItems.Select(i => i.ToDto())
     };
 
-    // Maps a CreateOrderItemDto and a resolved MenuItem price to an OrderItem entity.
+    /// <summary>
+    /// Bygger en ny ordrelinje ud fra det, klienten har bestilt (hvilken ret og hvor mange).
+    /// Prisen kommer IKKE fra klienten, den bliver slået op i databasen først, så en bruger
+    /// ikke selv kan bestemme, hvad en ret koster.
+    /// </summary>
+    /// <returns>En ny OrderItem, klar til at blive gemt sammen med resten af ordren.</returns>
     public static OrderItem ToOrderItem(this CreateOrderItemDto dto, decimal price) => new()
     {
         MenuItemId = dto.MenuItemId,

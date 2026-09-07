@@ -1,4 +1,4 @@
-﻿using Api.Controllers;
+using Api.Controllers;
 using Api.DTOs;
 using Api.Models.Enums;
 using Api.Services;
@@ -9,13 +9,16 @@ using System.Security.Claims;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for OrdersController.
-// IOrderService is mocked so no database, validation, or business logic runs.
-// CreateController supplies a ClaimsPrincipal with Restaurant role so User.GetId()
-// and User.GetRole() resolve without throwing inside the controller.
+// Unit-tests for OrdersController.
+// IOrderService bliver mocket, så der ikke køres database, validering eller forretningslogik.
+// CreateController giver en ClaimsPrincipal med Restaurant-rolle, så User.GetId()
+// og User.GetRole() kan finde en værdi uden at kaste en fejl inde i controlleren.
 public class OrderControllerTests
 {
-    // Creates an OrdersController with a mocked IOrderService and a pre-authenticated user.
+    /// <summary>
+    /// Opretter en OrdersController med en mocket IOrderService og en allerede logget ind bruger.
+    /// </summary>
+    /// <returns>Controlleren og dens mock, så hver test kan bestemme servicesvaret.</returns>
     private static (OrdersController controller, Mock<IOrderService> mockService) CreateController(
         int userId = 99, UserRole role = UserRole.Restaurant)
     {
@@ -34,6 +37,8 @@ public class OrderControllerTests
         return (controller, mockService);
     }
 
+    /// <summary>Bygger en gyldig ordre-DTO med faste testdata.</summary>
+    /// <returns>En ordre, som controller-testene kan bruge som servicesvar.</returns>
     private static OrderDto MakeOrderDto(int id = 1) => new()
     {
         Id = id,
@@ -55,6 +60,8 @@ public class OrderControllerTests
         ]
     };
 
+    /// <summary>Bygger de standarddata, som en kunde sender for at oprette en ordre.</summary>
+    /// <returns>En gyldig oprettelses-DTO med to retter.</returns>
     private static CreateOrderDto MakeCreateDto() => new()
     {
         UserId = 10,
@@ -70,7 +77,7 @@ public class OrderControllerTests
 
     // GetById
 
-    // Returns 200 OK when the order exists.
+    // Giver 200 OK når ordren findes.
     [Fact]
     public async Task GetById_ExistingId_ReturnsOk()
     {
@@ -82,7 +89,7 @@ public class OrderControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Response body contains the matching order DTO.
+    // Svaret indeholder den matchende ordre-DTO.
     [Fact]
     public async Task GetById_ExistingId_ReturnsOrderDto()
     {
@@ -95,7 +102,7 @@ public class OrderControllerTests
         Assert.Equal(dto, result?.Value);
     }
 
-    // Order DTO status field reflects the current order status.
+    // Ordre-DTO'ens status-felt afspejler ordrens nuværende status.
     [Fact]
     public async Task GetById_ExistingId_ReturnsCorrectStatus()
     {
@@ -108,7 +115,7 @@ public class OrderControllerTests
         Assert.Equal(OrderStatus.Pending, order?.Status);
     }
 
-    // Returns 404 Not Found when no order matches the given ID.
+    // Giver 404 Not Found, når ingen ordre matcher det givne id.
     [Fact]
     public async Task GetById_NonExistingId_ReturnsNotFound()
     {
@@ -122,7 +129,7 @@ public class OrderControllerTests
 
     // Create
 
-    // Valid DTO returns 201 CreatedAtAction pointing to GetById.
+    // Gyldig DTO giver 201 CreatedAtAction, der peger på GetById.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedAtAction()
     {
@@ -135,7 +142,7 @@ public class OrderControllerTests
         Assert.IsType<CreatedAtActionResult>(result);
     }
 
-    // Response body contains the newly created order.
+    // Svaret indeholder den nyoprettede ordre.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedOrder()
     {
@@ -149,7 +156,7 @@ public class OrderControllerTests
         Assert.Equal(created, result?.Value);
     }
 
-    // CreatedAtAction route values reference the GetById action with the new order's ID.
+    // Route-værdierne i CreatedAtAction peger på GetById-handlingen med den nye ordres id.
     [Fact]
     public async Task Create_ValidDto_PointsToGetByIdRoute()
     {
@@ -163,7 +170,7 @@ public class OrderControllerTests
         Assert.Equal(7, ((dynamic)result!.RouteValues!["id"]!));
     }
 
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task Create_InvalidModelState_ReturnsBadRequest()
     {
@@ -175,7 +182,7 @@ public class OrderControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
-    // Service throws KeyNotFoundException for an unknown user, which the controller maps to 400 Bad Request.
+    // Servicen kaster KeyNotFoundException for en ukendt bruger, som controlleren omdanner til 400 Bad Request.
     [Fact]
     public async Task Create_UnknownUser_ReturnsBadRequest()
     {
@@ -189,7 +196,7 @@ public class OrderControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
-    // Service throws KeyNotFoundException for an unknown restaurant, which maps to 400 Bad Request.
+    // Servicen kaster KeyNotFoundException for en ukendt restaurant, hvilket giver 400 Bad Request.
     [Fact]
     public async Task Create_UnknownRestaurant_ReturnsBadRequest()
     {
@@ -203,7 +210,7 @@ public class OrderControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
-    // Service throws KeyNotFoundException for an unknown menu item, which maps to 400 Bad Request.
+    // Servicen kaster KeyNotFoundException for en ukendt ret, hvilket giver 400 Bad Request.
     [Fact]
     public async Task Create_UnknownMenuItem_ReturnsBadRequest()
     {
@@ -219,7 +226,7 @@ public class OrderControllerTests
 
     // UpdateStatus
 
-    // Successful status update returns 200 OK with the updated order.
+    // En vellykket statusopdatering giver 200 OK med den opdaterede ordre.
     [Fact]
     public async Task UpdateStatus_ExistingOrder_ReturnsOk()
     {
@@ -233,7 +240,7 @@ public class OrderControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Returns 404 Not Found when no order matches the given ID.
+    // Giver 404 Not Found, når ingen ordre matcher det givne id.
     [Fact]
     public async Task UpdateStatus_NonExistingOrder_ReturnsNotFound()
     {
@@ -246,7 +253,7 @@ public class OrderControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task UpdateStatus_InvalidModelState_ReturnsBadRequest()
     {
@@ -258,7 +265,7 @@ public class OrderControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
-    // Every non-Pending status value results in 200 OK when the service confirms the update.
+    // Alle andre statusser end Pending giver 200 OK, når servicen bekræfter opdateringen.
     [Theory]
     [InlineData(OrderStatus.Preparing)]
     [InlineData(OrderStatus.OnTheWay)]
@@ -277,6 +284,7 @@ public class OrderControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
+    // Hvis brugeren har bestilt fra restauranten før, giver det 200 OK med true.
     [Fact]
     public async Task HasOrderedFromRestaurant_ServiceReturnsTrue_ReturnsOkWithTrue()
     {
@@ -289,6 +297,7 @@ public class OrderControllerTests
         Assert.Equal(true, okResult.Value?.GetType().GetProperty("hasOrdered")?.GetValue(okResult.Value));
     }
 
+    // Hvis brugeren aldrig har bestilt fra restauranten, giver det 200 OK med false.
     [Fact]
     public async Task HasOrderedFromRestaurant_ServiceReturnsFalse_ReturnsOkWithFalse()
     {

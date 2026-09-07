@@ -5,13 +5,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repositories;
 
-// EF Core implementation of order data access.
+// Denne klasse snakker direkte med databasen (via EF Core) og henter/gemmer ordrer.
 public class OrderRepository(AppDbContext db) : IOrderRepository
 {
     private readonly AppDbContext _db = db;
 
-    // Fetches an order with user, restaurant, order items, and menu item details.
-    // Ignores the menu item soft-delete filter, so order history stays intact even if an item is later removed.
+    /// <summary>
+    /// Henter en ordre sammen med bruger, restaurant, ordrelinjer og de retter, linjerne peger på.
+    /// Vi springer slette-filteret på retter over her, så gammel ordrehistorik stadig virker,
+    /// selvom en ret senere er blevet slettet fra menuen.
+    /// </summary>
+    /// <returns>Ordren med alle detaljer, eller null hvis den ikke findes.</returns>
     public async Task<Order?> GetByIdAsync(int id) =>
         await _db.Orders
             .IgnoreQueryFilters()
@@ -22,7 +26,8 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == id);
 
-    // Inserts a new order; EF Core cascades the insert to OrderItems automatically.
+    /// <summary>Gemmer en helt ny ordre i databasen. EF Core gemmer automatisk ordrelinjerne med.</summary>
+    /// <returns>Den gemte ordre, nu med et rigtigt Id.</returns>
     public async Task<Order> CreateAsync(Order order)
     {
         _db.Orders.Add(order);
@@ -30,7 +35,8 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
         return order;
     }
 
-    // Updates the status and updated_at timestamp of an existing order.
+    /// <summary>Skifter status på en ordre, der allerede findes, og opdaterer dens UpdatedAt-tidsstempel.</summary>
+    /// <returns>True hvis ordren blev fundet og opdateret, false hvis den ikke findes.</returns>
     public async Task<bool> UpdateStatusAsync(int id, OrderStatus status)
     {
         var order = await _db.Orders.FindAsync(id);
@@ -43,8 +49,12 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
         return true;
     }
 
-    // Fetches all non-terminal orders (not Delivered/Cancelled) for a restaurant, newest first.
-    // Excludes AwaitingPayment orders too, so restaurants only see orders that are actually paid.
+    /// <summary>
+    /// Henter alle ordrer, der stadig er i gang for en restaurant (dvs. ikke Delivered, Cancelled
+    /// eller AwaitingPayment), sorteret så den nyest opdaterede kommer først. AwaitingPayment
+    /// bliver holdt ude, så restauranten kun ser ordrer, hvor kunden faktisk har betalt.
+    /// </summary>
+    /// <returns>De ordrer, restauranten stadig skal arbejde med.</returns>
     public async Task<IEnumerable<Order>> GetActiveByRestaurantAsync(int restaurantId) =>
         await _db.Orders
             .IgnoreQueryFilters()
@@ -60,7 +70,8 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
             .OrderByDescending(o => o.UpdatedAt)
             .ToListAsync();
 
-    // Fetches all terminal orders (Delivered or Cancelled) for a restaurant, most recently created first.
+    /// <summary>Henter alle færdige ordrer (Delivered eller Cancelled) for en restaurant, nyeste først.</summary>
+    /// <returns>Restaurantens færdige ordrehistorik.</returns>
     public async Task<IEnumerable<Order>> GetHistoryByRestaurantAsync(int restaurantId) =>
         await _db.Orders
             .IgnoreQueryFilters()
@@ -76,7 +87,8 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
             .ToListAsync();
 
 
-    // Finds the first order for a user that is not delivered or cancelled.
+    /// <summary>Finder brugerens ene ordre, der hverken er leveret eller annulleret, altså den, der er aktiv lige nu.</summary>
+    /// <returns>Brugerens aktive ordre, eller null hvis brugeren ikke har en lige nu.</returns>
     public async Task<Order?> GetActiveOrderForUserAsync(int userId) =>
         await _db.Orders
             .IgnoreQueryFilters()
@@ -89,7 +101,8 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
                 && o.Status != OrderStatus.Delivered
                 && o.Status != OrderStatus.Cancelled);
 
-    // Fetches all terminal orders (Delivered or Cancelled) for a user, most recently created first.
+    /// <summary>Henter alle færdige ordrer (Delivered eller Cancelled) for en bruger, nyeste først.</summary>
+    /// <returns>Brugerens færdige ordrehistorik.</returns>
     public async Task<IEnumerable<Order>> GetHistoryForUserAsync(int userId) =>
         await _db.Orders
             .IgnoreQueryFilters()
@@ -104,7 +117,12 @@ public class OrderRepository(AppDbContext db) : IOrderRepository
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
 
-    // Only Delivered orders count, so a review requires an order that was actually fulfilled.
+    /// <summary>
+    /// Tjekker om en bruger har fået en ordre leveret fra en bestemt restaurant før. Kun
+    /// leverede (Delivered) ordrer tæller, så man ikke kan anmelde en restaurant uden
+    /// faktisk at have modtaget maden.
+    /// </summary>
+    /// <returns>True hvis brugeren har mindst én leveret ordre fra restauranten.</returns>
     public async Task<bool> HasUserOrderedFromRestaurantAsync(int userId, int restaurantId) =>
         await _db.Orders
             .IgnoreQueryFilters()

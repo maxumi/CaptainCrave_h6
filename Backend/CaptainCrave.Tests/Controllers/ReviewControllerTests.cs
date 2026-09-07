@@ -8,11 +8,14 @@ using System.Security.Claims;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for ReviewsController.
-// IReviewService is mocked so no database or business-rule logic runs.
+// Unit-tests for ReviewsController.
+// IReviewService bliver mocket, så der ikke køres database eller forretningsregler.
 public class ReviewControllerTests
 {
-    // Creates a ReviewsController with a mocked IReviewService and a pre-authenticated user.
+    /// <summary>
+    /// Opretter en ReviewsController med en mocket IReviewService og en allerede logget ind bruger.
+    /// </summary>
+    /// <returns>Controlleren og dens mock, så testen kan bestemme servicesvaret.</returns>
     private static (ReviewsController controller, Mock<IReviewService> mockService) CreateController(int userId = 1)
     {
         var mockService = new Mock<IReviewService>();
@@ -26,6 +29,7 @@ public class ReviewControllerTests
         return (controller, mockService);
     }
 
+    // Henter en restaurants vurdering (gennemsnit og antal anmeldelser) og giver 200 OK.
     [Fact]
     public async Task GetByRestaurant_ReturnsOkWithSummary()
     {
@@ -39,6 +43,7 @@ public class ReviewControllerTests
         Assert.Same(summary, okResult.Value);
     }
 
+    // Hvis brugeren ikke har skrevet en anmeldelse endnu, giver det 404 Not Found.
     [Fact]
     public async Task GetMine_NoReview_ReturnsNotFound()
     {
@@ -50,6 +55,7 @@ public class ReviewControllerTests
         Assert.IsType<NotFoundResult>(result.Result);
     }
 
+    // Hvis brugeren har skrevet en anmeldelse, giver det 200 OK med anmeldelsen.
     [Fact]
     public async Task GetMine_HasReview_ReturnsOkWithReview()
     {
@@ -63,6 +69,7 @@ public class ReviewControllerTests
         Assert.Same(review, okResult.Value);
     }
 
+    // Hvis servicen afviser anmeldelsen (fx ugyldig vurdering), giver det 400 Bad Request.
     [Fact]
     public async Task Create_ServiceReturnsNull_ReturnsBadRequest()
     {
@@ -74,6 +81,7 @@ public class ReviewControllerTests
         Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 
+    // Hvis brugeren aldrig har bestilt fra restauranten, giver det 403 Forbidden.
     [Fact]
     public async Task Create_UserHasNotOrdered_ReturnsForbidden()
     {
@@ -87,6 +95,7 @@ public class ReviewControllerTests
         Assert.Equal(StatusCodes.Status403Forbidden, objectResult.StatusCode);
     }
 
+    // Opretter en anmeldelse og giver 201 Created.
     [Fact]
     public async Task Create_Valid_ReturnsCreatedAtAction()
     {
@@ -100,6 +109,7 @@ public class ReviewControllerTests
         Assert.Same(review, createdResult.Value);
     }
 
+    // Hvis servicen afviser opdateringen (fx ugyldig vurdering eller ikke ejer), giver det 400 Bad Request.
     [Fact]
     public async Task Update_ServiceReturnsNull_ReturnsBadRequest()
     {
@@ -111,6 +121,7 @@ public class ReviewControllerTests
         Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 
+    // Opdaterer anmeldelsen og giver 200 OK.
     [Fact]
     public async Task Update_Valid_ReturnsOk()
     {

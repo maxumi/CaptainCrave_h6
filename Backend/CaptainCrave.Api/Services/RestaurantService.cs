@@ -5,7 +5,7 @@ using Api.Repositories;
 
 namespace Api.Services;
 
-// Handles business logic for restaurant operations.
+// Håndterer forretningslogikken for restaurant-operationer.
 public class RestaurantService(
     IRestaurantRepository restaurantRepository,
     IImageStorageService imageStorageService,
@@ -15,7 +15,11 @@ public class RestaurantService(
     private readonly IImageStorageService _imageStorageService = imageStorageService;
     private readonly IReviewRepository _reviewRepository = reviewRepository;
 
-    // Retrieves all restaurants and maps them to DTOs, attaching each one's rating summary in a single bulk query.
+    /// <summary>
+    /// Henter alle restauranter og pakker dem om til DTO'er, med vurderinger hentet
+    /// i ét samlet databaseopslag i stedet for et opslag pr. restaurant (meget hurtigere).
+    /// </summary>
+    /// <returns>Alle restauranter med gennemsnitsvurdering og antal anmeldelser påsat.</returns>
     public async Task<IEnumerable<RestaurantDto>> GetAllAsync()
     {
         var restaurants = (await _restaurantRepository.GetAllAsync()).ToList();
@@ -23,7 +27,12 @@ public class RestaurantService(
         return restaurants.Select(r => ToDtoWithRating(r, summaries));
     }
 
-    // Loads all restaurants and filters in-memory to those within radiusKm using the Haversine formula.
+    /// <summary>
+    /// Henter alle restauranter og behold kun dem, der ligger inden for en bestemt radius (km)
+    /// fra et punkt på kortet. Afstanden regnes ud med Haversine-formlen, som tager højde for
+    /// at jorden er en kugle og ikke flad.
+    /// </summary>
+    /// <returns>De restauranter, der ligger inden for radius, med vurdering påsat.</returns>
     public async Task<IEnumerable<RestaurantDto>> GetNearbyRestaurantsAsync(
         double latitude,
         double longitude,
@@ -44,7 +53,10 @@ public class RestaurantService(
         return nearby.Select(r => ToDtoWithRating(r, summaries));
     }
 
-    // Retrieves a restaurant by ID and maps it to a DTO, including its rating summary.
+    /// <summary>
+    /// Henter én restaurant ud fra dens id, sammen med dens vurdering (gennemsnit og antal anmeldelser).
+    /// </summary>
+    /// <returns>Restauranten som DTO, eller null hvis den ikke findes.</returns>
     public async Task<RestaurantDto?> GetByIdAsync(int id)
     {
         var restaurant = await _restaurantRepository.GetByIdAsync(id);
@@ -55,7 +67,10 @@ public class RestaurantService(
         return restaurant.ToDto(averageRating, reviewCount);
     }
 
-    // Retrieves one restaurant by owner user ID and maps it to a DTO, including its rating summary.
+    /// <summary>
+    /// Henter den ene restaurant, som en bestemt bruger ejer, sammen med dens vurdering.
+    /// </summary>
+    /// <returns>Restauranten som DTO, eller null hvis brugeren ikke ejer nogen restaurant.</returns>
     public async Task<RestaurantDto?> GetByUserIdAsync(int userId)
     {
         var restaurant = await _restaurantRepository.GetSingleByUserIdAsync(userId);
@@ -66,8 +81,12 @@ public class RestaurantService(
         return restaurant.ToDto(averageRating, reviewCount);
     }
 
-    // Maps the DTO to a model, saves it, and returns the created restaurant as a DTO.
-    // A brand-new restaurant has no reviews yet, so no rating lookup is needed.
+    /// <summary>
+    /// Pakker DTO'en om til en rigtig Restaurant-model og gemmer den i databasen.
+    /// En helt ny restaurant har ingen anmeldelser endnu, så der bliver ikke slået
+    /// vurderinger op her, de starter på 0.
+    /// </summary>
+    /// <returns>Den nyoprettede restaurant som DTO.</returns>
     public async Task<RestaurantDto> CreateAsync(CreateRestaurantDto dto)
     {
         var restaurant = dto.ToRestaurant();
@@ -75,7 +94,11 @@ public class RestaurantService(
         return created.ToDto();
     }
 
-    // Updates the editable restaurant fields when the caller owns it or is an admin.
+    /// <summary>
+    /// Opdaterer restaurantens redigerbare felter (navn, beskrivelse, adresse osv.), men kun
+    /// hvis brugeren selv ejer restauranten eller er admin.
+    /// </summary>
+    /// <returns>Den opdaterede restaurant som DTO, eller null hvis den ikke findes eller brugeren ikke må.</returns>
     public async Task<RestaurantDto?> UpdateAsync(int id, UpdateRestaurantDto dto, int userId, bool isAdmin)
     {
         var restaurant = await _restaurantRepository.GetByIdAsync(id);
@@ -97,7 +120,11 @@ public class RestaurantService(
         return updated.ToDto(averageRating, reviewCount);
     }
 
-    // Updates a restaurant's image URL when the caller owns it or is an admin, returning the updated DTO.
+    /// <summary>
+    /// Skifter restaurantens billede ud med et nyt, hvis brugeren ejer den eller er admin.
+    /// Det gamle billede bliver slettet fra disken, lige efter det nye er gemt.
+    /// </summary>
+    /// <returns>Den opdaterede restaurant som DTO, eller null hvis den ikke findes eller brugeren ikke må.</returns>
     public async Task<RestaurantDto?> UpdateImageUrlAsync(int id, string imageUrl, int userId, bool isAdmin)
     {
         var restaurant = await _restaurantRepository.GetByIdAsync(id);
@@ -115,7 +142,11 @@ public class RestaurantService(
         return updated.ToDto(averageRating, reviewCount);
     }
 
-    // Soft deletes a restaurant when the caller owns it or is an admin.
+    /// <summary>
+    /// Sletter en restaurant (soft delete), men kun hvis brugeren ejer den eller er admin.
+    /// Den bliver bare skjult, ikke rigtigt slettet, så den kan gendannes senere.
+    /// </summary>
+    /// <returns>True hvis den blev slettet, false hvis den ikke findes eller brugeren ikke må.</returns>
     public async Task<bool> DeleteAsync(int id, int userId, bool isAdmin)
     {
         var restaurant = await _restaurantRepository.GetByIdAsync(id);
@@ -129,7 +160,11 @@ public class RestaurantService(
         return true;
     }
 
-    // Restores a previously soft-deleted restaurant when the caller owns it or is an admin.
+    /// <summary>
+    /// Gendanner en restaurant, der tidligere er blevet slettet, så den kommer tilbage til live,
+    /// men kun hvis brugeren ejer den eller er admin.
+    /// </summary>
+    /// <returns>True hvis den blev gendannet, false hvis den ikke findes, ikke var slettet, eller brugeren ikke må.</returns>
     public async Task<bool> RestoreAsync(int id, int userId, bool isAdmin)
     {
         var restaurant = await _restaurantRepository.GetByIdIncludingDeletedAsync(id);
@@ -143,7 +178,11 @@ public class RestaurantService(
         return true;
     }
 
-    // Permanently deletes a restaurant, soft-deleted or not, when the caller owns it or is an admin.
+    /// <summary>
+    /// Sletter en restaurant FOR ALTID, uanset om den var soft-deleted eller ej, og kun hvis
+    /// brugeren ejer den eller er admin. Der er ingen fortryd-knap efter dette.
+    /// </summary>
+    /// <returns>True hvis den blev slettet permanent, false hvis den ikke findes eller brugeren ikke må.</returns>
     public async Task<bool> HardDeleteAsync(int id, int userId, bool isAdmin)
     {
         var restaurant = await _restaurantRepository.GetByIdIncludingDeletedAsync(id);
@@ -157,7 +196,10 @@ public class RestaurantService(
         return true;
     }
 
-    // Returns every soft-deleted restaurant, for an admin trash view.
+    /// <summary>
+    /// Henter alle slettede (soft delete) restauranter til admins "papirkurv"-visning.
+    /// </summary>
+    /// <returns>Alle slettede restauranter, med vurdering påsat.</returns>
     public async Task<IEnumerable<RestaurantDto>> GetDeletedAsync()
     {
         var restaurants = (await _restaurantRepository.GetDeletedAsync()).ToList();
@@ -165,7 +207,11 @@ public class RestaurantService(
         return restaurants.Select(r => ToDtoWithRating(r, summaries));
     }
 
-    // Returns the great-circle distance in kilometres between two lat/lng points (Haversine formula, Earth radius = 6371 km).
+    /// <summary>
+    /// Regner afstanden i kilometer ud mellem to punkter på jorden (Haversine-formlen).
+    /// Jordens radius er sat til 6371 km. Bruges til "restauranter i nærheden".
+    /// </summary>
+    /// <returns>Afstanden mellem punkterne i kilometer.</returns>
     private static double GetDistance(
         double lat1,
         double lon1,
@@ -191,12 +237,20 @@ public class RestaurantService(
         return R * c;
     }
 
+    /// <summary>
+    /// Omregner en vinkel fra grader til radianer, som Math-funktionerne kræver.
+    /// </summary>
+    /// <returns>Den samme vinkel målt i radianer.</returns>
     private static double DegreesToRadians(double degrees)
     {
         return degrees * Math.PI / 180;
     }
 
-    // Looks up a restaurant's precomputed rating summary (falling back to 0/0 if it has no reviews).
+    /// <summary>
+    /// Slår en restaurants færdigberegnede vurdering op i en opslags-ordbog, eller
+    /// falder tilbage til 0 stjerner/0 anmeldelser, hvis restauranten slet ingen anmeldelser har.
+    /// </summary>
+    /// <returns>Restauranten som DTO med gennemsnitsvurdering og antal anmeldelser.</returns>
     private static RestaurantDto ToDtoWithRating(
         Restaurant restaurant,
         Dictionary<int, (double AverageRating, int ReviewCount)> summaries)

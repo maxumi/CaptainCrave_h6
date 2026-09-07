@@ -9,11 +9,11 @@ using System.Security.Claims;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for MenusController.
-// IMenuService and IRestaurantService are mocked so no database access occurs.
+// Unit-tests for MenusController.
+// IMenuService og IRestaurantService bliver mocket, så der ikke sker nogen database-adgang.
 public class MenuControllerTests
 {
-    // Creates a MenusController with mocked services and an authenticated HttpContext (user id "1").
+    // Opretter en MenusController med mockede services og en autentificeret HttpContext (bruger-id "1").
     private static (MenusController controller, Mock<IMenuService> mockService) CreateController()
     {
         var mockService = new Mock<IMenuService>();
@@ -30,6 +30,7 @@ public class MenuControllerTests
 
     // GetByRestaurant
 
+    // Henter menuer for en restaurant og giver 200 OK.
     [Fact]
     public async Task GetByRestaurant_ReturnsOk()
     {
@@ -43,6 +44,7 @@ public class MenuControllerTests
 
     // GetById
 
+    // Henter en menu, der findes, og giver 200 OK.
     [Fact]
     public async Task GetById_ExistingId_ReturnsOk()
     {
@@ -55,6 +57,7 @@ public class MenuControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
+    // Henter en menu, der ikke findes, og giver 404 Not Found.
     [Fact]
     public async Task GetById_NonExistingId_ReturnsNotFound()
     {
@@ -68,6 +71,7 @@ public class MenuControllerTests
 
     // Create
 
+    // Opretter en menu med gyldig data og giver 201 Created.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedAtAction()
     {
@@ -81,6 +85,7 @@ public class MenuControllerTests
         Assert.IsType<CreatedAtActionResult>(result);
     }
 
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task Create_InvalidModelState_ReturnsBadRequest()
     {
@@ -94,6 +99,7 @@ public class MenuControllerTests
 
     // Delete (soft delete)
 
+    // Sletter en menu og giver 204 No Content.
     [Fact]
     public async Task Delete_ExistingId_ReturnsNoContent()
     {
@@ -105,6 +111,7 @@ public class MenuControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Sletning af en menu, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task Delete_NonExistingId_ReturnsNotFound()
     {
@@ -118,6 +125,7 @@ public class MenuControllerTests
 
     // Restore
 
+    // En slettet menu kan gendannes, og controlleren svarer med 204 No Content.
     [Fact]
     public async Task Restore_ExistingId_ReturnsNoContent()
     {
@@ -129,6 +137,7 @@ public class MenuControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Forsøg på at gendanne en ukendt menu giver 404 Not Found.
     [Fact]
     public async Task Restore_NonExistingId_ReturnsNotFound()
     {
@@ -140,8 +149,9 @@ public class MenuControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
-    // HardDelete (permanent delete)
+    // HardDelete (permanent sletning)
 
+    // Sletter en menu for altid og giver 204 No Content.
     [Fact]
     public async Task HardDelete_ExistingId_ReturnsNoContent()
     {
@@ -153,6 +163,7 @@ public class MenuControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // En databasefejl under permanent sletning giver 409 Conflict.
     [Fact]
     public async Task HardDelete_WhenDbUpdateExceptionThrown_ReturnsConflict()
     {
@@ -166,6 +177,7 @@ public class MenuControllerTests
 
     // GetDeleted
 
+    // Henter slettede menuer for restaurantens ejer og giver 200 OK.
     [Fact]
     public async Task GetDeleted_ReturnsOk()
     {
@@ -177,6 +189,7 @@ public class MenuControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
+    // Hvis brugeren ikke ejer restauranten, giver det 403 Forbidden.
     [Fact]
     public async Task GetDeleted_NotOwner_ReturnsForbidden()
     {

@@ -5,12 +5,17 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Api.Services;
 
-// Handles the business logic for registering and logging in users
+// Håndterer forretningslogikken for at oprette og logge brugere ind.
 public class AuthService(
     ITokenService tokenService,
     UserManager<User> userManager) : IAuthService
 {
-    // Creates a new user using ASP.NET Identity and returns a JWT
+    /// <summary>
+    /// Opretter en helt ny bruger via ASP.NET Identity, som også sørger for at hashe
+    /// (kryptere) kodeordet, så det aldrig gemmes i klartekst. Bagefter får brugeren
+    /// et JWT-token med det samme, så man er logget ind lige efter man har oprettet sig.
+    /// </summary>
+    /// <returns>Brugerens data plus et JWT-token, klar til at blive sendt til klienten.</returns>
     public async Task<AuthResponseDto> RegisterAsync(RegisterRequestDto dto)
     {
         var existingUser = await userManager.FindByEmailAsync(dto.Email);
@@ -36,7 +41,11 @@ public class AuthService(
         return user.ToAuthResponseDto(token);
     }
 
-    // Finds the user by email, verifies the password using ASP.NET Identity and returns a JWT
+    /// <summary>
+    /// Finder brugeren ud fra e-mailen og tjekker, om kodeordet passer (via ASP.NET Identity).
+    /// Passer det, får brugeren et nyt JWT-token tilbage, som beviser at man er logget ind.
+    /// </summary>
+    /// <returns>Brugerens data plus et JWT-token, hvis e-mail og kodeord passer sammen.</returns>
     public async Task<AuthResponseDto> LoginAsync(LoginRequestDto dto)
     {
         var user = await userManager.FindByEmailAsync(dto.Email);

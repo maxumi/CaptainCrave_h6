@@ -4,45 +4,45 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repositories;
 
-// EF Core implementation of menu data access.
+// Denne klasse snakker direkte med databasen (via EF Core) og henter/gemmer menuer.
 public class MenuRepository(AppDbContext db) : IMenuRepository
 {
     private readonly AppDbContext _db = db;
 
     /// <summary>
-    /// Fetches all menus for the given restaurant.
+    /// Henter alle menuer, der hører til en restaurant.
     /// </summary>
-    /// <param name="restaurantId">The owning restaurant's id.</param>
+    /// <returns>Alle menuer for restauranten.</returns>
     public async Task<IEnumerable<Menu>> GetByRestaurantIdAsync(int restaurantId) =>
         await _db.Menus.AsNoTracking().Where(m => m.RestaurantId == restaurantId).ToListAsync();
 
     /// <summary>
-    /// Fetches a single menu by primary key. Excludes soft-deleted menus.
+    /// Henter én menu ud fra id. Springer automatisk slettede menuer over.
     /// </summary>
-    /// <param name="id">The menu's id.</param>
+    /// <returns>Menuen, eller null hvis den ikke findes (eller er slettet).</returns>
     public async Task<Menu?> GetByIdAsync(int id) =>
         await _db.Menus.AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
 
     /// <summary>
-    /// Fetches a single menu by primary key, including soft-deleted ones.
+    /// Henter én menu ud fra id, også selvom den er blevet slettet (soft delete).
     /// </summary>
-    /// <param name="id">The menu's id.</param>
+    /// <returns>Menuen (slettet eller ej), eller null hvis den slet ikke findes.</returns>
     public async Task<Menu?> GetByIdIncludingDeletedAsync(int id) =>
         await _db.Menus.IgnoreQueryFilters().AsNoTracking().FirstOrDefaultAsync(m => m.Id == id);
 
     /// <summary>
-    /// Fetches the soft-deleted menus for a restaurant.
+    /// Henter de menuer, der er slettet (lagt i "papirkurven") for en restaurant.
     /// </summary>
-    /// <param name="restaurantId">The owning restaurant's id.</param>
+    /// <returns>De slettede menuer for restauranten.</returns>
     public async Task<IEnumerable<Menu>> GetDeletedByRestaurantIdAsync(int restaurantId) =>
         await _db.Menus.IgnoreQueryFilters().AsNoTracking()
             .Where(m => m.RestaurantId == restaurantId && m.IsDeleted)
             .ToListAsync();
 
     /// <summary>
-    /// Inserts a new menu row and returns it with its generated ID.
+    /// Gemmer en helt ny menu-række i databasen og giver den tilbage med et rigtigt id.
     /// </summary>
-    /// <param name="menu">The entity to insert.</param>
+    /// <returns>Den gemte menu, nu med et rigtigt Id.</returns>
     public async Task<Menu> CreateAsync(Menu menu)
     {
         _db.Menus.Add(menu);
@@ -50,10 +50,9 @@ public class MenuRepository(AppDbContext db) : IMenuRepository
         return menu;
     }
 
-    /// <summary>
-    /// Marks the menu and its menu items as deleted instead of removing the rows.
-    /// </summary>
-    /// <param name="menu">The entity to soft delete.</param>
+    // Markerer både menuen OG dens retter som slettet, i stedet for at fjerne rækkerne.
+    // Det gør vi manuelt her, så alle retterne på menuen også forsvinder fra de normale
+    // lister, når hele menuen bliver slettet.
     public async Task SoftDeleteAsync(Menu menu)
     {
         SoftDeleteHelper.MarkDeleted(menu);
@@ -66,10 +65,8 @@ public class MenuRepository(AppDbContext db) : IMenuRepository
         await _db.SaveChangesAsync();
     }
 
-    /// <summary>
-    /// Un-marks the menu and its soft-deleted menu items as deleted.
-    /// </summary>
-    /// <param name="menu">The entity to restore.</param>
+    // Fjerner slette-markeringen på menuen OG på de retter, der blev slettet sammen med den,
+    // så hele menuen kommer tilbage til live på én gang.
     public async Task RestoreAsync(Menu menu)
     {
         SoftDeleteHelper.MarkRestored(menu);
@@ -84,10 +81,8 @@ public class MenuRepository(AppDbContext db) : IMenuRepository
         await _db.SaveChangesAsync();
     }
 
-    /// <summary>
-    /// Permanently removes a menu row and allows the database cascade to delete associated menu items.
-    /// </summary>
-    /// <param name="menu">The entity to delete.</param>
+    // Sletter en menu-række FOR ALTID. Databasens egen cascade-regel sørger for også
+    // at slette retterne, der hørte til menuen.
     public async Task HardDeleteAsync(Menu menu)
     {
         _db.Menus.Remove(menu);

@@ -6,7 +6,7 @@ using Api.Repositories;
 
 namespace Api.Services;
 
-// Handles business logic for order operations.
+// Håndterer forretningslogikken for ordre-operationer.
 public class OrderService(
     IOrderRepository orderRepository,
     IUserRepository userRepository,
@@ -20,14 +20,22 @@ public class OrderService(
     private readonly IMenuItemRepository _menuItemRepository = menuItemRepository;
     private readonly INotificationService _notificationService = notificationService;
 
-    // Retrieves an order by ID and maps it to a DTO, or returns null if not found.
+    /// <summary>
+    /// Henter en ordre ud fra dens id.
+    /// </summary>
+    /// <returns>Ordren som DTO, eller null hvis den ikke findes.</returns>
     public async Task<OrderDto?> GetByIdAsync(int id)
     {
         var order = await _orderRepository.GetByIdAsync(id);
         return order?.ToDto();
     }
 
-    // Validates the order, builds the entity, persists it, and returns the DTO.
+    /// <summary>
+    /// Opretter en ny ordre: tjekker at bruger, restaurant og alle retter rent faktisk findes,
+    /// og regner selv totalprisen ud på serveren ud fra retternes rigtige priser i databasen,
+    /// ALDRIG ud fra en pris, klienten selv har sendt (så kan man ikke snyde med priserne).
+    /// </summary>
+    /// <returns>Den nyoprettede ordre som DTO, med status "afventer betaling".</returns>
     public async Task<OrderDto> CreateAsync(CreateOrderDto dto)
     {
         var user = await _userRepository.GetByIdAsync(dto.UserId)
@@ -64,7 +72,7 @@ public class OrderService(
 
         var created = await _orderRepository.CreateAsync(order);
 
-        // Populate navigation properties so the mapper can read them without a second query.
+        // Fylder User/Restaurant ind manuelt, så mapperen kan læse navnene uden endnu et databasekald.
         created.User = user;
         created.Restaurant = restaurant;
 
@@ -73,7 +81,11 @@ public class OrderService(
         return created.ToDto();
     }
 
-    // Resolves the restaurant owned by the caller and returns its non-terminal orders.
+    /// <summary>
+    /// Finder den restaurant, den nuværende bruger ejer, og henter dens ordrer, der stadig er i gang
+    /// (ikke leveret eller annulleret endnu).
+    /// </summary>
+    /// <returns>Restaurantens igangværende ordrer.</returns>
     public async Task<IEnumerable<OrderDto>> GetRestaurantActiveOrdersAsync(int currentUserId, UserRole currentUserRole)
     {
         var restaurantId = await ResolveRestaurantIdForUserAsync(currentUserId, currentUserRole);
@@ -81,7 +93,11 @@ public class OrderService(
         return orders.Select(order => order.ToDto());
     }
 
-    // Resolves the restaurant owned by the caller and returns its terminal (Delivered/Cancelled) orders.
+    /// <summary>
+    /// Finder den restaurant, den nuværende bruger ejer, og henter dens færdige ordrer
+    /// (dem der er blevet Delivered eller Cancelled).
+    /// </summary>
+    /// <returns>Restaurantens tidligere (færdige) ordrer.</returns>
     public async Task<IEnumerable<OrderDto>> GetRestaurantHistoricOrdersAsync(int currentUserId, UserRole currentUserRole)
     {
         var restaurantId = await ResolveRestaurantIdForUserAsync(currentUserId, currentUserRole);
@@ -89,7 +105,12 @@ public class OrderService(
         return orders.Select(order => order.ToDto());
     }
 
-    // Validates ownership + transition rules and delegates status update to repository.
+    /// <summary>
+    /// Skifter en ordres status (fx fra "under tilberedning" til "på vej"), men kun hvis
+    /// brugeren må det, og kun hvis skiftet giver mening (man kan ikke hoppe frem og tilbage
+    /// som man vil). Sender en live SignalR-besked til kunden, hvis det lykkes.
+    /// </summary>
+    /// <returns>True hvis statussen blev opdateret, false hvis ordren ikke findes.</returns>
     public async Task<bool> UpdateStatusAsync(int id, UpdateOrderStatusDto dto, int currentUserId, UserRole currentUserRole)
     {
         var order = await _orderRepository.GetByIdAsync(id);
@@ -123,26 +144,41 @@ public class OrderService(
         return success;
     }
 
-    // Retrieves the active order for a user.
+    /// <summary>
+    /// Henter den ordre, en bruger er ved at have i gang lige nu (endnu ikke leveret/annulleret).
+    /// </summary>
+    /// <returns>Den aktive ordre som DTO, eller null hvis brugeren ikke har en aktiv ordre.</returns>
     public async Task<OrderDto?> GetActiveOrderForUserAsync(int userId)
     {
         var order = await _orderRepository.GetActiveOrderForUserAsync(userId);
         return order?.ToDto();
     }
 
-    // Returns all terminal (Delivered/Cancelled) orders for a user, most recently created first.
+    /// <summary>
+    /// Henter alle færdige ordrer (Delivered/Cancelled) for en bruger, med den nyeste først.
+    /// </summary>
+    /// <returns>Brugerens tidligere ordrer.</returns>
     public async Task<IEnumerable<OrderDto>> GetHistoricOrdersForUserAsync(int userId)
     {
         var orders = await _orderRepository.GetHistoryForUserAsync(userId);
         return orders.Select(order => order.ToDto());
     }
 
-    // Used to gate review eligibility: only customers who actually received an order can review a restaurant.
+    /// <summary>
+    /// Bruges til at afgøre om en kunde må skrive en anmeldelse: kun kunder, der rent faktisk
+    /// har fået en ordre leveret fra restauranten, må anmelde den (man kan ikke anmelde et sted,
+    /// man aldrig har handlet hos).
+    /// </summary>
+    /// <returns>True hvis kunden har fået mindst én ordre leveret fra restauranten.</returns>
     public Task<bool> HasCustomerOrderedFromRestaurantAsync(int userId, int restaurantId) =>
         _orderRepository.HasUserOrderedFromRestaurantAsync(userId, restaurantId);
 
-    // Looks up the restaurant owned by the current user and returns its ID.
-    // Throws if the user is Admin (wrong method) or has no restaurant profile.
+    /// <summary>
+    /// Slår restauranten op, som den nuværende bruger ejer, og giver dens id tilbage.
+    /// Kaster en fejl, hvis brugeren er Admin (admin skal bruge en anden metode) eller slet
+    /// ikke har en restaurant.
+    /// </summary>
+    /// <returns>Id'et på restauranten, brugeren ejer.</returns>
     private async Task<int> ResolveRestaurantIdForUserAsync(int currentUserId, UserRole currentUserRole)
     {
         if (currentUserRole == UserRole.Admin)
@@ -154,26 +190,30 @@ public class OrderService(
         return restaurant.Id;
     }
 
-    // Returns true if an order has reached a final state (Delivered or Cancelled) that cannot be changed.
+    /// <summary>
+    /// Tjekker om en ordre har nået en "færdig" status (Delivered eller Cancelled),
+    /// som den ikke kan ændres fra igen, ligesom en afsluttet sag.
+    /// </summary>
+    /// <returns>True hvis ordren er færdig og låst.</returns>
     private static bool IsTerminal(OrderStatus status) =>
         status == OrderStatus.Delivered || status == OrderStatus.Cancelled;
 
-    // Checks whether an order is allowed to move from its current status to the requested next status.
-    // The valid flow is dependent on the delivery type.
-    // Delivery orders: Pending -> Preparing -> OnTheWay -> Delivered
-    // Pickup orders:   Pending -> Preparing -> ReadyForPickup -> Delivered
-    // Orders can be cancelled unless they have already been delivered.
+    /// <summary>
+    /// Tjekker om en ordre må skifte fra sin nuværende status til den ønskede næste status.
+    /// Den lovlige rækkefølge af statusser er forskellig, alt efter om det er levering eller afhentning.
+    /// </summary>
+    /// <returns>True hvis skiftet er lovligt.</returns>
     private static bool IsValidTransition(DeliveryType deliveryType, OrderStatus currentStatus, OrderStatus nextStatus)
     {
-        // Reject no-op transitions — the status must actually change.
+        // Afvis skift der ikke ændrer noget, statussen skal rent faktisk blive anderledes.
         if (currentStatus == nextStatus)
             return false;
 
-        // Cancellation is always allowed unless the order has already been delivered.
+        // Man må altid annullere, medmindre ordren allerede er blevet leveret.
         if (nextStatus == OrderStatus.Cancelled)
             return currentStatus != OrderStatus.Delivered;
 
-        // Enforce the linear delivery-type-specific progression:
+        // Håndhæver den lige rækkefølge af statusser, alt efter leveringstype:
         return deliveryType switch
         {
             DeliveryType.Delivery => currentStatus switch
@@ -194,6 +234,11 @@ public class OrderService(
         };
     }
 
+    /// <summary>
+    /// Henter en restaurants igangværende ordrer, når restaurant-id'et allerede kendes
+    /// (bruges af admin-visninger, der spørger på vegne af en bestemt restaurant).
+    /// </summary>
+    /// <returns>Restaurantens igangværende ordrer.</returns>
     public async Task<IEnumerable<OrderDto>> GetRestaurantActiveOrdersByRestaurantIdAsync(int restaurantId)
     {
         var restaurant = await _restaurantRepository.GetByIdAsync(restaurantId)
@@ -204,6 +249,11 @@ public class OrderService(
         return orders.Select(order => order.ToDto());
     }
 
+    /// <summary>
+    /// Henter en restaurants færdige ordrer, når restaurant-id'et allerede kendes
+    /// (bruges af admin-visninger, der spørger på vegne af en bestemt restaurant).
+    /// </summary>
+    /// <returns>Restaurantens tidligere (færdige) ordrer.</returns>
     public async Task<IEnumerable<OrderDto>> GetRestaurantHistoricOrdersByRestaurantIdAsync(int restaurantId)
     {
         var restaurant = await _restaurantRepository.GetByIdAsync(restaurantId)

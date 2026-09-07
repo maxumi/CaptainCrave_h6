@@ -4,14 +4,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repositories;
 
-// Handles database queries for user profile data
+// Denne klasse snakker direkte med databasen (via EF Core) og henter/gemmer brugerprofil-data.
 public class UserRepository(AppDbContext db) : IUserRepository
 {
-    // Returns the user with the given id, or null if not found
+    /// <summary>Henter brugeren med det givne id.</summary>
+    /// <returns>Brugeren, eller null hvis den ikke findes.</returns>
     public Task<User?> GetByIdAsync(int id) =>
         db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
 
-    // Updates profile fields for a user and returns the updated entity
+    /// <summary>
+    /// Opdaterer de felter på en brugerprofil, som brugeren selv må rette (navn, adresse
+    /// og position).
+    /// </summary>
+    /// <returns>Den opdaterede bruger, eller null hvis brugeren ikke findes.</returns>
     public async Task<User?> UpdateProfileAsync(
         int userId,
         string name,

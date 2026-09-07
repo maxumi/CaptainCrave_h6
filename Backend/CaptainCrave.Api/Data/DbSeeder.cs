@@ -7,10 +7,11 @@ namespace Api.Data;
 
 // Seeder til testdata: fylder databasen med et par kendte fastfood-kæder (restaurant,
 // menu, kategorier og retter), så teamet slipper for selv at oprette data manuelt.
-// Kører kun én gang — springes helt over hvis der allerede findes en restaurant.
+// Kører kun én gang, springes helt over hvis der allerede findes en restaurant.
 public static class DbSeeder
 {
-    // Kald denne fra Program.cs efter migrations er kørt.
+    // Fylder databasen med testrestauranter, hvis den er helt tom. Kaldes fra
+    // Program.cs, efter migrations er kørt.
     public static async Task SeedAsync(
         AppDbContext db,
         UserManager<User> userManager)
@@ -30,6 +31,8 @@ public static class DbSeeder
         await db.SaveChangesAsync();
     }
 
+    /// <summary>Bygger testdata for Burger King: menu, kategorier, retter og ejer.</summary>
+    /// <returns>En færdig Burger King-restaurant med ejer og hele dens menu.</returns>
     private static async Task<Restaurant> BuildBurgerKing(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
@@ -63,6 +66,8 @@ public static class DbSeeder
         };
     }
 
+    /// <summary>Bygger testdata for McDonald's: menu, kategorier, retter og ejer.</summary>
+    /// <returns>En færdig McDonald's-restaurant med ejer og hele dens menu.</returns>
     private static async Task<Restaurant> BuildMcDonalds(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
@@ -96,6 +101,8 @@ public static class DbSeeder
         };
     }
 
+    /// <summary>Bygger testdata for KFC: menu, kategorier, retter og ejer.</summary>
+    /// <returns>En færdig KFC-restaurant med ejer og hele dens menu.</returns>
     private static async Task<Restaurant> BuildKfc(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
@@ -129,6 +136,8 @@ public static class DbSeeder
         };
     }
 
+    /// <summary>Bygger testdata for Subway: menu, kategorier, retter og ejer.</summary>
+    /// <returns>En færdig Subway-restaurant med ejer og hele dens menu.</returns>
     private static async Task<Restaurant> BuildSubway(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
@@ -162,6 +171,8 @@ public static class DbSeeder
         };
     }
 
+    /// <summary>Bygger testdata for Domino's: menu, kategorier, retter og ejer.</summary>
+    /// <returns>En færdig Domino's-restaurant med ejer og hele dens menu.</returns>
     private static async Task<Restaurant> BuildDominos(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
@@ -195,6 +206,8 @@ public static class DbSeeder
         };
     }
 
+    /// <summary>Bygger testdata for Pizza Hut: menu, kategorier, retter og ejer.</summary>
+    /// <returns>En færdig Pizza Hut-restaurant med ejer og hele dens menu.</returns>
     private static async Task<Restaurant> BuildPizzaHut(UserManager<User> userManager)
     {
         var menu = new Menu { Name = "Menukort" };
@@ -228,44 +241,48 @@ public static class DbSeeder
         };
     }
 
-    // Opretter en restaurant-ejer med et fast standardkodeord til lokal test/login.
-private static async Task<User> CreateOwnerAsync(
-    UserManager<User> userManager,
-    string name,
-    string email)
-{
-    var existingUser = await userManager.FindByEmailAsync(email);
-
-    if (existingUser is not null)
-        return existingUser;
-
-    var user = new User
+    /// <summary>
+    /// Opretter en restaurant-ejer med et fast standardkodeord til lokal test/login,
+    /// eller genbruger en allerede eksisterende bruger med samme e-mail.
+    /// </summary>
+    /// <returns>Den nye eller allerede eksisterende bruger.</returns>
+    private static async Task<User> CreateOwnerAsync(
+        UserManager<User> userManager,
+        string name,
+        string email)
     {
-        UserName = email,
-        Email = email,
-        Name = name,
-        Address = "Danmark",
-        Role = UserRole.Restaurant,
-        CreatedAt = DateTime.UtcNow
-    };
+        var existingUser = await userManager.FindByEmailAsync(email);
 
-    var result = await userManager.CreateAsync(
-        user,
-        "Password123!"
-    );
+        if (existingUser is not null)
+            return existingUser;
 
-    if (!result.Succeeded)
-    {
-        var errors = string.Join(
-            ", ",
-            result.Errors.Select(error => error.Description)
+        var user = new User
+        {
+            UserName = email,
+            Email = email,
+            Name = name,
+            Address = "Danmark",
+            Role = UserRole.Restaurant,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var result = await userManager.CreateAsync(
+            user,
+            "Password123!"
         );
 
-        throw new InvalidOperationException(
-            $"Could not create seeded user {email}: {errors}"
-        );
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(
+                ", ",
+                result.Errors.Select(error => error.Description)
+            );
+
+            throw new InvalidOperationException(
+                $"Could not create seeded user {email}: {errors}"
+            );
+        }
+
+        return user;
     }
-
-    return user;
-}
 }

@@ -10,11 +10,11 @@ using Moq;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for UsersController.
-// IUserRepository is mocked so no database access occurs.
+// Unit-tests for UsersController.
+// IUserRepository bliver mocket, så der ikke sker nogen database-adgang.
 public class UsersControllerTests
 {
-    // Creates a UsersController with a mocked IUserRepository and an authenticated HttpContext (user id "1").
+    // Opretter en UsersController med et mocket IUserRepository og en autentificeret HttpContext (bruger-id "1").
     private static (UsersController controller, Mock<IUserRepository> mockRepository) CreateController()
     {
         var mockRepository = new Mock<IUserRepository>();
@@ -28,7 +28,7 @@ public class UsersControllerTests
         return (controller, mockRepository);
     }
 
-    // Creates a UsersController with no user id claim, so GetCurrentUserId resolves to null.
+    // Opretter en UsersController uden noget bruger-id-claim, så GetCurrentUserId bliver null.
     private static UsersController CreateUnauthenticatedController()
     {
         var controller = new UsersController(new Mock<IUserRepository>().Object);
@@ -42,6 +42,7 @@ public class UsersControllerTests
 
     // GetMe
 
+    // Henter den logget-ind brugers profil og giver 200 OK.
     [Fact]
     public async Task GetMe_ExistingUser_ReturnsOk()
     {
@@ -54,6 +55,7 @@ public class UsersControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
+    // Svaret indeholder brugerens navn, e-mail og rolle.
     [Fact]
     public async Task GetMe_ExistingUser_ReturnsUserProfile()
     {
@@ -70,6 +72,7 @@ public class UsersControllerTests
         Assert.Equal("Customer", profile?.Role);
     }
 
+    // Hvis brugeren ikke findes i databasen, giver det 404 Not Found.
     [Fact]
     public async Task GetMe_UserNotFound_ReturnsNotFound()
     {
@@ -81,6 +84,7 @@ public class UsersControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
+    // Ikke logget ind giver 401 Unauthorized.
     [Fact]
     public async Task GetMe_NoUserIdClaim_ReturnsUnauthorized()
     {
@@ -93,6 +97,7 @@ public class UsersControllerTests
 
     // UpdateMe
 
+    // Opdaterer profilen med gyldig data og giver 200 OK.
     [Fact]
     public async Task UpdateMe_ValidDto_ReturnsOk()
     {
@@ -107,6 +112,7 @@ public class UsersControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
+    // Svaret indeholder de opdaterede felter (navn og adresse).
     [Fact]
     public async Task UpdateMe_ValidDto_ReturnsUpdatedProfile()
     {
@@ -123,6 +129,7 @@ public class UsersControllerTests
         Assert.Equal(updated.Address, profile?.Address);
     }
 
+    // Ugyldig model-state giver 400 Bad Request.
     [Fact]
     public async Task UpdateMe_InvalidModelState_ReturnsBadRequest()
     {
@@ -134,6 +141,7 @@ public class UsersControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
+    // Hvis brugeren ikke findes, giver det 404 Not Found.
     [Fact]
     public async Task UpdateMe_UserNotFound_ReturnsNotFound()
     {
@@ -147,6 +155,7 @@ public class UsersControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
+    // Ikke logget ind giver 401 Unauthorized.
     [Fact]
     public async Task UpdateMe_NoUserIdClaim_ReturnsUnauthorized()
     {

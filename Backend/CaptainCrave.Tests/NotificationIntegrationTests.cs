@@ -24,6 +24,8 @@ public class CaptainCraveApiFactory : WebApplicationFactory<Program>
     // så hver HTTP-request ender med sin egen isolerede, tomme database.)
     private readonly string _databaseName = $"CaptainCraveTests-{Guid.NewGuid()}";
 
+    // Udskifter den rigtige SQL Server med en tom database i hukommelsen, så testen er hurtig,
+    // isoleret og ikke ændrer udviklingsdatabasen.
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
@@ -45,11 +47,14 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
 {
     private readonly CaptainCraveApiFactory _factory;
 
+    // Gemmer fabrikken, der starter den rigtige API-pipeline til integrationstesten.
     public NotificationIntegrationTests(CaptainCraveApiFactory factory)
     {
         _factory = factory;
     }
 
+    // Opretter og betaler en ordre og ændrer derefter dens status. Testen beviser, at restauranten
+    // modtager "NewOrder", og at kunden bagefter modtager "OrderStatusChanged" direkte via SignalR.
     [Fact(Timeout = 30000)]
     public async Task NewOrder_And_OrderStatusChanged_Notifications_Are_Received_Live()
     {
@@ -73,10 +78,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
             newOrderReceived.TrySetResult(orderId);
         });
 
-        // 4. Kunden afgiver en ordre — den oprettes med status AwaitingPayment.
+        // 4. Kunden afgiver en ordre, den oprettes med status AwaitingPayment.
         var orderId = await CreateOrderAsync(client, customerToken, customerUserId, restaurantId, menuItemId);
 
-        // 4b. Kunden gennemfører den falske betaling — dette bør udløse "NewOrder" til restauranten.
+        // 4b. Kunden gennemfører den falske betaling, dette bør udløse "NewOrder" til restauranten.
         await CompletePaymentAsync(client, customerToken, orderId);
 
         var receivedNewOrderId = await WaitWithTimeoutAsync(newOrderReceived.Task);
@@ -93,7 +98,7 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
                 element.GetProperty("status").GetString()!));
         });
 
-        // 6. Restauranten opdaterer ordrens status — dette bør udløse "OrderStatusChanged" til kunden.
+        // 6. Restauranten opdaterer ordrens status, dette bør udløse "OrderStatusChanged" til kunden.
         await UpdateOrderStatusAsync(client, restaurantToken, orderId, OrderStatus.Preparing);
 
         var (receivedStatusOrderId, receivedStatus) = await WaitWithTimeoutAsync(statusChangedReceived.Task);
@@ -101,7 +106,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         Assert.Equal(nameof(OrderStatus.Preparing), receivedStatus);
     }
 
-    // Venter på en besked med en fornuftig timeout, så testen fejler tydeligt i stedet for at hænge.
+    /// <summary>
+    /// Venter på en besked med en fornuftig timeout, så testen fejler tydeligt i stedet for at hænge.
+    /// </summary>
+    /// <returns>Den værdi, som blev modtaget i beskeden.</returns>
     private static async Task<T> WaitWithTimeoutAsync<T>(Task<T> task)
     {
         var completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10)));
@@ -109,7 +117,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         return await task;
     }
 
-    // Registrerer en ny bruger med den ønskede rolle og logger straks ind for at få et JWT.
+    /// <summary>
+    /// Registrerer en ny bruger med den ønskede rolle og logger straks ind for at få et JWT.
+    /// </summary>
+    /// <returns>Den nye brugers id og et gyldigt login-token.</returns>
     private static async Task<(int UserId, string Token)> RegisterAndLoginAsync(HttpClient client, string email, UserRole role)
     {
         var register = new RegisterRequestDto
@@ -128,7 +139,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         return (auth!.Id, auth.Token);
     }
 
-    // Opretter en restaurant for den nuværende (autentificerede) restaurant-bruger.
+    /// <summary>
+    /// Opretter en restaurant for den nuværende (autentificerede) restaurant-bruger.
+    /// </summary>
+    /// <returns>Id'et på den restaurant, API'et oprettede.</returns>
     private static async Task<int> CreateRestaurantAsync(HttpClient client, string token)
     {
         var dto = new CreateRestaurantDto
@@ -146,7 +160,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         return restaurant!.Id;
     }
 
-    // Opretter en menu under den givne restaurant.
+    /// <summary>
+    /// Opretter en menu under den givne restaurant.
+    /// </summary>
+    /// <returns>Id'et på den nye menu.</returns>
     private static async Task<int> CreateMenuAsync(HttpClient client, string token, int restaurantId)
     {
         var dto = new CreateMenuDto { RestaurantId = restaurantId, Name = "Frokostmenu" };
@@ -157,7 +174,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         return menu!.Id;
     }
 
-    // Opretter en menuvare under den givne menu (uden kategori, da kategori er valgfri).
+    /// <summary>
+    /// Opretter en menuvare under den givne menu (uden kategori, da kategori er valgfri).
+    /// </summary>
+    /// <returns>Id'et på den nye ret.</returns>
     private static async Task<int> CreateMenuItemAsync(HttpClient client, string token, int menuId)
     {
         var dto = new CreateMenuItemDto
@@ -176,7 +196,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         return menuItem!.Id;
     }
 
-    // Afgiver en ordre som kunden, med ét eksemplar af den givne menuvare, til afhentning.
+    /// <summary>
+    /// Afgiver en ordre som kunden, med ét eksemplar af den givne menuvare, til afhentning.
+    /// </summary>
+    /// <returns>Id'et på den nye ordre.</returns>
     private static async Task<int> CreateOrderAsync(HttpClient client, string token, int userId, int restaurantId, int menuItemId)
     {
         var dto = new CreateOrderDto
@@ -233,7 +256,10 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         throw new InvalidOperationException($"{response.RequestMessage?.Method} {response.RequestMessage?.RequestUri} failed with {response.StatusCode}: {body}");
     }
 
-    // Sender et autentificeret POST-kald med et JWT i Authorization-headeren.
+    /// <summary>
+    /// Sender et autentificeret POST-kald med et JWT i Authorization-headeren.
+    /// </summary>
+    /// <returns>Serverens svar, så testen kan kontrollere resultatet.</returns>
     private static Task<HttpResponseMessage> PostAsJsonWithAuthAsync<T>(HttpClient client, string url, T body, string token)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = JsonContent.Create(body) };
@@ -241,8 +267,11 @@ public class NotificationIntegrationTests : IClassFixture<CaptainCraveApiFactory
         return client.SendAsync(request);
     }
 
-    // Opretter og starter en autentificeret SignalR-forbindelse til notifikations-hub'en.
-    // LongPolling bruges fordi TestServer'en ikke understøtter rigtige WebSockets.
+    /// <summary>
+    /// Opretter og starter en autentificeret SignalR-forbindelse til notifikations-hub'en.
+    /// LongPolling bruges fordi TestServer'en ikke understøtter rigtige WebSockets.
+    /// </summary>
+    /// <returns>En startet forbindelse, der er klar til at modtage SignalR-beskeder.</returns>
     private async Task<HubConnection> ConnectAsync(string token)
     {
         var connection = new HubConnectionBuilder()

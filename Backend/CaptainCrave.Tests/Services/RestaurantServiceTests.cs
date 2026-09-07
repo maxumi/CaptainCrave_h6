@@ -6,16 +6,18 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for RestaurantService business logic (creation, nearby search, soft delete, ownership).
+// Unit-tests for RestaurantService's forretningslogik (oprettelse, søgning i nærheden, soft delete, ejerskab).
 public class RestaurantServiceTests
 {
+    /// <summary>Opretter RestaurantService med database-, billed- og anmeldelsesafhængigheder som mocks.</summary>
+    /// <returns>Servicen og alle tre mocks, så hver test kan bestemme de underliggende svar.</returns>
     private static (RestaurantService service, Mock<IRestaurantRepository> mockRepository, Mock<IImageStorageService> mockImageStorageService, Mock<IReviewRepository> mockReviewRepository) CreateService()
     {
         var mockRepository = new Mock<IRestaurantRepository>();
         var mockImageStorageService = new Mock<IImageStorageService>();
         var mockReviewRepository = new Mock<IReviewRepository>();
 
-        // Default to "no reviews" so tests that don't care about ratings don't need to set this up themselves.
+        // Standard er "ingen anmeldelser", så tests der ikke bekymrer sig om vurderinger ikke selv skal opstille dette.
         mockReviewRepository.Setup(r => r.GetSummaryAsync(It.IsAny<int>())).ReturnsAsync((0, 0));
         mockReviewRepository.Setup(r => r.GetSummariesByRestaurantIdsAsync(It.IsAny<IEnumerable<int>>()))
             .ReturnsAsync(new Dictionary<int, (double AverageRating, int ReviewCount)>());
@@ -24,6 +26,7 @@ public class RestaurantServiceTests
         return (service, mockRepository, mockImageStorageService, mockReviewRepository);
     }
 
+    // Opretter en gyldig restaurant, og den får et rigtigt id fra databasen.
     [Fact]
     public async Task CreateAsync_ValidDto_ReturnsCreatedRestaurant()
     {
@@ -35,6 +38,7 @@ public class RestaurantServiceTests
         Assert.Equal(7, result.Id);
     }
 
+    // Restaurantens gennemsnitlige vurdering og antal anmeldelser bliver hængt på svaret.
     [Fact]
     public async Task GetByIdAsync_RestaurantHasReviews_AttachesAverageRatingAndCount()
     {
@@ -48,6 +52,7 @@ public class RestaurantServiceTests
         Assert.Equal(2, result?.ReviewCount);
     }
 
+    // Når man henter alle restauranter, får hver af dem sin egen vurdering hængt på.
     [Fact]
     public async Task GetAllAsync_AttachesRatingSummaryPerRestaurant()
     {
@@ -70,6 +75,7 @@ public class RestaurantServiceTests
         Assert.Equal(0, result.Single(r => r.Id == 2).AverageRating);
     }
 
+    // Kun restauranter inden for radiussen kommer med i søgningen i nærheden.
     [Fact]
     public async Task GetNearbyRestaurantsAsync_OnlyReturnsRestaurantsWithinRadius()
     {
@@ -87,6 +93,7 @@ public class RestaurantServiceTests
         Assert.Equal("Close By", result.First().Name);
     }
 
+    // Hvis restauranten slet ikke findes, kan man ikke slette den.
     [Fact]
     public async Task DeleteAsync_RestaurantNotFound_ReturnsFalse()
     {
@@ -98,6 +105,7 @@ public class RestaurantServiceTests
         Assert.False(result);
     }
 
+    // Ejeren må slette sin restaurant, og den bliver soft-deleted.
     [Fact]
     public async Task DeleteAsync_Owner_ReturnsTrue()
     {
@@ -111,6 +119,7 @@ public class RestaurantServiceTests
         mockRepository.Verify(r => r.SoftDeleteAsync(restaurant), Times.Once);
     }
 
+    // En bruger, der ikke ejer restauranten, må ikke slette den.
     [Fact]
     public async Task DeleteAsync_NotOwner_ReturnsFalse()
     {
@@ -124,6 +133,7 @@ public class RestaurantServiceTests
         mockRepository.Verify(r => r.SoftDeleteAsync(It.IsAny<Restaurant>()), Times.Never);
     }
 
+    // Man kan ikke gendanne en restaurant, der slet ikke er slettet.
     [Fact]
     public async Task RestoreAsync_NotDeleted_ReturnsFalse()
     {
@@ -135,6 +145,7 @@ public class RestaurantServiceTests
         Assert.False(result);
     }
 
+    // En admin må slette enhver restaurant for altid uden at eje den.
     [Fact]
     public async Task HardDeleteAsync_Admin_BypassesOwnershipCheck()
     {
@@ -148,6 +159,7 @@ public class RestaurantServiceTests
         mockRepository.Verify(r => r.HardDeleteAsync(restaurant), Times.Once);
     }
 
+    // Henter alle slettede restauranter.
     [Fact]
     public async Task GetDeletedAsync_ReturnsAllSoftDeletedRestaurants()
     {
@@ -165,6 +177,7 @@ public class RestaurantServiceTests
 
     // UpdateImageUrlAsync
 
+    // Hvis restauranten ikke findes, sker der intet, og ingen fil bliver slettet.
     [Fact]
     public async Task UpdateImageUrlAsync_RestaurantNotFound_ReturnsNull()
     {
@@ -177,6 +190,7 @@ public class RestaurantServiceTests
         mockImageStorageService.Verify(s => s.Delete(It.IsAny<string>()), Times.Never);
     }
 
+    // En bruger, der ikke ejer restauranten, må ikke skifte dens billede.
     [Fact]
     public async Task UpdateImageUrlAsync_NotOwner_ReturnsNullAndDoesNotUpdate()
     {
@@ -190,6 +204,7 @@ public class RestaurantServiceTests
         mockRepository.Verify(r => r.UpdateAsync(It.IsAny<Restaurant>()), Times.Never);
     }
 
+    // Ejeren må skifte billede, og det gamle billede bliver slettet fra disken.
     [Fact]
     public async Task UpdateImageUrlAsync_Owner_UpdatesImageAndDeletesPreviousFile()
     {
@@ -204,6 +219,7 @@ public class RestaurantServiceTests
         mockImageStorageService.Verify(s => s.Delete("/uploads/restaurants/old.jpg"), Times.Once);
     }
 
+    // En admin må skifte billede uden selv at eje restauranten.
     [Fact]
     public async Task UpdateImageUrlAsync_Admin_BypassesOwnershipCheck()
     {

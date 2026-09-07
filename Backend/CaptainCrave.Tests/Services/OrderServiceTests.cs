@@ -7,10 +7,12 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for OrderService business logic (status transitions, ownership checks, totals).
-// All repositories and the notification service are mocked so no database or SignalR calls occur.
+// Unit-tests for OrderService's forretningslogik (statusskift, ejerskabstjek, totalpriser).
+// Alle repositories og notifikationsservicen bliver mocket, så der ikke køres database eller SignalR-kald.
 public class OrderServiceTests
 {
+    /// <summary>Opretter OrderService med alle repositories og notifikationsservicen som mocks.</summary>
+    /// <returns>Servicen og samtlige mocks, så testen kan isolere præcis den regel, den undersøger.</returns>
     private static (
         OrderService service,
         Mock<IOrderRepository> mockOrderRepository,
@@ -37,6 +39,7 @@ public class OrderServiceTests
 
     // CreateAsync
 
+    // Totalprisen bliver regnet ud fra rettens rigtige pris, ikke det klienten sender.
     [Fact]
     public async Task CreateAsync_ValidDto_CalculatesTotalFromMenuItemPrices()
     {
@@ -66,6 +69,7 @@ public class OrderServiceTests
         Assert.Equal(120m, result.TotalPrice);
     }
 
+    // En ukendt bruger giver en fejl, før ordren bliver oprettet.
     [Fact]
     public async Task CreateAsync_UnknownUser_ThrowsKeyNotFoundException()
     {
@@ -77,6 +81,7 @@ public class OrderServiceTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.CreateAsync(dto));
     }
 
+    // En ukendt restaurant giver en fejl, før ordren bliver oprettet.
     [Fact]
     public async Task CreateAsync_UnknownRestaurant_ThrowsKeyNotFoundException()
     {
@@ -89,6 +94,7 @@ public class OrderServiceTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.CreateAsync(dto));
     }
 
+    // En ukendt ret giver en fejl, før ordren bliver oprettet.
     [Fact]
     public async Task CreateAsync_UnknownMenuItem_ThrowsKeyNotFoundException()
     {
@@ -102,6 +108,7 @@ public class OrderServiceTests
         await Assert.ThrowsAsync<KeyNotFoundException>(() => service.CreateAsync(dto));
     }
 
+    // En helt ny ordre sender ikke besked til restauranten, det sker først når betalingen går igennem.
     [Fact]
     public async Task CreateAsync_ValidDto_DoesNotSendNewOrderNotification()
     {
@@ -122,6 +129,7 @@ public class OrderServiceTests
 
     // UpdateStatusAsync
 
+    // Hvis ordren slet ikke findes, kan man ikke opdatere dens status.
     [Fact]
     public async Task UpdateStatusAsync_OrderNotFound_ReturnsFalse()
     {
@@ -133,6 +141,7 @@ public class OrderServiceTests
         Assert.False(result);
     }
 
+    // Alle gyldige statusskift (afhængigt af afhentning eller levering) lykkes.
     [Theory]
     [InlineData(DeliveryType.Pickup, OrderStatus.Pending, OrderStatus.Preparing)]
     [InlineData(DeliveryType.Pickup, OrderStatus.Preparing, OrderStatus.ReadyForPickup)]
@@ -153,6 +162,7 @@ public class OrderServiceTests
         Assert.True(result);
     }
 
+    // Man kan ikke springe et status-trin over (fx direkte fra Pending til Delivered).
     [Fact]
     public async Task UpdateStatusAsync_SkippingAStep_ThrowsInvalidOperationException()
     {
@@ -166,6 +176,7 @@ public class OrderServiceTests
             service.UpdateStatusAsync(1, new UpdateOrderStatusDto { Status = OrderStatus.Delivered }, 9, UserRole.Restaurant));
     }
 
+    // Man kan ikke ændre status på en ordre, der allerede er leveret.
     [Fact]
     public async Task UpdateStatusAsync_AlreadyDelivered_ThrowsInvalidOperationException()
     {
@@ -178,6 +189,7 @@ public class OrderServiceTests
             service.UpdateStatusAsync(1, new UpdateOrderStatusDto { Status = OrderStatus.Cancelled }, 9, UserRole.Restaurant));
     }
 
+    // En ordre må annulleres, mens den stadig afventer (Pending).
     [Fact]
     public async Task UpdateStatusAsync_CancelFromPending_ReturnsTrue()
     {
@@ -192,6 +204,7 @@ public class OrderServiceTests
         Assert.True(result);
     }
 
+    // En restaurant-bruger må ikke ændre status på en ordre fra en anden restaurant.
     [Fact]
     public async Task UpdateStatusAsync_RestaurantUserDoesNotOwnOrder_ThrowsUnauthorizedAccessException()
     {
@@ -205,6 +218,7 @@ public class OrderServiceTests
             service.UpdateStatusAsync(1, new UpdateOrderStatusDto { Status = OrderStatus.Preparing }, 9, UserRole.Restaurant));
     }
 
+    // Et gyldigt statusskift sender en notifikation til kunden.
     [Fact]
     public async Task UpdateStatusAsync_ValidTransition_SendsStatusChangedNotification()
     {
@@ -221,6 +235,7 @@ public class OrderServiceTests
 
     // Restaurant-scoped queries
 
+    // En admin må ikke hente en restaurants aktive ordrer på denne måde.
     [Fact]
     public async Task GetRestaurantActiveOrdersAsync_AdminRole_ThrowsInvalidOperationException()
     {
@@ -230,6 +245,7 @@ public class OrderServiceTests
             service.GetRestaurantActiveOrdersAsync(1, UserRole.Admin));
     }
 
+    // Hvis brugeren slet ikke har en restaurant-profil, giver det en fejl.
     [Fact]
     public async Task GetRestaurantActiveOrdersAsync_NoRestaurantProfile_ThrowsKeyNotFoundException()
     {
@@ -240,6 +256,7 @@ public class OrderServiceTests
             service.GetRestaurantActiveOrdersAsync(1, UserRole.Restaurant));
     }
 
+    // Henter brugerens aktive ordre og oversætter den korrekt til en DTO.
     [Fact]
     public async Task GetActiveOrderForUserAsync_ReturnsMappedOrder()
     {
@@ -251,6 +268,7 @@ public class OrderServiceTests
         Assert.Equal(5, result?.Id);
     }
 
+    // Spørgsmålet om brugeren har bestilt fra restauranten bliver bare sendt videre til repository.
     [Fact]
     public async Task HasCustomerOrderedFromRestaurantAsync_DelegatesToRepository()
     {

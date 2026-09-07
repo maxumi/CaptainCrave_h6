@@ -4,16 +4,16 @@ using Api.Repositories;
 
 namespace Api.Services;
 
-// Handles business logic for menu operations.
+// Håndterer forretningslogikken for menu-operationer.
 public class MenuService(IMenuRepository menuRepository, IRestaurantRepository restaurantRepository) : IMenuService
 {
     private readonly IMenuRepository _menuRepository = menuRepository;
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
 
     /// <summary>
-    /// Retrieves all menus for a restaurant and maps them to DTOs.
+    /// Henter alle menuer, der hører til en restaurant, og pakker dem om til DTO'er.
     /// </summary>
-    /// <param name="restaurantId">The owning restaurant's id.</param>
+    /// <returns>Alle menuer for restauranten (kan være en tom liste).</returns>
     public async Task<IEnumerable<MenuDto>> GetByRestaurantIdAsync(int restaurantId)
     {
         var menus = await _menuRepository.GetByRestaurantIdAsync(restaurantId);
@@ -21,9 +21,9 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
     }
 
     /// <summary>
-    /// Retrieves a single menu by ID and maps it to a DTO.
+    /// Henter én bestemt menu ud fra dens id.
     /// </summary>
-    /// <param name="id">The menu's id.</param>
+    /// <returns>Menuen som DTO, eller null hvis den ikke findes.</returns>
     public async Task<MenuDto?> GetByIdAsync(int id)
     {
         var menu = await _menuRepository.GetByIdAsync(id);
@@ -31,9 +31,10 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
     }
 
     /// <summary>
-    /// Retrieves a single menu by ID, including soft-deleted ones, and maps it to a DTO.
+    /// Henter én menu ud fra id, også selvom den er blevet soft-deleted (lagt i papirkurven).
+    /// Bruges internt, når vi f.eks. skal tjekke ejerskab for en slettet menu.
     /// </summary>
-    /// <param name="id">The menu's id.</param>
+    /// <returns>Menuen som DTO (uanset om den er slettet), eller null hvis den slet ikke findes.</returns>
     public async Task<MenuDto?> GetByIdIncludingDeletedAsync(int id)
     {
         var menu = await _menuRepository.GetByIdIncludingDeletedAsync(id);
@@ -41,11 +42,10 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
     }
 
     /// <summary>
-    /// Retrieves the soft-deleted menus for a restaurant, if the caller is allowed to see them.
+    /// Henter de menuer, der er blevet slettet (soft delete) for en restaurant,
+    /// men kun hvis brugeren har lov til at se dem.
     /// </summary>
-    /// <param name="restaurantId">The owning restaurant's id.</param>
-    /// <param name="userId">The current user.</param>
-    /// <param name="isAdmin">Whether the current user is an admin.</param>
+    /// <returns>De slettede menuer, eller null hvis brugeren ikke må se dem.</returns>
     public async Task<IEnumerable<MenuDto>?> GetDeletedByRestaurantIdAsync(int restaurantId, int userId, bool isAdmin)
     {
         if (!isAdmin && !await UserOwnsRestaurantAsync(userId, restaurantId))
@@ -56,9 +56,10 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
     }
 
     /// <summary>
-    /// Maps the DTO to a model, saves it, and returns the created menu as a DTO.
+    /// Pakker DTO'en om til en rigtig Menu-model, gemmer den i databasen,
+    /// og giver den nye menu tilbage som DTO (nu med et rigtigt Id).
     /// </summary>
-    /// <param name="dto">The validated request payload with the restaurant id and name to save.</param>
+    /// <returns>Den nyoprettede menu som DTO.</returns>
     public async Task<MenuDto> CreateAsync(CreateMenuDto dto)
     {
         var menu = dto.ToMenu();
@@ -66,6 +67,11 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
         return created.ToDto();
     }
 
+    /// <summary>
+    /// Sletter en menu (soft delete), men kun hvis brugeren ejer restauranten bag den, eller
+    /// er admin. Menuen bliver bare skjult, ikke rigtigt slettet, så den kan gendannes senere.
+    /// </summary>
+    /// <returns>True hvis den blev slettet, false hvis den ikke findes eller brugeren ikke må.</returns>
     public async Task<bool> DeleteAsync(int id, int userId, bool isAdmin)
     {
         var menu = await _menuRepository.GetByIdAsync(id);
@@ -80,11 +86,10 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
     }
 
     /// <summary>
-    /// Restores a previously soft-deleted menu when the caller owns that restaurant or is an admin.
+    /// Gendanner en menu, der tidligere er blevet slettet, så den kommer tilbage til live,
+    /// men kun hvis brugeren ejer restauranten eller er admin.
     /// </summary>
-    /// <param name="id">Menu ID to restore.</param>
-    /// <param name="userId">The current user.</param>
-    /// <param name="isAdmin">Whether the current user is an admin.</param>
+    /// <returns>True hvis den blev gendannet, false hvis den ikke findes, ikke var slettet, eller brugeren ikke må.</returns>
     public async Task<bool> RestoreAsync(int id, int userId, bool isAdmin)
     {
         var menu = await _menuRepository.GetByIdIncludingDeletedAsync(id);
@@ -99,11 +104,10 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
     }
 
     /// <summary>
-    /// Permanently deletes a menu, soft-deleted or not, when the caller owns that restaurant or is an admin.
+    /// Sletter en menu FOR ALTID, uanset om den var soft-deleted eller ej, og kun hvis
+    /// brugeren ejer restauranten eller er admin. Der er ingen fortryd-knap efter dette.
     /// </summary>
-    /// <param name="id">Menu ID to permanently delete.</param>
-    /// <param name="userId">The current user.</param>
-    /// <param name="isAdmin">Whether the current user is an admin.</param>
+    /// <returns>True hvis den blev slettet permanent, false hvis den ikke findes eller brugeren ikke må.</returns>
     public async Task<bool> HardDeleteAsync(int id, int userId, bool isAdmin)
     {
         var menu = await _menuRepository.GetByIdIncludingDeletedAsync(id);
@@ -117,6 +121,10 @@ public class MenuService(IMenuRepository menuRepository, IRestaurantRepository r
         return true;
     }
 
+    /// <summary>
+    /// Tjekker om brugeren har en restaurant med netop dette id blandt sine egne restauranter.
+    /// </summary>
+    /// <returns>True, hvis restauranten findes blandt brugerens egne restauranter. Ellers false.</returns>
     private async Task<bool> UserOwnsRestaurantAsync(int userId, int restaurantId)
     {
         var restaurants = await _restaurantRepository.GetByUserIdAsync(userId);

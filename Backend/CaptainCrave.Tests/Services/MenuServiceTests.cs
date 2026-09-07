@@ -6,9 +6,11 @@ using Moq;
 
 namespace Api.Tests.Services;
 
-// Unit tests for MenuService business logic (creation, soft delete, restore, hard delete, ownership checks).
+// Unit-tests for MenuService's forretningslogik (oprettelse, soft delete, gendannelse, hard delete, ejerskabstjek).
 public class MenuServiceTests
 {
+    /// <summary>Opretter MenuService med mockede menu- og restaurant-repositories.</summary>
+    /// <returns>Servicen og begge mocks, som testen kan styre.</returns>
     private static (MenuService service, Mock<IMenuRepository> mockMenuRepository, Mock<IRestaurantRepository> mockRestaurantRepository) CreateService()
     {
         var mockMenuRepository = new Mock<IMenuRepository>();
@@ -17,6 +19,7 @@ public class MenuServiceTests
         return (service, mockMenuRepository, mockRestaurantRepository);
     }
 
+    // Opretter en gyldig menu, og den får et rigtigt id fra databasen.
     [Fact]
     public async Task CreateAsync_ValidDto_ReturnsCreatedMenu()
     {
@@ -29,6 +32,7 @@ public class MenuServiceTests
         Assert.Equal("Lunch Menu", result.Name);
     }
 
+    // Hvis menuen slet ikke findes, kan man ikke slette den.
     [Fact]
     public async Task DeleteAsync_MenuNotFound_ReturnsFalse()
     {
@@ -40,6 +44,7 @@ public class MenuServiceTests
         Assert.False(result);
     }
 
+    // Ejeren må slette sin menu, og den bliver soft-deleted.
     [Fact]
     public async Task DeleteAsync_Owner_ReturnsTrueAndSoftDeletes()
     {
@@ -54,6 +59,7 @@ public class MenuServiceTests
         mockMenuRepository.Verify(r => r.SoftDeleteAsync(menu), Times.Once);
     }
 
+    // En bruger, der ikke ejer restauranten, må ikke slette menuen.
     [Fact]
     public async Task DeleteAsync_NotOwner_ReturnsFalseAndDoesNotDelete()
     {
@@ -68,6 +74,7 @@ public class MenuServiceTests
         mockMenuRepository.Verify(r => r.SoftDeleteAsync(It.IsAny<Menu>()), Times.Never);
     }
 
+    // En admin må slette enhver menu uden at eje restauranten.
     [Fact]
     public async Task DeleteAsync_Admin_BypassesOwnershipCheck()
     {
@@ -81,6 +88,7 @@ public class MenuServiceTests
         mockMenuRepository.Verify(r => r.SoftDeleteAsync(menu), Times.Once);
     }
 
+    // Man kan ikke gendanne en menu, der slet ikke er slettet.
     [Fact]
     public async Task RestoreAsync_NotDeleted_ReturnsFalse()
     {
@@ -93,6 +101,7 @@ public class MenuServiceTests
         Assert.False(result);
     }
 
+    // Ejeren må gendanne sin slettede menu.
     [Fact]
     public async Task RestoreAsync_DeletedAndOwner_ReturnsTrue()
     {
@@ -107,6 +116,7 @@ public class MenuServiceTests
         mockMenuRepository.Verify(r => r.RestoreAsync(menu), Times.Once);
     }
 
+    // Hvis menuen slet ikke findes, kan man ikke slette den for altid.
     [Fact]
     public async Task HardDeleteAsync_MenuNotFound_ReturnsFalse()
     {
@@ -118,6 +128,7 @@ public class MenuServiceTests
         Assert.False(result);
     }
 
+    // Ejeren må slette sin menu for altid.
     [Fact]
     public async Task HardDeleteAsync_Owner_CallsHardDelete()
     {
@@ -132,6 +143,7 @@ public class MenuServiceTests
         mockMenuRepository.Verify(r => r.HardDeleteAsync(menu), Times.Once);
     }
 
+    // En bruger, der ikke ejer eller administrerer restauranten, må ikke se dens slettede menuer.
     [Fact]
     public async Task GetDeletedByRestaurantIdAsync_NotOwnerNotAdmin_ReturnsNull()
     {
@@ -143,6 +155,7 @@ public class MenuServiceTests
         Assert.Null(result);
     }
 
+    // Ejeren får listen med sine slettede menuer.
     [Fact]
     public async Task GetDeletedByRestaurantIdAsync_Owner_ReturnsDeletedMenus()
     {

@@ -3,13 +3,15 @@ using Api.Models;
 
 namespace Api.Mappers;
 
-// Extension methods for mapping between Menu models and DTOs.
+// Denne klasse hjælper os med at bygge om mellem Menu (menukort i databasen)
+// og de DTO'er vi sender frem og tilbage til klienten.
 public static class MenuMapper
 {
     /// <summary>
-    /// Maps a Menu entity to a MenuDto for API responses.
+    /// Tager en menu fra databasen og pakker den om til en MenuDto,
+    /// som er den udgave af menuen, klienten må se.
     /// </summary>
-    /// <param name="menu">The loaded entity to convert.</param>
+    /// <returns>En MenuDto med de samme oplysninger, klar til at blive sendt afsted.</returns>
     public static MenuDto ToDto(this Menu menu) => new()
     {
         Id = menu.Id,
@@ -22,9 +24,10 @@ public static class MenuMapper
     };
 
     /// <summary>
-    /// Maps a CreateMenuDto to a Menu entity ready to be persisted.
+    /// Tager de oplysninger, klienten har sendt for en NY menu, og bygger en rigtig
+    /// Menu-model ud fra dem, som bagefter kan gemmes i databasen.
     /// </summary>
-    /// <param name="dto">The validated request payload with the restaurant id and name to save.</param>
+    /// <returns>En ny Menu, klar til at blive gemt (har endnu ikke et Id).</returns>
     public static Menu ToMenu(this CreateMenuDto dto) => new()
     {
         RestaurantId = dto.RestaurantId,

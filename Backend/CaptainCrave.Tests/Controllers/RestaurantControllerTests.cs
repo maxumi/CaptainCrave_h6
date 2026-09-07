@@ -9,12 +9,12 @@ using System.Security.Claims;
 
 namespace Api.Tests.Controllers;
 
-// Unit tests for RestaurantsController.
-// IRestaurantService and IMenuItemService are mocked so no database access occurs.
+// Unit-tests for RestaurantsController.
+// IRestaurantService og IMenuItemService bliver mocket, så der ikke sker nogen database-adgang.
 public class RestaurantControllerTests
 {
-    // Creates a RestaurantsController with mocked IRestaurantService and IMenuItemService.
-    // Supplies an authenticated HttpContext so User claims resolve inside the controller.
+    // Opretter en RestaurantsController med mockede IRestaurantService og IMenuItemService.
+    // Giver en autentificeret HttpContext, så User-claims kan findes inde i controlleren.
     private static (RestaurantsController controller, Mock<IRestaurantService> mockService, Mock<IMenuItemService> mockMenuItemService, Mock<IImageStorageService> mockImageStorageService) CreateController()
     {
         var mockService = new Mock<IRestaurantService>();
@@ -31,7 +31,7 @@ public class RestaurantControllerTests
         return (controller, mockService, mockMenuItemService, mockImageStorageService);
     }
 
-    // Creates a RestaurantsController with no authenticated user, so GetCurrentUserId returns null.
+    // Opretter en RestaurantsController uden en autentificeret bruger, så GetCurrentUserId returnerer null.
     private static RestaurantsController CreateUnauthenticatedController()
     {
         var controller = new RestaurantsController(Mock.Of<IRestaurantService>(), Mock.Of<IMenuItemService>(), Mock.Of<IMenuService>(), Mock.Of<IImageStorageService>());
@@ -44,7 +44,7 @@ public class RestaurantControllerTests
 
     // GetAll
 
-    // Returns 200 OK for the restaurant listing.
+    // Giver 200 OK for restaurant-listen.
     [Fact]
     public async Task GetAll_ReturnsOk()
     {
@@ -56,7 +56,7 @@ public class RestaurantControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Response body contains the full restaurant list.
+    // Svaret indeholder hele restaurant-listen.
     [Fact]
     public async Task GetAll_ReturnsRestaurantList()
     {
@@ -75,7 +75,7 @@ public class RestaurantControllerTests
 
     // GetById
 
-    // Returns 200 OK when the restaurant exists.
+    // Giver 200 OK når restauranten findes.
     [Fact]
     public async Task GetById_ExistingId_ReturnsOk()
     {
@@ -88,7 +88,7 @@ public class RestaurantControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Response body contains the matching restaurant DTO.
+    // Svaret indeholder den matchende restaurant-DTO.
     [Fact]
     public async Task GetById_ExistingId_ReturnsRestaurant()
     {
@@ -101,7 +101,7 @@ public class RestaurantControllerTests
         Assert.Equal(restaurant, result?.Value);
     }
 
-    // Returns 404 Not Found when no restaurant matches the given ID.
+    // Giver 404 Not Found, når ingen restaurant matcher det givne id.
     [Fact]
     public async Task GetById_NonExistingId_ReturnsNotFound()
     {
@@ -115,7 +115,7 @@ public class RestaurantControllerTests
 
     // Create
 
-    // Valid DTO returns 201 CreatedAtAction pointing to GetById.
+    // Gyldig DTO giver 201 CreatedAtAction, der peger på GetById.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedAtAction()
     {
@@ -129,7 +129,7 @@ public class RestaurantControllerTests
         Assert.IsType<CreatedAtActionResult>(result);
     }
 
-    // Response body contains the newly created restaurant.
+    // Svaret indeholder den nyoprettede restaurant.
     [Fact]
     public async Task Create_ValidDto_ReturnsCreatedRestaurant()
     {
@@ -143,7 +143,7 @@ public class RestaurantControllerTests
         Assert.Equal(created, result?.Value);
     }
 
-    // Invalid model state short-circuits before calling the service and returns 400 Bad Request.
+    // Ugyldig model-state stopper forespørgslen før servicen kaldes og giver 400 Bad Request.
     [Fact]
     public async Task Create_InvalidModelState_ReturnsBadRequest()
     {
@@ -157,7 +157,7 @@ public class RestaurantControllerTests
 
     // GetMenuItems
 
-    // Returns 200 OK for a valid restaurant ID.
+    // Giver 200 OK for et gyldigt restaurant-id.
     [Fact]
     public async Task GetMenuItems_ReturnsOk()
     {
@@ -169,7 +169,7 @@ public class RestaurantControllerTests
         Assert.IsType<OkObjectResult>(result);
     }
 
-    // Response body contains the full menu item list for the restaurant.
+    // Svaret indeholder hele ret-listen for restauranten.
     [Fact]
     public async Task GetMenuItems_ReturnsItems()
     {
@@ -186,7 +186,7 @@ public class RestaurantControllerTests
         Assert.Equal(items, result?.Value);
     }
 
-    // Returns 200 OK with an empty collection when the restaurant has no menu items.
+    // Giver 200 OK med en tom liste, når restauranten ingen retter har.
     [Fact]
     public async Task GetMenuItems_EmptyList_ReturnsOkWithEmptyCollection()
     {
@@ -201,6 +201,7 @@ public class RestaurantControllerTests
 
     // UploadImage
 
+    // Ikke logget ind giver 401 Unauthorized.
     [Fact]
     public async Task UploadImage_NoUserIdClaim_ReturnsUnauthorized()
     {
@@ -211,6 +212,7 @@ public class RestaurantControllerTests
         Assert.IsType<UnauthorizedResult>(result);
     }
 
+    // Restaurant, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task UploadImage_RestaurantNotFound_ReturnsNotFound()
     {
@@ -222,6 +224,7 @@ public class RestaurantControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
+    // Hvis brugeren ikke ejer restauranten, giver det 403 Forbidden.
     [Fact]
     public async Task UploadImage_NotOwner_ReturnsForbid()
     {
@@ -233,6 +236,7 @@ public class RestaurantControllerTests
         Assert.IsType<ForbidResult>(result);
     }
 
+    // En ugyldig filtype giver 400 Bad Request.
     [Fact]
     public async Task UploadImage_InvalidFile_ReturnsBadRequest()
     {
@@ -247,6 +251,7 @@ public class RestaurantControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
+    // Gyldig fil gemmes, og svaret indeholder den opdaterede restaurant.
     [Fact]
     public async Task UploadImage_ValidFile_ReturnsOkWithUpdatedRestaurant()
     {
@@ -262,6 +267,7 @@ public class RestaurantControllerTests
         Assert.Equal(updated, result?.Value);
     }
 
+    // Hvis servicen fejler efter filen er gemt, bliver den nyligt uploadede fil slettet igen, og der gives 404.
     [Fact]
     public async Task UploadImage_ServiceReturnsNull_DeletesUploadedFileAndReturnsNotFound()
     {
@@ -278,6 +284,7 @@ public class RestaurantControllerTests
 
     // Delete (soft delete)
 
+    // Sletter en restaurant og giver 204 No Content.
     [Fact]
     public async Task Delete_ExistingId_ReturnsNoContent()
     {
@@ -289,6 +296,7 @@ public class RestaurantControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Sletning af en restaurant, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task Delete_NonExistingId_ReturnsNotFound()
     {
@@ -302,6 +310,7 @@ public class RestaurantControllerTests
 
     // Restore
 
+    // Gendanner en restaurant og giver 204 No Content.
     [Fact]
     public async Task Restore_ExistingId_ReturnsNoContent()
     {
@@ -313,6 +322,7 @@ public class RestaurantControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // Gendannelse af en restaurant, der ikke findes, giver 404 Not Found.
     [Fact]
     public async Task Restore_NonExistingId_ReturnsNotFound()
     {
@@ -324,8 +334,9 @@ public class RestaurantControllerTests
         Assert.IsType<NotFoundResult>(result);
     }
 
-    // HardDelete (permanent delete)
+    // HardDelete (permanent sletning)
 
+    // Sletter en restaurant for altid og giver 204 No Content.
     [Fact]
     public async Task HardDelete_ExistingId_ReturnsNoContent()
     {
@@ -337,6 +348,7 @@ public class RestaurantControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
+    // En databasefejl under permanent sletning giver 409 Conflict.
     [Fact]
     public async Task HardDelete_WhenDbUpdateExceptionThrown_ReturnsConflict()
     {
@@ -350,6 +362,7 @@ public class RestaurantControllerTests
 
     // GetDeleted (admin trash view)
 
+    // Henter alle slettede restauranter og giver 200 OK.
     [Fact]
     public async Task GetDeleted_ReturnsOk()
     {

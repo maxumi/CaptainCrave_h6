@@ -4,24 +4,20 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Services;
 
-/// <summary>
-/// Sender ordre-notifikationer til forbundne klienter gennem NotificationHub.
-/// </summary>
+// Sender live-beskeder (notifikationer) om ordrer ud til de klienter, der lige nu er
+// forbundet via SignalR, gennem NotificationHub.
 public class SignalRNotificationService(IHubContext<NotificationHub> hubContext) : INotificationService
 {
     private readonly IHubContext<NotificationHub> _hubContext = hubContext;
 
-    /// <summary>Sender "NewOrder"-event til alle forbindelser i restaurantens gruppe.</summary>
-    /// <param name="restaurantId">Restauranten der skal have besked.</param>
-    /// <param name="orderId">Id på den nye ordre.</param>
+    // Sender en "NewOrder"-besked til alle, der lytter i restaurantens gruppe,
+    // så restauranten kan se den nye ordre dukke op med det samme, uden at genindlæse siden.
     public Task NotifyNewOrderAsync(int restaurantId, int orderId) =>
         _hubContext.Clients.Group(NotificationGroups.Restaurant(restaurantId))
             .SendAsync("NewOrder", new { orderId });
 
-    /// <summary>Sender "OrderStatusChanged"-event til alle forbindelser i kundens gruppe.</summary>
-    /// <param name="userId">Kunden der skal have besked.</param>
-    /// <param name="orderId">Ordren hvis status er ændret.</param>
-    /// <param name="newStatus">Ordrens nye status.</param>
+    // Sender en "OrderStatusChanged"-besked til kunden, så personen kan se med det samme,
+    // når restauranten f.eks. skifter ordren til "under tilberedning" eller "leveret".
     public Task NotifyOrderStatusChangedAsync(int userId, int orderId, OrderStatus newStatus) =>
         _hubContext.Clients.Group(NotificationGroups.User(userId))
             .SendAsync("OrderStatusChanged", new { orderId, status = newStatus.ToString() });

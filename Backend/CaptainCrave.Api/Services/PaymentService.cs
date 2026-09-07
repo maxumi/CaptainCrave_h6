@@ -18,7 +18,12 @@ public class PaymentService(
     private readonly IOrderRepository _orderRepository = orderRepository;
     private readonly INotificationService _notificationService = notificationService;
 
-    // Validerer ordren, kører den falske gateway og opdaterer ordrens status hvis betalingen lykkes.
+    /// <summary>
+    /// Tjekker at ordren findes og rent faktisk afventer betaling, kører den falske gateway,
+    /// og hvis betalingen lykkes: skifter ordren til "Pending" og gør restauranten opmærksom
+    /// på den nye ordre.
+    /// </summary>
+    /// <returns>Betalingsforsøget som DTO (med status Succeeded eller Failed).</returns>
     public async Task<PaymentDto> ProcessPaymentAsync(CreatePaymentDto dto)
     {
         var order = await _orderRepository.GetByIdAsync(dto.OrderId)
@@ -52,14 +57,23 @@ public class PaymentService(
         return created.ToDto();
     }
 
+    /// <summary>
+    /// Henter det seneste betalingsforsøg for en ordre, så brugeren kan se om betalingen
+    /// lykkedes, fejlede, eller stadig venter.
+    /// </summary>
+    /// <returns>Det seneste betalingsforsøg som DTO, eller null hvis der ikke er forsøgt betalt endnu.</returns>
     public async Task<PaymentDto?> GetLatestByOrderIdAsync(int orderId)
     {
         var payment = await _paymentRepository.GetLatestByOrderIdAsync(orderId);
         return payment?.ToDto();
     }
 
-    // Den falske "betalingsgateway": intet rigtigt kort tjekkes nogen steder.
-    // Regel til demo/test-brug: kortnumre der slutter på "0000" bliver afvist, alt andet godkendes.
+    /// <summary>
+    /// Den falske "betalingsgateway": der bliver IKKE tjekket noget rigtigt kort nogen steder.
+    /// Simpel regel til demo/test-brug: kortnumre der slutter på "0000" bliver afvist,
+    /// alt andet bliver godkendt.
+    /// </summary>
+    /// <returns>Om betalingen lykkedes, og en falsk kvitteringskode hvis den gjorde.</returns>
     private static (bool Succeeded, string? ProviderReference) SimulateCardCharge(string cardNumber)
     {
         var succeeded = !cardNumber.EndsWith("0000");
