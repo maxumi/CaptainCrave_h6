@@ -17,6 +17,9 @@ import { NearbyRestaurantsMap } from './feature/nearby-restaurants-map/nearby-re
 import { RestaurantsSearch } from './feature/restaurants-search/restaurants-search';
 import { Payment } from './feature/cart/payment/payment';
 
+/**
+ * Routes for the Angular, defining the paths and components
+ */
 export const routes: Routes = [
   { path: '', component: Home },
   { path: 'login', component: Login, canActivate: [guestGuard] },

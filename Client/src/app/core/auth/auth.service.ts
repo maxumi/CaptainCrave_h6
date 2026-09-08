@@ -30,7 +30,9 @@ interface AuthResponse {
   token: string;
 }
 
-
+/**
+ * A service that manages authentication state, handles login, registration, and logout, and provides utility methods for checking authentication and user roles.
+ */
 @Injectable({
   providedIn: 'root',
 })

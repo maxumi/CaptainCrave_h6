@@ -8,6 +8,11 @@ import { AuthService } from '../../core/auth/auth.service';
 import { Role } from '../../shared/models/user';
 import { RestaurantApiService } from '../../shared/restaurant-api.service';
 
+/**
+ * Home component is a starting page for the application.
+ *
+ * Redirects restaurant users to the restaurant creation page if they do not have a restaurant yet.
+ */
 @Component({
   selector: 'app-home',
   imports: [RouterLink, TranslocoModule],

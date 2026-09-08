@@ -1,6 +1,9 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
 
+/**
+ * Service for managing user profile
+ */
 @Injectable({
   providedIn: 'root',
 })

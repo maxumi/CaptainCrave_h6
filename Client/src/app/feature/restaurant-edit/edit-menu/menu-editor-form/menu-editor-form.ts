@@ -5,6 +5,9 @@ import { TranslocoModule } from '@jsverse/transloco';
 
 import { MenuEditMode } from '../edit-menu.models';
 
+/**
+ * Menu editor form component used to create or edit menu items.
+ */
 @Component({
   selector: 'app-menu-editor-form',
   imports: [CommonModule, TranslocoModule, FormField, FormRoot],

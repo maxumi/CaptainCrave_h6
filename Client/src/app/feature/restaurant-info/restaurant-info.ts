@@ -18,6 +18,9 @@ import {
 } from '../../shared/review-api.service';
 
 
+/**
+ * Component for displaying detailed information about a restaurant, including its menus, categories, menu items, and reviews.
+ */
 @Component({
   selector: 'app-restaurant-info',
   imports: [TranslocoModule, MenuItemCard, RouterLink, RestaurantReviews],

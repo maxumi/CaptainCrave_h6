@@ -8,6 +8,9 @@ import { providePreloadUserLang } from '../preload-user-lang';
 import { authInterceptor } from './core/auth/auth-interceptor';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
+/**
+ * Application configuration for the Angular app
+ */
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),

@@ -3,6 +3,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogActions, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from '@angular/material/dialog';
 import { TranslocoModule } from '@jsverse/transloco';
 
+/**
+ * Delete dialog component used to confirm the deletion of a menu item.
+ */
 @Component({
   selector: 'app-delete-dialog',
   imports: [TranslocoModule,MatButtonModule, MatDialogActions, MatDialogClose, MatDialogTitle, MatDialogContent],

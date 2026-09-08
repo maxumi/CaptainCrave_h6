@@ -7,6 +7,12 @@ import { CartService } from '../../../shared/cart.service';
 import { PaymentStatus } from '../../../shared/models/payment';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 
+/**
+ * Payment component for handling order payments.
+ * 
+ * Allows for user to input a card number and process the payment for an order.
+ * Does not use a real payment provider.
+ */
 @Component({
   selector: 'app-payment',
   imports: [TranslocoModule],
@@ -20,6 +26,7 @@ export class Payment {
   private readonly paymentApiService = inject(PaymentApiService);
   private readonly cartService = inject(CartService);
 
+  // orderId extracted from the route parameters
   readonly orderId = Number(this.route.snapshot.paramMap.get('orderId'));
 
   readonly cardNumber = signal('');

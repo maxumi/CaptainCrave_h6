@@ -1,3 +1,4 @@
+// Payment-related models and enums.
 export enum PaymentStatus {
   Pending = 'pending',
   Succeeded = 'succeeded',

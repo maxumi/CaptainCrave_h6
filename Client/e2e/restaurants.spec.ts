@@ -28,6 +28,10 @@ test('can open a restaurant page and view its information', async ({ page }) => 
   ).toBeVisible();
 
   await expect(
-    page.getByRole('heading', { level: 2 })
+    page.getByRole('heading', {
+      level: 2,
+      name: 'Menu',
+      exact: true,
+    })
   ).toBeVisible();
 });

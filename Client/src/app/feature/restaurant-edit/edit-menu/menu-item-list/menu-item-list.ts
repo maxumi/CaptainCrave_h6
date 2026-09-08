@@ -3,6 +3,9 @@ import { TranslocoModule } from '@jsverse/transloco';
 
 import { MenuItem } from '../edit-menu.models';
 
+/**
+ * Component for displaying a list of menu items for a specific restaurant, including options to add, delete, and select items.
+ */
 @Component({
   selector: 'app-menu-item-list',
   imports: [TranslocoModule],
@@ -10,12 +13,14 @@ import { MenuItem } from '../edit-menu.models';
   styleUrl: './menu-item-list.css',
 })
 export class MenuItemList {
+  // input properties for the menu item list component
   @Input() menuName: string | null = null;
   @Input() menuItems: MenuItem[] = [];
   @Input() selectedItemId: number | null = null;
   @Input() isMenuSelected = true;
   @Input() currency = '';
 
+  // output events for the menu item list component
   @Output() addItem = new EventEmitter<void>();
   @Output() deleteMenu = new EventEmitter<void>();
   @Output() selectItem = new EventEmitter<MenuItem>();

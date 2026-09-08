@@ -16,6 +16,9 @@ interface LoginFormData {
   password: string;
 }
 
+/**
+ * Login component that handles user authentication.
+ */
 @Component({
   selector: 'app-login',
   imports: [TranslocoModule, RouterLink, FormField, FormRoot],
@@ -31,6 +34,7 @@ export class Login {
   // The router is used to navigate to the home page after a successful login
   private readonly router = inject(Router);
 
+  // The model holding the login form data (Signal forms)
   loginModel = signal<LoginFormData>({
     email: '',
     password: '',

@@ -14,7 +14,9 @@ interface OrderStep {
   status: OrderStatus;
   icon: string;
 }
-
+/**
+ * Component for viewing the status of a customer's active order
+ */
 @Component({
   selector: 'app-order-status-view',
   imports: [DatePipe, DecimalPipe, MatIconModule, TranslocoModule],

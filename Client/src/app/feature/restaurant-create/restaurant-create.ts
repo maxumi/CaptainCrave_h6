@@ -22,6 +22,9 @@ interface RestaurantFormData {
   longitude: number;
 }
 
+/**
+ * Component for creating a new restaurant, including its details, location, and cover image.
+ */
 @Component({
   selector: 'app-restaurant-create',
   imports: [FormRoot, FormField, TranslocoModule],

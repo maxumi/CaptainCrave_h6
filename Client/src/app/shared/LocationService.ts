@@ -8,12 +8,15 @@ export interface LocationResult {
   label: string;
 }
 
+// Location source type indicating where the location was selected from.
 export type LocationSource = 'default' | 'guest' | 'profile';
 
+// Stored location including its source.
 export interface StoredLocation extends LocationResult {
   source: LocationSource;
 }
 
+// Result format returned by the Nominatim geocoding API.
 interface NominatimResult {
   lat: string;
   lon: string;
@@ -29,6 +32,7 @@ export class LocationService {
   private readonly storageKey = 'selectedLocation';
   private readonly http = inject(HttpClient);
 
+  // The default location used when no user-selected location is available.
   readonly defaultLocation: LocationResult = {
     lat: 55.6761,
     lng: 12.5683,
