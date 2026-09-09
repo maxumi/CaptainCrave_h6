@@ -6,19 +6,17 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Hubs;
 
-// Klienten forbinder til denne hub for at modtage live notifikationer.
-// Kræver et gyldigt JWT. Authoriserer kun tilknyttede brugere.
+// Klienten connecter til denne hub for at modtage live notifikationer.
+// kræver et gyldigt JWT 
 
 // Arver fra SignalR's Hub-klasse som håndterer realtidskommunikation mellem server og klient. 
-// og giver metoder til at sende beskeder til grupper af tilknyttede klienter.
 [Authorize]
 public class NotificationHub(IRestaurantRepository restaurantRepository) : Hub
 {
+    // DI: gemmer dependency i en private readonly field.
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
 
-    // Kører automatisk, når en klient forbinder til hubben.
-    // overrider base-metoden [Hub.OnConnectedAsync()] 
-    // og laver vores egen logik for at tilføje klienten til de relevante grupper.
+    // Kører automatisk, når en klient connecter til hubben, og overrider base-metoden [Hub.OnConnectedAsync()]
     public override async Task OnConnectedAsync()
     {
         // Placere brugeren i sin egen personlige gruppe, så der ikke sendes notifikationer til andre brugere.

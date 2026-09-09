@@ -10,50 +10,26 @@ namespace Api.Tests.Controllers;
 // UNIT-TEST 
 // xUnit er testframeworket 
 
-// Moq bruges til at mocke IPaymentService, så der aldrig rammes en rigtig database.
-// Hver test følger AAA-mønsteret: Arrange (opsæt controller/mock/data), Act (kald metoden),
-// Assert (tjek resultatet) - de tre trin ses tydeligt adskilt i hver test herunder.
+// Moq bruges til at mocke IPaymentService, så testen ikke bruger den rigtige database.
+// Hver test følger AAA-mønsteret: Arrange (opsæt controller/mock/data), Act (kald metoden), Assert (tjek resultatet)
 public class PaymentsControllerTests
 {
-
-    // Hjælpemetode: bygger en frisk controller + mock til hver test, på den måde ikke deler tilstand.
-    private static (PaymentsController controller, Mock<IPaymentService> mockService) CreateController()
-    {
-        // Opretter en mock af IPaymentService, som senere kan opsættes til at returnere bestemte svar.
-        var mockService = new Mock<IPaymentService>();
-
-        // Injects mock-objektet i controlleren i stedet for den rigtige service.
-        var controller = new PaymentsController(mockService.Object);
-
-        // Returnerer begge, så testen selv kan styre mocken og kalde controlleren.
-        return (controller, mockService);
-    }
-
-    // Hjælpemetode: bygger en færdig PaymentDto med standardværdier, som kan overskrives per test.
-    private static PaymentDto MakePaymentDto(int id = 1, int orderId = 1, PaymentStatus status = PaymentStatus.Succeeded) => new()
-    {
-        Id = id,
-        OrderId = orderId,
-        Amount = 99.50m,
-        Status = status,
-        ProviderReference = status == PaymentStatus.Succeeded ? "abc123" : null, // ProviderReference sætter transaction reference, når betalingen faktisk lykkedes (matcher rigtig service-logik).
-        CreatedAt = new DateTime(2026, 6, 1)
-    };
-
+ 
     // Create: tester for forskellige scenarier ved oprettelse af betaling.
 
-    [Fact] // testcase, kører kun en gang, uden parametre og uden dependencies.
+    [Fact] // testcase, kører kun en gang.
     public async Task Create_SuccessfulPayment_ReturnsCreatedAtAction()
     {
-        // Arrange: opret controller/mock, og lad mocken returnere en vellykket betaling.
+        // Arrange: opret controller/mock.
 
         // Opretter en ny controller til denne test, sammen med en mock af IPaymentService.
+        // truple destructuring
         var (controller, mockService) = CreateController(); 
 
         // Bygger en CreatePaymentDto med standardværdier for denne test.
         var dto = new CreatePaymentDto { OrderId = 1, CardNumber = "4111111111111111" };
 
-        // Opsætter mocken til at returnere en vellykket betaling, når ProcessPaymentAsync kaldes med denne DTO.
+        // Opsætter mocken til at returnere en succesfuld betaling, når ProcessPaymentAsync kaldes med denne DTO.
         mockService.Setup(s => s.ProcessPaymentAsync(dto)).ReturnsAsync(MakePaymentDto());
 
         // Act: kald selve controller-metoden.
@@ -195,4 +171,30 @@ public class PaymentsControllerTests
         // Assert: svaret skal være 404 Not Found.
         Assert.IsType<NotFoundResult>(result);
     }
+
+      // Hjælpemetode: bygger en frisk controller + mock til hver test, på den måde ikke deler tilstand.
+
+    private static (PaymentsController controller, Mock<IPaymentService> mockService) CreateController()
+    {
+        // Opretter en mock af IPaymentService, som senere kan opsættes til at returnere bestemte svar.
+        var mockService = new Mock<IPaymentService>();
+
+        // Injects mock-objektet i controlleren i stedet for den rigtige service.
+        var controller = new PaymentsController(mockService.Object);
+
+        // Returnerer begge, så testen selv kan styre mocken og kalde controlleren.
+        return (controller, mockService);
+    }
+
+    // Hjælpemetode: bygger en færdig PaymentDto med standardværdier, som kan overskrives per test.
+    private static PaymentDto MakePaymentDto(int id = 1, int orderId = 1, PaymentStatus status = PaymentStatus.Succeeded) => new()
+    {
+        Id = id,
+        OrderId = orderId,
+        Amount = 99.50m,
+        Status = status,
+        ProviderReference = status == PaymentStatus.Succeeded ? "abc123" : null, // ProviderReference sætter transaction reference, når betalingen faktisk lykkedes (matcher rigtig service-logik).
+        CreatedAt = new DateTime(2026, 6, 1)
+    };
+ 
 }

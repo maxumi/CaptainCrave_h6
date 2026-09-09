@@ -4,11 +4,9 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Services;
 
-// Sender notifikationer, om ordrer ud til de klienter, der lige nu er
-// forbundet via SignalR, gennem NotificationHub.
+// Sender notifikationer, om ordrer ud til de klienter, gennem NotificationHub.
 
-// IHubContext injected for at give klassen evne til at sende beskeder ud 
-// til de klienter der er forbundet til Hub'en, uden at være i huben
+// IHubContext injected for at give klassen evne til at sende beskeder ud til de klienter der er connected til Hub'en
 public class SignalRNotificationService(IHubContext<NotificationHub> hubContext) : INotificationService
 {
     // DI: gemmer i en private readonly field.
@@ -21,9 +19,9 @@ public class SignalRNotificationService(IHubContext<NotificationHub> hubContext)
         _hubContext.Clients.Group(NotificationGroups.Restaurant(restaurantId))
             .SendAsync("NewOrder", new { orderId });
 
-    // Sender en "OrderStatusChanged"-besked til kunden, så personen kan se med det samme,
-    // når restauranten f.eks. skifter ordren til "under tilberedning" eller "leveret".
+    // Sender en "OrderStatusChanged" besked til kunden, så personen kan se med det samme
     public Task NotifyOrderStatusChangedAsync(int userId, int orderId, OrderStatus newStatus) =>
         _hubContext.Clients.Group(NotificationGroups.User(userId))
             .SendAsync("OrderStatusChanged", new { orderId, status = newStatus.ToString() });
 }
+ 

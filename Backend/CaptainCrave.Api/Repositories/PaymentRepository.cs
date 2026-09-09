@@ -4,28 +4,27 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Repositories;
 
-// Denne klasse snakker direkte med databasen (via EF Core) og henter/gemmer betalinger.
+// Repository snakker direkte med databasen .
 
-// primary constructor, som tager AppDbContext (databaseforbindelsen) ind.
+// tager AppDbContext (databaseforbindelsen) ind.
 public class PaymentRepository(AppDbContext db) : IPaymentRepository
 {
-    // DI: gemmer databasekonteksten, så metoderne kan lave requests.
+    // DI: gemmer dependency i en private readonly field.
     private readonly AppDbContext _db = db;
 
     // Indsætter betalingen og returnerer den med det databasegenererede Id.
     public async Task<Payment> CreateAsync(Payment payment)
     {
-        _db.Payments.Add(payment);
-        await _db.SaveChangesAsync();
-        return payment;
+        _db.Payments.Add(payment); // tilføjer batalingen til EF Core's change tracking system
+        await _db.SaveChangesAsync(); // gemmer ændringen i databasen, der genereres Id'et
+        return payment; 
     }
 
     // Henter det seneste betalingsforsøg for en given ordre.
-    // AsNoTracking, da resultatet kun bruges til læsning, ikke opdatering.
     public async Task<Payment?> GetLatestByOrderIdAsync(int orderId) =>
         await _db.Payments
             .AsNoTracking()
             .Where(p => p.OrderId == orderId)
             .OrderByDescending(p => p.CreatedAt) // Sorterer efter oprettelsestidspunkt.
-            .FirstOrDefaultAsync(); // Henter det seneste betalingsforsøg for ordren.
+            .FirstOrDefaultAsync(); // Henter første.
 }

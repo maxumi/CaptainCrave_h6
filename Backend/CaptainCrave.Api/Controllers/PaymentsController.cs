@@ -11,16 +11,14 @@ namespace Api.Controllers;
 [ApiController] // giver API opførsel til hele klassen.
 [Route("api/[controller]")] 
 
-// primary constructor, som tager en IPaymentService og arver fra ControllerBase.
 public class PaymentsController(IPaymentService paymentService) : ControllerBase
 {
-    // DI: Gemmer dependency i en private readonly field, 
-    // der holder reference til service-laget.
+    // DI: Gemmer dependency i en private readonly field (encapsu)
     private readonly IPaymentService _paymentService = paymentService;
 
-    // POST: api/payments - gennemfører en (falsk) betaling for en ordre der afventer betaling.
-    [HttpPost]
-    [Authorize(Roles = "Customer,Admin")]
+    // POST: api/payments gennemfører en falsk betaling for en ordre der afventer betaling.
+    [HttpPost] 
+    [Authorize(Roles = "Customer, Admin")]
     public async Task<IActionResult> Create(CreatePaymentDto dto)
     {
         // checker om model-state er gyldig. 
