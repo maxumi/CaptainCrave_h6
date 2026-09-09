@@ -4,17 +4,20 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Services;
 
-// Sender live-beskeder (notifikationer) om ordrer ud til de klienter, der lige nu er
+// Sender notifikationer, om ordrer ud til de klienter, der lige nu er
 // forbundet via SignalR, gennem NotificationHub.
+
+// IHubContext injected for at give klassen evne til at sende beskeder ud 
+// til de klienter der er forbundet til Hub'en, uden at være i huben
 public class SignalRNotificationService(IHubContext<NotificationHub> hubContext) : INotificationService
 {
+    // DI: gemmer i en private readonly field.
     private readonly IHubContext<NotificationHub> _hubContext = hubContext;
 
-    // Sender en "NewOrder"-besked til alle, der lytter i restaurantens gruppe,
-    // så restauranten kan se den nye ordre dukke op med det samme, uden at genindlæse siden.
+    // Sender "NewOrder" til restauranten, når der kommer en ny ordre fra en kunde.
     public Task NotifyNewOrderAsync(int restaurantId, int orderId) =>
-        // Eventnavnet "NewOrder" er aftalen mellem backend og klient.
-        // IHubContext lader en almindelig Service sende gennem Hubben.
+        
+        // Kun restaurantens egen gruppe modtager beskeden; "NewOrder" er eventnavnet klienten lytter efter.
         _hubContext.Clients.Group(NotificationGroups.Restaurant(restaurantId))
             .SendAsync("NewOrder", new { orderId });
 

@@ -6,24 +6,26 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Api.Hubs;
 
-// SignalR-hub som klienter forbinder til for at modtage live besked om ordrer.
-// Kræver et gyldigt JWT. Når en klient forbinder, bliver den automatisk lagt
-// i sin egen gruppe, og, hvis brugeren er en restaurant, også restaurantens gruppe.
+// Klienten forbinder til denne hub for at modtage live notifikationer.
+// Kræver et gyldigt JWT. Authoriserer kun tilknyttede brugere.
+
+// Arver fra SignalR's Hub-klasse som håndterer realtidskommunikation mellem server og klient. 
+// og giver metoder til at sende beskeder til grupper af tilknyttede klienter.
 [Authorize]
 public class NotificationHub(IRestaurantRepository restaurantRepository) : Hub
 {
     private readonly IRestaurantRepository _restaurantRepository = restaurantRepository;
 
-    // Lægger den forbindende klient i de rigtige grupper, så den kun modtager
-    // beskeder der er relevante for netop den bruger.
+    // Kører automatisk, når en klient forbinder til hubben.
+    // overrider base-metoden [Hub.OnConnectedAsync()] 
+    // og laver vores egen logik for at tilføje klienten til de relevante grupper.
     public override async Task OnConnectedAsync()
     {
-        // Hubben placerer forbindelsen i målrettede grupper, så ordredata ikke sendes til alle.
-        // Alle brugere lægges i deres egen personlige gruppe (bruges til f.eks. "din ordrestatus ændrede sig").
+        // Placere brugeren i sin egen personlige gruppe, så der ikke sendes notifikationer til andre brugere.
         var userId = Context.User!.GetId();
         await Groups.AddToGroupAsync(Context.ConnectionId, NotificationGroups.User(userId));
 
-        // Restaurantejere lægges også i deres restaurants gruppe (bruges til "ny ordre modtaget").
+        // Hvis brugeren er en restaurantejer, placeres de også i deres restaurants gruppe.
         if (Context.User!.GetRole() == UserRole.Restaurant)
         {
             var restaurant = await _restaurantRepository.GetSingleByUserIdAsync(userId);
@@ -31,6 +33,7 @@ public class NotificationHub(IRestaurantRepository restaurantRepository) : Hub
                 await Groups.AddToGroupAsync(Context.ConnectionId, NotificationGroups.Restaurant(restaurant.Id));
         }
 
+        // base-metoden skal altid kaldes til sidst for at sikre korrekt SignalR-opførsel.
         await base.OnConnectedAsync();
     }
 }

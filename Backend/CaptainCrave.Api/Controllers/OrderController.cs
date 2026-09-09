@@ -9,22 +9,24 @@ namespace Api.Controllers;
 // Håndterer requests relateret til kunde- og restaurantordrer.
 [ApiController]
 [Route("api/[controller]")]
+
+// primary constructor 
 public class OrdersController(IOrderService orderService) : ControllerBase
 {
+    // DI for OrderService.
     private readonly IOrderService _orderService = orderService;
 
+    // Controlleren håndterer HTTP: input valideres, og arbejdet sendes til OrderService.
     // POST: api/orders — Opretter en ny ordre for en kunde eller administrator.
     [HttpPost]
     [Authorize(Roles = "Customer,Admin")] // Kun kunder og administratorer kan oprette ordrer.
     public async Task<IActionResult> Create(CreateOrderDto dto)
     {
-        // Controlleren håndterer HTTP: input valideres, og arbejdet sendes til OrderService.
-        // Prisberegning og andre forretningsregler ligger derfor ikke her.
         // Kontrollerer om request-data opfylder valideringskravene. 
         // Hvis ikke, returneres en 400 Bad Request med fejlbeskeder.
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
+        
         try
         {
             var created = await _orderService.CreateAsync(dto);

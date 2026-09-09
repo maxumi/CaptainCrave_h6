@@ -15,9 +15,6 @@ public class TokenService(IConfiguration config) : ITokenService
     /// Klienten sender dette token med i alle kald bagefter, så serveren ved hvem der spørger.
     /// </summary>
     /// <returns>Et færdigt, underskrevet JWT-token som en tekststreng.</returns>
-public class TokenService(IConfiguration config) : ITokenService
-{
-    // Opretter et JWT-token med brugerens ID, e-mail og rolle som claims
     public string GenerateToken(User user)
     {
         // Henter den hemmelige nøgle, der bruges til at signere tokenet.

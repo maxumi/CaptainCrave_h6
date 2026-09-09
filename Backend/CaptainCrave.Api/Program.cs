@@ -204,6 +204,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// SignalR hubs
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 try

@@ -34,8 +34,8 @@ public class RestaurantRepository(AppDbContext db) : IRestaurantRepository
     public async Task<IEnumerable<Restaurant>> GetByUserIdAsync(int userId) =>
         await _db.Restaurants.AsNoTracking().Where(r => r.UserId == userId).ToListAsync();
 
-    /// <summary>Henter den ene restaurant, en bestemt bruger ejer (de fleste brugere ejer højst én).</summary>
-    /// <returns>Brugerens restaurant, eller null hvis brugeren ikke ejer nogen.</returns>
+    // Henter den ene restaurant, en bestemt bruger ejer (de fleste brugere ejer højst én)
+    // <returns>Brugerens restaurant, eller null hvis brugeren ikke ejer nogen.</returns>
     public async Task<Restaurant?> GetSingleByUserIdAsync(int userId) =>
         await _db.Restaurants.AsNoTracking().FirstOrDefaultAsync(r => r.UserId == userId);
 

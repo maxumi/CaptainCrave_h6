@@ -6,49 +6,51 @@ using Api.Repositories;
 
 namespace Api.Services;
 
-// Falsk/mock betalingssystem: der ringes ikke til nogen rigtig udbyder (Stripe, Adyen osv.),
-// men flowet (opret forsøg -> "gennemfør" betaling -> opdatér ordre) matcher hvordan en rigtig
+// Falsk/mock betalingssystem: der ringes ikke til nogen rigtig udbyder (Stripe, Adyen osv.).
+// Flowet (opret forsøg -> "gennemfør" betaling -> opdatér ordre) matcher hvordan en rigtig
 // integration ville se ud, så en rigtig gateway kan sættes ind senere uden at ændre resten af koden.
+
+// primary constructor, som tager tre afhængigheder ind.
 public class PaymentService(
     IPaymentRepository paymentRepository,
     IOrderRepository orderRepository,
     INotificationService notificationService) : IPaymentService
 {
+    // DI: gemmer afhængighederne, så metoderne i klassen kan bruge dem.
     private readonly IPaymentRepository _paymentRepository = paymentRepository;
     private readonly IOrderRepository _orderRepository = orderRepository;
     private readonly INotificationService _notificationService = notificationService;
 
-    /// <summary>
-    /// Tjekker at ordren findes og rent faktisk afventer betaling, kører den falske gateway,
-    /// og hvis betalingen lykkes: skifter ordren til "Pending" og gør restauranten opmærksom
-    /// på den nye ordre.
-    /// </summary>
-    /// <returns>Betalingsforsøget som DTO (med status Succeeded eller Failed).</returns>
+    // Gennemfører et betalingsforsøg for en ordre.
     public async Task<PaymentDto> ProcessPaymentAsync(CreatePaymentDto dto)
     {
-        // Dette er et mock-flow, ikke en rigtig betaling. De normale trin vises stadig:
-        // tjek ordre, gem forsøg, opdatér status og send besked.
-        // Beløbet kommer altid fra ordren på serveren.
+        // Finder ordren i databasen ud fra det angivne OrderId. 
+        // Hvis ordren ikke findes, kastes en KeyNotFoundException.
         var order = await _orderRepository.GetByIdAsync(dto.OrderId)
             ?? throw new KeyNotFoundException($"Order {dto.OrderId} not found.");
 
+        // Kun ordrer der afventer betaling, må betales.
+        // Hvis ordren ikke afventer betaling, kastes en InvalidOperationException.
         if (order.Status != OrderStatus.AwaitingPayment)
             throw new InvalidOperationException("This order does not have a pending payment.");
 
+        // Kører den falske betalingsgateway.
         var (succeeded, providerReference) = SimulateCardCharge(dto.CardNumber);
 
+        // ny payment 
         var payment = new Payment
         {
             OrderId = order.Id,
-            // Beløbet hentes fra ordren (server-side), aldrig fra klienten.
-            Amount = order.TotalPrice,
+            Amount = order.TotalPrice, // Beløbet hentes fra ordren, aldrig fra klienten.
             Status = succeeded ? PaymentStatus.Succeeded : PaymentStatus.Failed,
             ProviderReference = providerReference,
             CreatedAt = DateTime.UtcNow
         };
 
+        // Gemmer forsøget i databasen, uanset om det lykkedes eller ej.
         var created = await _paymentRepository.CreateAsync(payment);
-
+        
+        // Hvis betalingen lykkedes, opdateres ordren og restauranten notificeres.
         if (succeeded)
         {
             // Kun en succes flytter ordren videre. Et fejlet forsøg gemmes som historik.
@@ -58,26 +60,19 @@ public class PaymentService(
             await _notificationService.NotifyNewOrderAsync(order.RestaurantId, order.Id);
         }
 
+
+        // Returnerer det oprettede betalingsforsøg som DTO, uanset om det lykkedes eller ej.
         return created.ToDto();
     }
 
-    /// <summary>
-    /// Henter det seneste betalingsforsøg for en ordre, så brugeren kan se om betalingen
-    /// lykkedes, fejlede, eller stadig venter.
-    /// </summary>
-    /// <returns>Det seneste betalingsforsøg som DTO, eller null hvis der ikke er forsøgt betalt endnu.</returns>
+    // Henter det seneste betalingsforsøg, så brugeren kan se om det lykkedes, fejlede eller venter.
     public async Task<PaymentDto?> GetLatestByOrderIdAsync(int orderId)
     {
         var payment = await _paymentRepository.GetLatestByOrderIdAsync(orderId);
         return payment?.ToDto();
     }
 
-    /// <summary>
-    /// Den falske "betalingsgateway": der bliver IKKE tjekket noget rigtigt kort nogen steder.
-    /// Simpel regel til demo/test-brug: kortnumre der slutter på "0000" bliver afvist,
-    /// alt andet bliver godkendt.
-    /// </summary>
-    /// <returns>Om betalingen lykkedes, og en falsk kvitteringskode hvis den gjorde.</returns>
+    // Falsk gateway: kort der slutter på "0000" fejler, alt andet bliver godkendt.
     private static (bool Succeeded, string? ProviderReference) SimulateCardCharge(string cardNumber)
     {
         var succeeded = !cardNumber.EndsWith("0000");

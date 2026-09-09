@@ -103,32 +103,37 @@ public class MenuItemsController(IMenuItemService menuItemService, IRestaurantSe
     [RequestSizeLimit(5_000_000)]
     public async Task<IActionResult> UploadImage(int id, IFormFile file)
     {
-        // Controlleren styrer HTTP-flowet; storage-servicen validerer og gemmer filen.
-        // RequestSizeLimit stopper store requests tidligt, mens SaveAsync tjekker igen.
+        // checker om brugeren er logget ind og har de nødvendige rettigheder.
         var userId = GetCurrentUserId();
         if (userId is null)
             return Unauthorized();
 
-        string relativeUrl;
+        string relativeUrl; 
+
+        // Gemmer billedet lokalt under wwwroot/uploads/menu-items.
         try
         {
+            // Gemmer billedet og får den relative URL tilbage. 
             relativeUrl = await _imageStorageService.SaveAsync(file, "menu-items");
         }
         catch (InvalidOperationException ex)
         {
+            // returnerer en 400 Bad Request med fejlbeskeden, 
+            // fx Unsupported file type eller File is empty or exceeds the 5 MB limit.
             return BadRequest(new { message = ex.Message });
         }
 
+        // Opdaterer menu-item'et med den nye billed-URL. 
+        // rollen tjekkes for at sikre, at brugeren har de nødvendige rettigheder.
         var updated = await _menuItemService.UpdateImageUrlAsync(id, relativeUrl, userId.Value, User.IsInRole("Admin"));
         if (updated is null)
         {
-            // Hvis databasen ikke kan bruge billedet, slettes filen igen,
-            // så serveren ikke efterlades med en fil uden et menu-item.
+            // hvis opdateringen af menu-item'et mislykkedes, slettes det uploadede billede.
             _imageStorageService.Delete(relativeUrl);
             return NotFound();
         }
-
-        return Ok(updated);
+        
+        return Ok(updated); // Returnerer den opdaterede menu-item med den nye billed-URL.
     }
 
     // Soft deleter et menu-item, hvis brugeren har adgang til det.
